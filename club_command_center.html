@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#1a56db">
+<title>PlayPro — Club Command Center</title>
+<link rel="stylesheet" href="../css/shared_dashboard_styles.css">
+<style>
+.club-hero{background:linear-gradient(135deg,#1e3a8a 0%,#1a56db 100%)}
+.standing-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--grey-100)}
+.standing-pos{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.pos-1{background:var(--gold-light);color:var(--gold-dark)}
+.pos-2{background:var(--grey-100);color:var(--grey-700)}
+.pos-3{background:var(--gold-light);color:#b45309}
+.pos-n{background:var(--grey-100);color:var(--grey-600)}
+.standing-club{flex:1;font-size:14px;font-weight:600;color:var(--grey-800)}
+.standing-pts{font-size:16px;font-weight:800;color:var(--blue)}
+.val-bar{height:6px;background:var(--grey-100);border-radius:999px;overflow:hidden;margin-top:4px}
+.val-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blue),var(--green))}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+
+<aside class="app-sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-mark" style="background:var(--blue)">🛡️</div>
+    <span>PlayPro</span>
+  </div>
+  <div class="sidebar-section-label">Club Center</div>
+  <div class="sidebar-item active" data-page="overview"><span class="sidebar-item-icon">🏠</span>Overview</div>
+  <div class="sidebar-item" data-page="squad"><span class="sidebar-item-icon">👥</span>Squad</div>
+  <div class="sidebar-item" data-page="dna"><span class="sidebar-item-icon">🧬</span>Club DNA</div>
+  <div class="sidebar-item" data-page="development"><span class="sidebar-item-icon">📈</span>Development</div>
+  <div class="sidebar-item" data-page="finances"><span class="sidebar-item-icon">💰</span>Market Values</div>
+  <div class="sidebar-item" data-page="league"><span class="sidebar-item-icon">🏆</span>League</div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" style="background:var(--blue)" id="s-avatar"></div>
+      <div><div class="sidebar-user-name" id="s-name"></div><div class="sidebar-user-role">Club Admin</div></div>
+    </div>
+  </div>
+</aside>
+
+<header class="top-bar">
+  <div class="top-bar-logo">
+    <div class="top-bar-logo-mark" style="background:var(--blue)">🛡️</div>
+    <span class="top-bar-title" id="top-club"></span>
+  </div>
+  <div class="top-bar-right">
+    <div class="top-bar-btn" onclick="PP.openModal(notifHTML())">🔔</div>
+    <div class="top-bar-btn" id="top-av" style="background:var(--blue);color:white;font-weight:700;font-size:13px"></div>
+  </div>
+</header>
+
+<main class="app-main">
+
+<!-- OVERVIEW -->
+<div class="page active" id="page-overview">
+  <div class="hero-banner club-hero" style="margin:16px 16px 0">
+    <div class="hero-badge">🛡️ Club Admin Dashboard</div>
+    <div class="hero-title" id="h-club"></div>
+    <div class="hero-sub" id="h-sub"></div>
+  </div>
+
+  <div style="padding:16px 16px 0">
+    <div class="stat-grid stat-grid-4" id="ov-stats"></div>
+  </div>
+
+  <!-- League Position Banner -->
+  <div style="padding:16px 16px 0">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">📊 League Standing</div><div id="standing-pts" class="card-header-action" style="font-size:18px;font-weight:800"></div></div>
+      <div class="card-pad" id="standing-detail"></div>
+    </div>
+  </div>
+
+  <!-- Club DNA summary -->
+  <div class="section-title" style="margin-top:8px">🧬 Club DNA <a onclick="goPage('dna')">Full report →</a></div>
+  <div style="padding:0 16px">
+    <div class="card">
+      <div class="card-pad">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px">
+          <div style="text-align:center">
+            ${PP.ring(71,100,{size:72,stroke:8,color:'var(--blue)',label:'71',sublabel:'DNA'})}
+          </div>
+          <div style="flex:1" id="ov-dna-bars"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--grey-400)">
+          <span>${C.assessed} of ${C.squad_size} players assessed</span>
+          <span style="color:var(--blue);font-weight:600;cursor:pointer" onclick="goPage('squad')">Assess remaining →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wonderkids & Alerts -->
+  <div class="section-title" style="margin-top:8px">🌟 Wonderkids</div>
+  <div class="h-scroll" id="ov-wonderkids"></div>
+
+  <div style="margin:0 16px 12px" id="ov-alerts"></div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- SQUAD -->
+<div class="page" id="page-squad">
+  <div class="page-header"><div class="page-title">Squad</div><div class="page-sub">All registered players · Roles · Development status</div></div>
+  <div class="chips" id="squad-pos-chips">
+    <div class="chip active" data-pos="all">All</div>
+    <div class="chip" data-pos="goalkeeper">GK</div>
+    <div class="chip" data-pos="defender">DEF</div>
+    <div class="chip" data-pos="midfielder">MID</div>
+    <div class="chip" data-pos="forward">FWD</div>
+  </div>
+  <div class="card mx-16" id="club-squad-list"></div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- CLUB DNA -->
+<div class="page" id="page-dna">
+  <div class="page-header"><div class="page-title">Club DNA Report</div><div class="page-sub">Squad-level attribute intelligence</div></div>
+
+  <!-- Radar -->
+  <div style="padding:0 16px 16px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">DNA Radar</div>${PP.bandBadge('developing')}</div>
+      <div class="card-pad" style="display:flex;align-items:center;gap:16px">
+        <div>${PP.radar([C.dna.technical,C.dna.physical,C.dna.mental,C.dna.tactical,65],['Tech','Phys','Mental','Tact','Poten'])}</div>
+        <div style="flex:1">
+          ${PP.dnaBar('Technical', C.dna.technical, 'var(--green)')}
+          ${PP.dnaBar('Physical',  C.dna.physical,  'var(--blue)')}
+          ${PP.dnaBar('Mental',    C.dna.mental,    'var(--purple)')}
+          ${PP.dnaBar('Tactical',  C.dna.tactical,  'var(--gold)')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Strengths & Weaknesses -->
+  <div class="section-title">Strongest Attributes</div>
+  <div class="card mx-16 card-pad" id="dna-strengths"></div>
+  <div class="section-title" style="margin-top:8px">Development Areas</div>
+  <div class="card mx-16 card-pad" id="dna-weaknesses"></div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- DEVELOPMENT -->
+<div class="page" id="page-development">
+  <div class="page-header"><div class="page-title">Development</div><div class="page-sub">Growth trends · Projections · Wonderkid radar</div></div>
+
+  <div style="padding:0 16px 12px">
+    <div class="stat-grid stat-grid-3">
+      <div class="stat-cell"><div class="stat-num green">${PL.filter(p=>p.trend==='improving'||p.trend==='rapidly_improving').length}</div><div class="stat-lbl">Improving</div></div>
+      <div class="stat-cell"><div class="stat-num blue">${PL.filter(p=>p.trend==='stable').length}</div><div class="stat-lbl">Stable</div></div>
+      <div class="stat-cell"><div class="stat-num red">${PL.filter(p=>p.trend==='declining'||p.trend==='rapidly_declining').length}</div><div class="stat-lbl">Declining</div></div>
+    </div>
+  </div>
+
+  <div class="section-title">Development Leaderboard</div>
+  <div class="card mx-16" id="dev-leaderboard"></div>
+
+  <div class="section-title" style="margin-top:8px">Projection Chart — Peak DNA</div>
+  <div class="card mx-16" style="padding:16px" id="proj-chart"></div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- MARKET VALUES -->
+<div class="page" id="page-finances">
+  <div class="page-header"><div class="page-title">Market Values</div><div class="page-sub">Squad valuation · Individual market values</div></div>
+
+  <div style="padding:0 16px 12px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">Total Squad Value</div></div>
+      <div class="card-pad" style="text-align:center">
+        <div style="font-size:36px;font-weight:900;color:var(--blue)">${PP.fmtMyr(C.market_value_total)}</div>
+        <div style="font-size:13px;color:var(--grey-400);margin-top:4px">Based on DNA, age, league tier and potential</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Individual Valuations</div>
+  <div class="card mx-16" id="market-list"></div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- LEAGUE -->
+<div class="page" id="page-league">
+  <div class="page-header"><div class="page-title">League</div><div class="page-sub">${C.league} · Season ${C.season}</div></div>
+  <div style="padding:0 16px 12px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">Standings</div><div class="card-header-action">Week 16</div></div>
+      <div id="league-standings"></div>
+    </div>
+  </div>
+  <div class="section-title">Upcoming Fixtures</div>
+  <div style="padding:0 16px">
+    <div class="card" style="padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:16px;font-weight:700">${C.name}</div>
+          <div style="font-size:13px;color:var(--grey-400)">${C.next_match.is_home?'Home':'Away'}</div>
+        </div>
+        <div style="font-size:24px;font-weight:900;color:var(--grey-300)">vs</div>
+        <div style="text-align:right">
+          <div style="font-size:16px;font-weight:700">${C.next_match.opponent}</div>
+          <div style="font-size:13px;color:var(--grey-400)">${C.next_match.is_home?'Away':'Home'}</div>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--grey-500);border-top:1px solid var(--grey-100);padding-top:10px">
+        📅 ${C.next_match.date} &nbsp;·&nbsp; 📍 ${C.next_match.venue}
+      </div>
+    </div>
+  </div>
+  <div style="height:24px"></div>
+</div>
+
+</main>
+
+<nav class="app-bottom-nav">
+  <div class="bn-tab active" data-page="overview"><div class="bn-tab-icon">🏠</div><span>Home</span></div>
+  <div class="bn-tab" data-page="squad"><div class="bn-tab-icon">👥</div><span>Squad</span></div>
+  <div class="bn-tab" data-page="dna"><div class="bn-tab-icon">🧬</div><span>DNA</span></div>
+  <div class="bn-tab" data-page="development"><div class="bn-tab-icon">📈</div><span>Develop</span></div>
+  <div class="bn-tab" data-page="finances"><div class="bn-tab-icon">💰</div><span>Value</span></div>
+</nav>
+</div>
+
+<script src="../js/shared_dashboard_components.js"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/repositories.js"></script>
+<script src="../js/dashboard_integration.js"></script>
+<script src="../js/playpro_audit_fixes.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  await DI.boot("club");
+  initDashboard();
+});
+
+function initDashboard() {
+const D=PP.data, U=D.user, C=D.club, PL=D.players;
+
+// Init
+document.getElementById('top-club').textContent=C.name;
+document.getElementById('top-av').textContent=PP.initials(U.name);
+document.getElementById('s-avatar').textContent=PP.initials(U.name);
+document.getElementById('s-name').textContent=U.name;
+document.getElementById('h-club').textContent=C.name;
+document.getElementById('h-sub').textContent=`${C.league} · Position ${C.standing.position} · ${C.squad_size} players`;
+
+// Nav
+const allPages=document.querySelectorAll('.page'),bnTabs=document.querySelectorAll('.bn-tab'),sideItems=document.querySelectorAll('.sidebar-item');
+function goPage(n){allPages.forEach(p=>p.classList.toggle('active',p.id==='page-'+n));bnTabs.forEach(t=>t.classList.toggle('active',t.dataset.page===n));sideItems.forEach(s=>s.classList.toggle('active',s.dataset.page===n))}
+bnTabs.forEach(t=>t.addEventListener('click',()=>goPage(t.dataset.page)));
+sideItems.forEach(s=>s.addEventListener('click',()=>goPage(s.dataset.page)));
+
+// Overview stats
+document.getElementById('ov-stats').innerHTML=[
+  {n:C.standing.position,l:'League Pos',c:'blue'},{n:C.standing.pts,l:'Points',c:'green'},
+  {n:C.dna.overall,l:'Club DNA',c:'purple'},{n:C.wonderkids,l:'Wonderkids',c:'gold'}
+].map(s=>`<div class="stat-cell"><div class="stat-num ${s.c}">${s.n}</div><div class="stat-lbl">${s.l}</div></div>`).join('');
+
+// Standing detail
+const st=C.standing;
+document.getElementById('standing-pts').textContent=st.pts+' pts';
+document.getElementById('standing-detail').innerHTML=`
+  <div class="stat-grid stat-grid-4" style="border-radius:var(--r-sm);overflow:hidden;margin-bottom:12px">
+    <div class="stat-cell"><div class="stat-num">${st.played}</div><div class="stat-lbl">Played</div></div>
+    <div class="stat-cell"><div class="stat-num green">${st.w}</div><div class="stat-lbl">Won</div></div>
+    <div class="stat-cell"><div class="stat-num gold">${st.d}</div><div class="stat-lbl">Drawn</div></div>
+    <div class="stat-cell"><div class="stat-num red">${st.l}</div><div class="stat-lbl">Lost</div></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+    <div style="font-size:13px;color:var(--grey-600)">GF ${st.gf} · GA ${st.ga} · GD ${st.gd>0?'+':''}${st.gd}</div>
+    <div style="display:flex;gap:4px">${PP.formStrip(C.last_5_results)}</div>
+  </div>`;
+
+// Overview DNA bars
+document.getElementById('ov-dna-bars').innerHTML=
+  PP.dnaBar('Technical',C.dna.technical,'var(--green)')+
+  PP.dnaBar('Physical',C.dna.physical,'var(--blue)')+
+  PP.dnaBar('Mental',C.dna.mental,'var(--purple)')+
+  PP.dnaBar('Tactical',C.dna.tactical,'var(--gold)');
+
+// Wonderkids
+const wk=PL.filter(p=>p.projection.wonderkid);
+document.getElementById('ov-wonderkids').innerHTML=wk.map(p=>`
+  <div style="flex-shrink:0;width:160px;background:white;border-radius:var(--r);border:1px solid var(--grey-200);padding:14px;cursor:pointer" onclick="openPlayerModal('${p.id}')">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div style="width:36px;height:36px;border-radius:50%;background:${PP.bandColor(p.dna.band)}15;color:${PP.bandColor(p.dna.band)};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px">${PP.initials(p.name)}</div>
+      <div><div style="font-size:13px;font-weight:700">${p.preferred}</div><div style="font-size:11px;color:var(--grey-400)">${p.role}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;text-align:center;font-size:11px">
+      <div style="background:var(--grey-50);border-radius:4px;padding:4px"><div style="font-weight:800;font-size:16px;color:${PP.bandColor(p.dna.band)}">${p.dna.overall}</div><div style="color:var(--grey-400)">DNA</div></div>
+      <div style="background:var(--gold-light);border-radius:4px;padding:4px"><div style="font-weight:800;font-size:16px;color:var(--gold-dark)">${p.projection.peak_dna}</div><div style="color:var(--gold-dark)">Peak</div></div>
+    </div>
+  </div>`).join('');
+
+// Alerts
+const hr=PL.filter(p=>p.injury_risk==='high'||p.injury_risk==='very_high');
+const lm=PL.filter(p=>p.morale.score<60);
+document.getElementById('ov-alerts').innerHTML=(hr.length?`<div class="alert alert-red mb-3"><div class="alert-icon">⚠️</div><div class="alert-body"><div class="alert-title">Injury Risk Alert</div><div class="alert-msg">${hr.map(p=>p.preferred).join(', ')} showing elevated risk</div></div></div>`:'')+(lm.length?`<div class="alert alert-gold"><div class="alert-icon">😔</div><div class="alert-body"><div class="alert-title">Morale Alert</div><div class="alert-msg">${lm.map(p=>p.preferred).join(', ')} — low morale detected</div></div></div>`:'');
+
+// Squad list
+function renderSquad(pos='all'){
+  const list=pos==='all'?PL:PL.filter(p=>p.pos===pos);
+  document.getElementById('club-squad-list').innerHTML=[...list].sort((a,b)=>b.dna.overall-a.dna.overall).map(p=>`
+    <div class="player-row" onclick="openPlayerModal('${p.id}')">
+      <div class="player-avatar" style="background:${PP.bandColor(p.dna.band)}15;color:${PP.bandColor(p.dna.band)}">${PP.initials(p.name)}</div>
+      <div class="player-info">
+        <div class="player-name">${p.preferred} <span style="font-size:11px;color:var(--grey-400)">#${p.jersey}</span></div>
+        <div class="player-meta">${p.role} · ${PP.posLabel(p.pos)} · Age ${p.age}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:18px;font-weight:800;color:${PP.bandColor(p.dna.band)}">${p.dna.overall}</div>
+        <div style="font-size:10px;color:${PP.trendColor(p.trend)}">${PP.trendIcon(p.trend)} ${PP.trendColor(p.trend)?'':''}</div>
+      </div>
+    </div>`).join('');
+}
+renderSquad();
+document.querySelectorAll('#squad-pos-chips .chip').forEach(c=>{
+  c.addEventListener('click',()=>{document.querySelectorAll('#squad-pos-chips .chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');renderSquad(c.dataset.pos);});
+});
+
+// DNA strengths / weaknesses
+const allAttrs = PL.reduce((acc,p)=>{
+  Object.entries(p.attrs).forEach(([k,v])=>{acc[k]=(acc[k]||[]); acc[k].push(v);});
+  return acc;},{});
+const avgAttrs = Object.entries(allAttrs).map(([k,vals])=>({name:k,avg:vals.reduce((a,b)=>a+b,0)/vals.length}));
+const sorted = avgAttrs.sort((a,b)=>b.avg-a.avg);
+document.getElementById('dna-strengths').innerHTML=sorted.slice(0,5).map(a=>`
+  <div class="dna-row">
+    <div class="dna-label">${a.name.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</div>
+    <div class="dna-track"><div class="dna-fill" style="width:${(a.avg/20*100)}%;background:var(--green)"></div></div>
+    <div class="dna-val">${a.avg.toFixed(1)}</div>
+  </div>`).join('');
+document.getElementById('dna-weaknesses').innerHTML=sorted.slice(-5).reverse().map(a=>`
+  <div class="dna-row">
+    <div class="dna-label">${a.name.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</div>
+    <div class="dna-track"><div class="dna-fill" style="width:${(a.avg/20*100)}%;background:var(--red)"></div></div>
+    <div class="dna-val">${a.avg.toFixed(1)}</div>
+  </div>`).join('');
+
+// Development leaderboard
+document.getElementById('dev-leaderboard').innerHTML=[...PL].sort((a,b)=>b.projection.peak_dna-a.projection.peak_dna).map((p,i)=>`
+  <div class="player-row">
+    <div style="width:20px;text-align:center;font-size:12px;font-weight:700;color:var(--grey-400)">${i+1}</div>
+    <div class="player-avatar" style="background:${PP.bandColor(p.dna.band)}15;color:${PP.bandColor(p.dna.band)}">${PP.initials(p.name)}</div>
+    <div class="player-info">
+      <div class="player-name">${p.preferred}</div>
+      <div class="player-meta">Now: ${p.dna.overall} → Peak: ${p.projection.peak_dna} @ ${p.projection.peak_age}y</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:14px;font-weight:800;color:var(--gold)">${p.projection.peak_dna}</div>
+      ${p.projection.wonderkid?'<div class="wonder-badge" style="font-size:9px">WONDER</div>':''}
+    </div>
+  </div>`).join('');
+
+// Projection SVG chart
+const projData=PL.map(p=>p.projection.peak_dna);
+const projNames=PL.map(p=>p.preferred);
+document.getElementById('proj-chart').innerHTML=`
+  <div style="font-size:12px;color:var(--grey-500);margin-bottom:8px">Projected peak DNA — all players</div>
+  <div style="display:flex;align-items:flex-end;gap:8px;height:80px">
+    ${PL.map((p,i)=>{
+      const h=(p.projection.peak_dna/100)*72;
+      const c=p.projection.wonderkid?'var(--gold)':PP.bandColor(p.dna.band);
+      return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:4px">
+        <div style="font-size:10px;font-weight:700;color:${c}">${p.projection.peak_dna}</div>
+        <div style="width:100%;height:${h}px;background:${c};border-radius:3px 3px 0 0;opacity:.85"></div>
+        <div style="font-size:9px;color:var(--grey-400);text-align:center;white-space:nowrap">${p.preferred.split(' ')[0]}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+
+// Market values
+const totalVal=PL.reduce((a,p)=>a+p.market_value,0);
+document.getElementById('market-list').innerHTML=[...PL].sort((a,b)=>b.market_value-a.market_value).map(p=>`
+  <div class="player-row">
+    <div class="player-avatar" style="background:${PP.bandColor(p.dna.band)}15;color:${PP.bandColor(p.dna.band)}">${PP.initials(p.name)}</div>
+    <div class="player-info">
+      <div class="player-name">${p.preferred}</div>
+      <div class="player-meta">${p.role} · DNA ${p.dna.overall} · ${PP.potLabel(p.potential.category)}</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:15px;font-weight:800;color:var(--blue)">${PP.fmtMyr(p.market_value)}</div>
+      <div class="val-bar" style="width:80px"><div class="val-fill" style="width:${(p.market_value/Math.max(...PL.map(x=>x.market_value))*100)}%"></div></div>
+    </div>
+  </div>`).join('');
+
+// League standings (mock)
+const standings=[
+  {pos:1,name:'FC Seremban U21',p:16,pts:35,isOurs:true},
+  {pos:2,name:'Nilai FC',p:16,pts:33,isOurs:false},
+  {pos:3,name:'Seremban City FC',p:16,pts:28,isOurs:false},
+  {pos:4,name:'Port Dickson Athletic',p:16,pts:23,isOurs:false},
+];
+document.getElementById('league-standings').innerHTML=standings.map(s=>`
+  <div class="standing-row" style="${s.isOurs?'background:var(--blue-light);':''}">
+    <div class="standing-pos ${s.pos<=3?'pos-'+s.pos:'pos-n'}">${s.pos}</div>
+    <div class="standing-club" style="${s.isOurs?'color:var(--blue);font-weight:800;':''}">
+      ${s.isOurs?'🛡️ ':''}${s.name}
+    </div>
+    <div style="font-size:12px;color:var(--grey-400);margin-right:8px">${s.p}P</div>
+    <div class="standing-pts">${s.pts}</div>
+  </div>`).join('');
+
+// Player modal
+function openPlayerModal(id){
+  const p=PL.find(x=>x.id===id); if(!p) return;
+  PP.openModal(`
+    <div class="modal-handle"></div>
+    <div style="background:linear-gradient(135deg,#1e3a8a,#1a56db);padding:20px;color:white">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800">${p.jersey}</div>
+        <div><div style="font-size:20px;font-weight:800">${p.preferred||p.name}</div>
+        <div style="font-size:13px;opacity:.75">${p.role} · ${PP.posLabel(p.pos)} · Age ${p.age}</div>
+        ${PP.bandBadge(p.dna.band)}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px">
+        ${[['DNA',p.dna.overall],['Peak',p.projection.peak_dna],['Pot',p.potential.score],['Val',PP.fmtMyr(p.market_value).replace('MYR ','')]].map(([l,v])=>`<div style="background:rgba(255,255,255,.12);border-radius:8px;padding:8px;text-align:center"><div style="font-size:16px;font-weight:800">${v}</div><div style="font-size:10px;opacity:.7">${l}</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="modal-body" style="padding-top:14px">
+      ${PP.dnaBar('Technical',p.dna.technical,'var(--green)')}
+      ${PP.dnaBar('Physical',p.dna.physical,'var(--blue)')}
+      ${PP.dnaBar('Mental',p.dna.mental,'var(--purple)')}
+      ${PP.dnaBar('Tactical',p.dna.tactical,'var(--gold)')}
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <div style="flex:1;padding:10px;border:1px solid var(--grey-200);border-radius:var(--r-sm);text-align:center">
+          <div style="font-size:18px;font-weight:800;color:${p.fitness.condition>=80?'var(--green)':'var(--gold)'}">${p.fitness.condition}%</div>
+          <div style="font-size:11px;color:var(--grey-400)">Condition</div>
+        </div>
+        <div style="flex:1;padding:10px;border:1px solid var(--grey-200);border-radius:var(--r-sm);text-align:center">
+          ${PP.moraleBadge(p.morale.band)}
+          <div style="font-size:18px;font-weight:800;color:var(--blue);margin-top:4px">${p.morale.score}</div>
+        </div>
+        <div style="flex:1;padding:10px;border:1px solid var(--grey-200);border-radius:var(--r-sm);text-align:center">
+          ${PP.riskBadge(p.injury_risk)}
+          <div style="font-size:10px;color:var(--grey-400);margin-top:4px">Injury Risk</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;background:var(--grey-50);border-radius:var(--r-sm);padding:10px;font-size:12px">
+        <div style="font-weight:700;color:var(--grey-700);margin-bottom:4px">Scout Recommendation</div>
+        <div style="color:var(--grey-600)">${p.scout_recommendation?p.scout_recommendation.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()):'Monitor'}</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-block" onclick="PP.closeModal()">Close</button>
+    </div>`);
+}
+
+function notifHTML(){
+  return`<div class="modal-handle"></div><div class="modal-header"><div class="modal-title">Notifications</div></div>
+  <div class="modal-body">${D.recent_events.map(e=>`<div class="event-item"><div class="event-icon">${e.icon}</div><div class="event-body"><div class="event-title">${e.title}</div><div class="event-meta">${e.time}</div></div></div>`).join('')}</div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-block" onclick="PP.closeModal()">Close</button></div>`;
+}
+} // end initDashboard
+</script>
+</body>
+</html>
