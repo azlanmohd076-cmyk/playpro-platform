@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#7c3aed">
+<title>PlayPro — Parent Dashboard</title>
+<link rel="stylesheet" href="../css/shared_dashboard_styles.css">
+<style>
+.parent-hero{background:linear-gradient(135deg,#4c1d95 0%,#7c3aed 100%)}
+.timeline-item{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--grey-100);position:relative}
+.timeline-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--purple-light)}
+.timeline-content{flex:1}
+.timeline-title{font-size:14px;font-weight:600;color:var(--grey-800)}
+.timeline-date{font-size:12px;color:var(--grey-400);margin-top:2px}
+.compare-col{flex:1;text-align:center;padding:12px;background:var(--grey-50);border-radius:var(--r-sm)}
+.compare-col.highlight{background:var(--purple-light)}
+.passport-section{border-bottom:1px solid var(--grey-100);padding:16px}
+.passport-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--grey-400);margin-bottom:12px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+
+<aside class="app-sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-mark" style="background:var(--purple)">👨‍👩‍👦</div>
+    <span>PlayPro</span>
+  </div>
+  <div class="sidebar-section-label">Parent Dashboard</div>
+  <div class="sidebar-item active" data-page="passport"><span class="sidebar-item-icon">🪪</span>My Child's Passport</div>
+  <div class="sidebar-item" data-page="progress"><span class="sidebar-item-icon">📈</span>Progress & Growth</div>
+  <div class="sidebar-item" data-page="training"><span class="sidebar-item-icon">🏃</span>Training</div>
+  <div class="sidebar-item" data-page="fitness"><span class="sidebar-item-icon">💪</span>Fitness & Wellbeing</div>
+  <div class="sidebar-item" data-page="timeline"><span class="sidebar-item-icon">🌟</span>Career Timeline</div>
+  <div class="sidebar-item" data-page="compare"><span class="sidebar-item-icon">⚖️</span>Compare</div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" style="background:var(--purple)" id="s-av"></div>
+      <div><div class="sidebar-user-name" id="s-nm"></div><div class="sidebar-user-role">Parent / Guardian</div></div>
+    </div>
+  </div>
+</aside>
+
+<header class="top-bar">
+  <div class="top-bar-logo">
+    <div class="top-bar-logo-mark" style="background:var(--purple)">👨‍👩‍👦</div>
+    <span class="top-bar-title">My Child's Passport</span>
+  </div>
+  <div class="top-bar-right">
+    <div class="top-bar-btn" onclick="PP.openModal(notifHTML())">🔔</div>
+    <div class="top-bar-btn" id="top-av" style="background:var(--purple);color:white;font-weight:700;font-size:13px"></div>
+  </div>
+</header>
+
+<main class="app-main">
+
+<!-- PASSPORT -->
+<div class="page active" id="page-passport">
+  <!-- Hero card -->
+  <div style="margin:16px 16px 0">
+    <div class="card" style="overflow:hidden">
+      <div style="background:linear-gradient(135deg,#4c1d95,#7c3aed);padding:24px 20px;color:white">
+        <div style="display:flex;align-items:flex-start;gap:16px">
+          <div style="width:72px;height:72px;border-radius:14px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid rgba(255,255,255,.3)">⚽</div>
+          <div style="flex:1">
+            <div style="font-size:22px;font-weight:800" id="pp-name"></div>
+            <div style="font-size:13px;opacity:.75;margin-top:4px" id="pp-sub"></div>
+            <div style="margin-top:10px;display:flex;gap:6px" id="pp-badges"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px" id="pp-hero-stats"></div>
+      </div>
+
+      <!-- Passport Score -->
+      <div class="passport-section">
+        <div class="passport-section-title">⭐ Football Passport Score</div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div id="pp-passport-ring"></div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600;color:var(--grey-700);margin-bottom:8px">Score Components</div>
+            ${[['Match Performance','40%','var(--green)'],['Attribute DNA','25%','var(--purple)'],['Discipline','15%','var(--blue)'],['Activity','10%','var(--gold)'],['Development','10%','#10b981']].map(([l,w,c])=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><div style="font-size:11px;color:var(--grey-500);width:110px">${l} <span style="color:var(--grey-300)">(${w})</span></div><div style="flex:1;height:5px;background:var(--grey-100);border-radius:999px;overflow:hidden"><div style="height:100%;width:70%;background:${c};border-radius:999px"></div></div></div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- DNA -->
+      <div class="passport-section">
+        <div class="passport-section-title">🧬 Football DNA</div>
+        <div id="pp-dna-bars"></div>
+      </div>
+
+      <!-- Projection -->
+      <div class="passport-section">
+        <div class="passport-section-title">🎯 Development Projection</div>
+        <div id="pp-projection"></div>
+      </div>
+    </div>
+  </div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- PROGRESS -->
+<div class="page" id="page-progress">
+  <div class="page-header"><div class="page-title">Progress & Growth</div><div class="page-sub">How your child is developing over time</div></div>
+
+  <div style="padding:0 16px 12px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">DNA Rating History</div><span id="trend-badge"></span></div>
+      <div class="card-pad" id="dna-history-chart"></div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px 12px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">Key Attribute Changes</div><div class="card-header-action">Last 8 weeks</div></div>
+      <div class="card-pad" id="attr-changes"></div>
+    </div>
+  </div>
+
+  <div class="section-title">Season Statistics</div>
+  <div class="card mx-16" id="season-stats"></div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- TRAINING -->
+<div class="page" id="page-training">
+  <div class="page-header"><div class="page-title">Training</div><div class="page-sub">Attendance, performance and weekly scores</div></div>
+
+  <div style="padding:0 16px 12px">
+    <div class="stat-grid stat-grid-3">
+      <div class="stat-cell"><div class="stat-num purple" id="t-score"></div><div class="stat-lbl">This Week</div></div>
+      <div class="stat-cell"><div class="stat-num green">3/3</div><div class="stat-lbl">Sessions</div></div>
+      <div class="stat-cell"><div class="stat-num gold">8.2</div><div class="stat-lbl">Avg Rating</div></div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px 12px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">Training Score — Last 8 Weeks</div></div>
+      <div class="card-pad" id="training-history-chart"></div>
+      <div style="padding:0 16px 12px;font-size:12px;color:var(--grey-400)">Training score = 50% attendance + 30% performance + 20% effort</div>
+    </div>
+  </div>
+
+  <div class="section-title">Upcoming Sessions</div>
+  <div class="card mx-16" id="parent-upcoming-sessions"></div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- FITNESS & WELLBEING -->
+<div class="page" id="page-fitness">
+  <div class="page-header"><div class="page-title">Fitness & Wellbeing</div><div class="page-sub">Condition, fatigue, morale and injury risk</div></div>
+
+  <div style="padding:0 16px 12px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">Today's Condition</div></div>
+      <div class="card-pad">
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px" id="fitness-rings"></div>
+        <div style="background:var(--grey-50);border-radius:var(--r-sm);padding:12px" id="fitness-status-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px 12px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">😊 Morale & Happiness</div></div>
+      <div class="card-pad">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+          <div id="morale-ring"></div>
+          <div style="flex:1" id="morale-breakdown"></div>
+        </div>
+        <div id="morale-msg" style="background:var(--grey-50);border-radius:var(--r-sm);padding:12px;font-size:13px;color:var(--grey-600)"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">⚠️ Injury Risk</div></div>
+      <div class="card-pad" id="injury-risk-detail"></div>
+    </div>
+  </div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- CAREER TIMELINE -->
+<div class="page" id="page-timeline">
+  <div class="page-header"><div class="page-title">Career Timeline</div><div class="page-sub">Key milestones in your child's football journey</div></div>
+  <div class="card mx-16" id="career-timeline"></div>
+  <div style="padding:16px">
+    <button class="btn btn-ghost btn-block" onclick="PP.toast('Claim passport to add your own milestones')">+ Add Milestone</button>
+  </div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- COMPARE -->
+<div class="page" id="page-compare">
+  <div class="page-header"><div class="page-title">Compare</div><div class="page-sub">How does your child compare with peers?</div></div>
+
+  <div style="padding:0 16px 12px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">DNA Comparison — Squad Midfielders</div></div>
+      <div class="card-pad" id="compare-grid"></div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px">
+    <div class="alert alert-purple" style="border-radius:var(--r)">
+      <div class="alert-icon">ℹ️</div>
+      <div class="alert-body">
+        <div class="alert-title">Privacy Protected</div>
+        <div class="alert-msg">Other players' names are shown with consent only. DNA scores are anonymised for non-consenting players.</div>
+      </div>
+    </div>
+  </div>
+  <div style="height:24px"></div>
+</div>
+
+</main>
+
+<nav class="app-bottom-nav">
+  <div class="bn-tab active" data-page="passport"><div class="bn-tab-icon">🪪</div><span>Passport</span></div>
+  <div class="bn-tab" data-page="progress"><div class="bn-tab-icon">📈</div><span>Progress</span></div>
+  <div class="bn-tab" data-page="training"><div class="bn-tab-icon">🏃</div><span>Training</span></div>
+  <div class="bn-tab" data-page="fitness"><div class="bn-tab-icon">💪</div><span>Fitness</span></div>
+  <div class="bn-tab" data-page="timeline"><div class="bn-tab-icon">🌟</div><span>Timeline</span></div>
+</nav>
+</div>
+
+<script src="../js/shared_dashboard_components.js"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/repositories.js"></script>
+<script src="../js/dashboard_integration.js"></script>
+<script src="../js/playpro_audit_fixes.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  await DI.boot("parent");
+  initDashboard();
+});
+
+function initDashboard() {
+const D=PP.data, PL=D.players;
+// Parent: use live child data from DI.boot (PP.data._child)
+const CHILD=PP.data._child || PL[0];
+const PARENT=PP.data.user || {name:'Parent',email:''};
+
+document.getElementById('top-av').textContent=PP.initials(PARENT.name);
+document.getElementById('s-av').textContent=PP.initials(PARENT.name);
+document.getElementById('s-nm').textContent=PARENT.name;
+
+// Nav
+const pages=document.querySelectorAll('.page'),tabs=document.querySelectorAll('.bn-tab'),sides=document.querySelectorAll('.sidebar-item');
+function goPage(n){pages.forEach(p=>p.classList.toggle('active',p.id==='page-'+n));tabs.forEach(t=>t.classList.toggle('active',t.dataset.page===n));sides.forEach(s=>s.classList.toggle('active',s.dataset.page===n))}
+tabs.forEach(t=>t.addEventListener('click',()=>goPage(t.dataset.page)));
+sides.forEach(s=>s.addEventListener('click',()=>goPage(s.dataset.page)));
+
+// PASSPORT
+document.getElementById('pp-name').textContent=CHILD.name;
+document.getElementById('pp-sub').textContent=`${CHILD.role} · ${PP.posLabel(CHILD.pos)} · Age ${CHILD.age} · ${CHILD.club}`;
+document.getElementById('pp-badges').innerHTML=PP.bandBadge(CHILD.dna.band)+' '+`<span class="badge badge-gold">🎯 ${PP.potLabel(CHILD.potential.category)}</span>`;
+document.getElementById('pp-hero-stats').innerHTML=[
+  ['Passport',CHILD.passport.score,'score'],
+  ['DNA',CHILD.dna.overall,'rating'],
+  ['Potential',CHILD.potential.score,'score']
+].map(([l,v,s])=>`<div style="background:rgba(255,255,255,.12);border-radius:8px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:900">${v}</div><div style="font-size:10px;opacity:.7">${l}</div></div>`).join('');
+
+document.getElementById('pp-passport-ring').innerHTML=PP.ring(CHILD.passport.score,100,{size:80,stroke:9,color:'var(--purple)',label:CHILD.passport.score,sublabel:'/ 100'});
+
+document.getElementById('pp-dna-bars').innerHTML=
+  PP.dnaBar('Technical',CHILD.dna.technical,'var(--green)')+
+  PP.dnaBar('Physical',CHILD.dna.physical,'var(--blue)')+
+  PP.dnaBar('Mental',CHILD.dna.mental,'var(--purple)')+
+  PP.dnaBar('Tactical',CHILD.dna.tactical,'var(--gold)');
+
+document.getElementById('pp-projection').innerHTML=`
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+    ${[['Now',CHILD.dna.overall,'var(--grey-600)'],['@ Peak',CHILD.projection.peak_dna,'var(--gold)'],['Peak Age',CHILD.projection.peak_age+'y','var(--purple)']].map(([l,v,c])=>`
+      <div style="text-align:center;padding:10px;border:1px solid var(--grey-200);border-radius:var(--r-sm)">
+        <div style="font-size:20px;font-weight:800;color:${c}">${v}</div>
+        <div style="font-size:11px;color:var(--grey-400)">${l}</div>
+      </div>`).join('')}
+  </div>
+  <div style="margin-top:10px;font-size:13px;color:var(--grey-500);line-height:1.5">
+    ${CHILD.projection.wonderkid?'⭐ <strong>Wonderkid detected!</strong> Based on current development trajectory, ':'Based on current trend, '}
+    ${CHILD.preferred} is projected to reach a peak DNA of <strong>${CHILD.projection.peak_dna}</strong> at age ${CHILD.projection.peak_age}.
+  </div>`;
+
+// PROGRESS
+document.getElementById('trend-badge').innerHTML=`<span class="badge badge-green">${PP.trendIcon(CHILD.trend)} ${CHILD.trend.replace(/_/g,' ')}</span>`;
+const historyData=D.dna_history;
+document.getElementById('dna-history-chart').innerHTML=`
+  ${PP.lineChart(historyData,{w:320,h:90,color:'var(--purple)',showDots:true,showLabels:true,labels:['8w','7w','6w','5w','4w','3w','2w','Now'],showArea:true})}
+  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--grey-400);margin-top:2px">
+    <span>8 weeks ago: ${historyData[0]}</span><span>Now: ${historyData[historyData.length-1]}</span>
+    <span style="color:var(--green)">+${historyData[historyData.length-1]-historyData[0]} ↑</span>
+  </div>`;
+
+document.getElementById('attr-changes').innerHTML=[
+  {name:'Pace',before:14,after:16,c:'var(--blue)'},
+  {name:'Finishing',before:14,after:16,c:'var(--green)'},
+  {name:'Composure',before:11,after:13,c:'var(--purple)'},
+  {name:'Vision',before:10,after:11,c:'var(--gold)'}
+].map(a=>`<div style="margin-bottom:10px">
+  <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+    <span style="font-size:13px;font-weight:600;color:var(--grey-700)">${a.name}</span>
+    <span style="font-size:13px;font-weight:700;color:var(--green)">+${a.after-a.before} ↑</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div style="font-size:12px;color:var(--grey-400);width:20px">${a.before}</div>
+    <div style="flex:1;height:8px;background:var(--grey-100);border-radius:999px;overflow:hidden;position:relative">
+      <div style="position:absolute;left:0;top:0;height:100%;width:${(a.before/20)*100}%;background:var(--grey-300);border-radius:999px"></div>
+      <div style="position:absolute;left:0;top:0;height:100%;width:${(a.after/20)*100}%;background:${a.c};border-radius:999px;opacity:.6"></div>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:${a.c};width:20px">${a.after}</div>
+  </div></div>`).join('');
+
+document.getElementById('season-stats').innerHTML=`
+  <div class="stat-grid stat-grid-4">
+    <div class="stat-cell"><div class="stat-num">${CHILD.stats.apps}</div><div class="stat-lbl">Matches</div></div>
+    <div class="stat-cell"><div class="stat-num green">${CHILD.stats.goals}</div><div class="stat-lbl">Goals</div></div>
+    <div class="stat-cell"><div class="stat-num blue">${CHILD.stats.assists}</div><div class="stat-lbl">Assists</div></div>
+    <div class="stat-cell"><div class="stat-num gold">${CHILD.stats.rating_avg}</div><div class="stat-lbl">Rating</div></div>
+  </div>`;
+
+// TRAINING
+document.getElementById('t-score').textContent=CHILD.training_score;
+document.getElementById('training-history-chart').innerHTML=PP.lineChart(
+  (PP.data._trainingScoreHistory && PP.data._trainingScoreHistory.length ? PP.data._trainingScoreHistory : [72,78,68,81,76,80,79,CHILD.training_score||70]),
+  {w:320,h:80,color:'var(--purple)',showDots:true,showLabels:true,showArea:true,labels:['8w','7w','6w','5w','4w','3w','2w','Now']});
+document.getElementById('parent-upcoming-sessions').innerHTML=D.upcoming_sessions.map(s=>`
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--grey-100)">
+    <div style="font-size:12px;font-weight:700;color:var(--grey-500);width:72px">${s.date}</div>
+    <div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--grey-800)">${s.type} Training</div>
+    <div style="font-size:12px;color:var(--grey-400)">${s.time}</div></div>
+    <span class="badge ${s.intensity==='light'?'badge-blue':s.intensity==='heavy'?'badge-gold':'badge-green'}">${s.intensity}</span>
+  </div>`).join('');
+
+// FITNESS
+const F=CHILD.fitness, M=CHILD.morale;
+document.getElementById('fitness-rings').innerHTML=[
+  {v:F.condition,l:'Condition',c:'var(--green)'},
+  {v:F.sharpness,l:'Sharpness',c:'var(--blue)'},
+  {v:100-F.fatigue,l:'Recovery',c:'var(--purple)'},
+  {v:CHILD.training_score,l:'Training',c:'var(--gold)'}
+].map(r=>`<div class="ring-wrap">${PP.ring(r.v,100,{size:68,stroke:8,color:r.c,label:r.v,sublabel:'%'})}<div class="ring-label">${r.l}</div></div>`).join('');
+document.getElementById('fitness-status-msg').innerHTML=`
+  <div style="font-size:13px;font-weight:600;color:var(--grey-700);margin-bottom:4px">
+    ${F.condition>=80?'✅ Excellent condition':'⚠️ Monitoring condition'}
+  </div>
+  <div style="font-size:12px;color:var(--grey-500)">
+    ${F.condition>=80
+      ?`${CHILD.preferred} is in excellent shape. Fatigue is low (${F.fatigue}%) and match sharpness is high (${F.sharpness}%). Continue current training load.`
+      :`Fatigue level is ${F.fatigue}%. Ensure adequate rest and nutrition. Speak with the coaching staff if this persists.`}
+  </div>`;
+
+document.getElementById('morale-ring').innerHTML=PP.ring(M.score,100,{size:80,stroke:9,color:M.score>=70?'var(--green)':'var(--gold)',label:M.score,sublabel:'morale'});
+document.getElementById('morale-breakdown').innerHTML=`
+  ${['Playing Time',M.playing_sat,'var(--blue)'],['Training',M.training_sat,'var(--purple)'],['Form',M.form_sat,'var(--green)']].map(([l,v,c])=>`
+    <div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:var(--grey-500)">${l}</span><span style="font-weight:700">${v}%</span></div>
+      <div class="progress-wrap"><div class="progress-fill" style="width:${v}%;background:${c}"></div></div>
+    </div>`).join('')}`;
+const moraleMessages={ecstatic:'Your child is loving football right now. Excellent playing time and great form!',happy:'Your child is happy and motivated. Keep up the support.',content:'Morale is stable. Consistent playing time and regular training is key.',unsettled:'Your child may need a confidence boost. Consider encouraging conversation.',unhappy:'Morale is low. Limited playing time or poor form may be factors. Talk to the coach.',miserable:'Urgent attention needed. Consider discussing with the coaching staff.'};
+document.getElementById('morale-msg').textContent=moraleMessages[M.band]||'';
+
+document.getElementById('injury-risk-detail').innerHTML=`
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+    <div>${PP.ring(CHILD.injury_risk==='low'?25:CHILD.injury_risk==='medium'?50:75,100,{size:64,stroke:8,color:CHILD.injury_risk==='low'?'var(--green)':CHILD.injury_risk==='medium'?'var(--gold)':'var(--red)',label:CHILD.injury_risk==='low'?'LOW':'MED',sublabel:'risk'})}</div>
+    <div style="flex:1">
+      <div style="font-size:16px;font-weight:800;color:${CHILD.injury_risk==='low'?'var(--green)':'var(--gold)'};margin-bottom:4px">${CHILD.injury_risk.toUpperCase()} RISK</div>
+      <div style="font-size:13px;color:var(--grey-600)">
+        ${CHILD.injury_risk==='low'
+          ?'No significant injury concerns. Current fitness and workload are well-managed.'
+          :'Elevated risk detected. Monitor fatigue and ensure adequate recovery between sessions.'}
+      </div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:12px">
+    ${[['Fatigue',F.fatigue+'%',F.fatigue>50?'var(--gold)':'var(--green)'],['Matches /14d','2','var(--green)'],['Season injuries','0','var(--green)'],['Days injured','0','var(--green)']].map(([l,v,c])=>`<div style="padding:8px;background:var(--grey-50);border-radius:var(--r-sm)"><div style="color:var(--grey-400)">${l}</div><div style="font-size:15px;font-weight:700;color:${c}">${v}</div></div>`).join('')}
+  </div>`;
+
+// TIMELINE
+document.getElementById('career-timeline').innerHTML=CHILD.timeline.map(t=>`
+  <div class="timeline-item">
+    <div class="timeline-dot" style="background:var(--purple-light);color:var(--purple)">${t.icon}</div>
+    <div class="timeline-content">
+      <div class="timeline-title">${t.title}</div>
+      <div class="timeline-date">${t.date}</div>
+    </div>
+  </div>`).join('');
+
+// COMPARE
+const peers=PL.filter(p=>p.pos===CHILD.pos).map(p=>({...p,isChild:p.id===CHILD.id}));
+document.getElementById('compare-grid').innerHTML=`
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    ${peers.map(p=>`
+      <div class="compare-col ${p.isChild?'highlight':''}">
+        <div style="font-size:13px;font-weight:700;color:${p.isChild?'var(--purple)':'var(--grey-700)'};margin-bottom:6px">${p.isChild?'⭐ '+p.preferred:p.preferred}</div>
+        <div style="font-size:22px;font-weight:900;color:${PP.bandColor(p.dna.band)}">${p.dna.overall}</div>
+        <div style="font-size:11px;color:var(--grey-400);margin-bottom:6px">DNA</div>
+        ${PP.dnaBar('Tech',p.dna.technical,'var(--green)')}
+        ${PP.dnaBar('Phys',p.dna.physical,'var(--blue)')}
+      </div>`).join('')}
+  </div>
+  <div style="font-size:12px;color:var(--grey-400);text-align:center">Comparison against ${peers.length-1} other ${PP.posLabel(CHILD.pos)}s in the squad</div>`;
+
+function notifHTML(){
+  const evts=[
+    {icon:'⚽',title:`${CHILD.preferred} scored vs Nilai FC`,time:'2h ago'},
+    {icon:'🏃',title:'Training session tomorrow at 09:00',time:'Today'},
+    {icon:'📈',title:`DNA rating updated: ${CHILD.dna.overall}`,time:'Yesterday'},
+  ];
+  return`<div class="modal-handle"></div><div class="modal-header"><div class="modal-title">Notifications</div></div>
+  <div class="modal-body">${evts.map(e=>`<div class="event-item"><div class="event-icon">${e.icon}</div><div class="event-body"><div class="event-title">${e.title}</div><div class="event-meta">${e.time}</div></div></div>`).join('')}</div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-block" onclick="PP.closeModal()">Close</button></div>`;
+}
+} // end initDashboard
+</script>
+</body>
+</html>

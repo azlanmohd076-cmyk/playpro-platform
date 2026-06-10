@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#00b341">
+<title>PlayPro — Player Passport</title>
+<link rel="stylesheet" href="../css/shared_dashboard_styles.css">
+<style>
+.player-hero{background:linear-gradient(160deg,#0a2e16 0%,#1a5c32 100%)}
+.passport-card{background:linear-gradient(135deg,#0a2e16,#1a5c32);border-radius:var(--r-xl);margin:0 16px;color:white;overflow:hidden;box-shadow:var(--sh-lg)}
+.passport-card-inner{padding:24px 20px}
+.passport-score-big{font-size:80px;font-weight:900;line-height:1;letter-spacing:-2px}
+.pos-fam-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.pos-fam-label{font-size:13px;font-weight:600;color:var(--grey-700);width:90px;flex-shrink:0}
+.pos-fam-track{flex:1;height:8px;background:var(--grey-100);border-radius:999px;overflow:hidden}
+.pos-fam-fill{height:100%;border-radius:999px;transition:width .5s}
+.pos-fam-pct{font-size:12px;font-weight:700;color:var(--grey-700);width:36px;text-align:right}
+.pos-fam-level{font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;margin-left:4px}
+.natural-badge{background:var(--green-light);color:var(--green-dark)}
+.accomplished-badge{background:var(--blue-light);color:var(--blue)}
+.competent-badge{background:var(--gold-light);color:var(--gold-dark)}
+.learning-badge{background:var(--grey-100);color:var(--grey-600)}
+.scout-card{border:2px solid var(--green);border-radius:var(--r-lg);padding:16px;background:var(--green-light)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+
+<aside class="app-sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-mark" style="background:var(--green)">⚽</div>
+    <span>PlayPro</span>
+  </div>
+  <div class="sidebar-section-label">Player Center</div>
+  <div class="sidebar-item active" data-page="passport"><span class="sidebar-item-icon">🪪</span>My Passport</div>
+  <div class="sidebar-item" data-page="dna"><span class="sidebar-item-icon">🧬</span>Football DNA</div>
+  <div class="sidebar-item" data-page="attributes"><span class="sidebar-item-icon">📊</span>Attributes</div>
+  <div class="sidebar-item" data-page="development"><span class="sidebar-item-icon">📈</span>Development</div>
+  <div class="sidebar-item" data-page="fitness"><span class="sidebar-item-icon">💪</span>Fitness</div>
+  <div class="sidebar-item" data-page="positions"><span class="sidebar-item-icon">📍</span>Positions</div>
+  <div class="sidebar-item" data-page="scout"><span class="sidebar-item-icon">🔍</span>Scout Report</div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" style="background:var(--green)" id="s-av"></div>
+      <div><div class="sidebar-user-name" id="s-nm"></div><div class="sidebar-user-role" id="s-role"></div></div>
+    </div>
+  </div>
+</aside>
+
+<header class="top-bar">
+  <div class="top-bar-logo">
+    <div class="top-bar-logo-mark" style="background:var(--green)">⚽</div>
+    <span class="top-bar-title">My Football Passport</span>
+  </div>
+  <div class="top-bar-right">
+    <div class="top-bar-btn" onclick="PP.openModal(notifHTML())">🔔</div>
+    <div class="top-bar-btn" id="top-av" style="background:var(--green);color:white;font-weight:700;font-size:13px"></div>
+  </div>
+</header>
+
+<main class="app-main">
+
+<!-- PASSPORT -->
+<div class="page active" id="page-passport">
+  <!-- Passport Card -->
+  <div style="padding:16px 16px 0">
+    <div class="passport-card">
+      <div class="passport-card-inner">
+        <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
+          <div style="width:72px;height:72px;border-radius:14px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid rgba(255,255,255,.25)" id="pp-avatar-box">⚽</div>
+          <div style="flex:1">
+            <div style="font-size:22px;font-weight:800" id="pp-name"></div>
+            <div style="font-size:13px;opacity:.75;margin-top:3px" id="pp-role"></div>
+            <div style="font-size:12px;opacity:.6;margin-top:2px" id="pp-club"></div>
+            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap" id="pp-badges"></div>
+          </div>
+        </div>
+        <!-- Score + DNA split -->
+        <div style="display:grid;grid-template-columns:1fr 2px 1fr;gap:0;background:rgba(255,255,255,.1);border-radius:12px;overflow:hidden">
+          <div style="padding:16px;text-align:center">
+            <div style="font-size:11px;opacity:.6;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Passport Score</div>
+            <div class="passport-score-big" id="pp-passport-score"></div>
+            <div style="font-size:11px;opacity:.6;margin-top:2px" id="pp-passport-band"></div>
+          </div>
+          <div style="background:rgba(255,255,255,.15)"></div>
+          <div style="padding:16px;text-align:center">
+            <div style="font-size:11px;opacity:.6;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">DNA Rating</div>
+            <div class="passport-score-big" id="pp-dna-score"></div>
+            <div style="font-size:11px;opacity:.6;margin-top:2px" id="pp-dna-band"></div>
+          </div>
+        </div>
+        <!-- Stats strip -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.1);border-radius:10px;overflow:hidden;margin-top:12px" id="pp-stats-strip"></div>
+      </div>
+      <!-- Category bars inside card -->
+      <div style="background:rgba(0,0,0,.2);padding:16px 20px">
+        <div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">DNA Breakdown</div>
+        <div id="pp-dna-bars-dark"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Potential block -->
+  <div style="padding:16px 16px 0">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">🎯 Potential & Projection</div></div>
+      <div class="card-pad" id="pp-potential-block"></div>
+    </div>
+  </div>
+
+  <!-- Claim prompt if unclaimed -->
+  <div style="padding:16px 16px 0" id="claim-prompt">
+    <div style="background:linear-gradient(135deg,#eff4ff,#dbeafe);border-radius:var(--r-lg);border:1.5px solid #bfdbfe;padding:16px">
+      <div style="font-size:15px;font-weight:700;color:#1e3a8a;margin-bottom:6px">🪪 Claim Your Passport</div>
+      <div style="font-size:13px;color:#1e40af;margin-bottom:12px;line-height:1.5">This is your public football identity. Claim it to edit your biography, add photos, and unlock scout visibility.</div>
+      <button class="btn btn-blue btn-block btn-sm" onclick="PP.toast('Claim flow — submit to Club Admin for verification')">Start Claim Process</button>
+    </div>
+  </div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- DNA -->
+<div class="page" id="page-dna">
+  <div class="page-header"><div class="page-title">Football DNA</div><div class="page-sub">Your complete ability profile</div></div>
+
+  <!-- Radar -->
+  <div style="padding:0 16px 14px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">DNA Radar</div><div id="dna-page-overall" style="font-size:20px;font-weight:800;color:var(--green)"></div></div>
+      <div class="card-pad">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div id="dna-radar"></div>
+          <div style="flex:1" id="dna-page-bars"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confidence level -->
+  <div style="padding:0 16px 14px">
+    <div class="card card-pad">
+      <div style="font-size:13px;font-weight:700;color:var(--grey-700);margin-bottom:8px">Assessment Confidence</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div>${PP.ring(72,100,{size:56,stroke:7,color:'var(--blue)',label:'72',sublabel:'%'})}</div>
+        <div style="flex:1;font-size:13px;color:var(--grey-600)">Your DNA rating has <strong>High confidence</strong>. 2 of 3 sources (Coach + AI) have contributed. Ask your League Technical Officer to complete the third assessment for <strong>Verified</strong> status.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DNA History -->
+  <div class="section-title">DNA History</div>
+  <div style="padding:0 16px">
+    <div class="card card-pad" id="dna-history"></div>
+  </div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- ATTRIBUTES -->
+<div class="page" id="page-attributes">
+  <div class="page-header"><div class="page-title">Attributes</div><div class="page-sub">All 18 attributes · 1–20 scale</div></div>
+
+  <div style="padding:0 16px 14px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">🟢 Technical</div></div>
+      <div class="card-pad" id="attrs-technical"></div>
+    </div>
+  </div>
+  <div style="padding:0 16px 14px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title" style="color:var(--blue)">🔵 Physical</div></div>
+      <div class="card-pad" id="attrs-physical"></div>
+    </div>
+  </div>
+  <div style="padding:0 16px 14px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title" style="color:var(--purple)">🟣 Mental</div></div>
+      <div class="card-pad" id="attrs-mental"></div>
+    </div>
+  </div>
+  <div style="padding:0 16px 14px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title" style="color:var(--gold)">🟡 Tactical</div></div>
+      <div class="card-pad" id="attrs-tactical"></div>
+    </div>
+  </div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- DEVELOPMENT -->
+<div class="page" id="page-development">
+  <div class="page-header"><div class="page-title">Development</div><div class="page-sub">Growth curves · Projections · Training influence</div></div>
+
+  <div style="padding:0 16px 14px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">Progression Chart</div><span id="prog-trend-badge"></span></div>
+      <div class="card-pad" id="prog-chart"></div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px 14px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">Development Phase</div></div>
+      <div class="card-pad" id="dev-phase-block"></div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px 14px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">What's driving your growth?</div></div>
+      <div class="card-pad" id="growth-drivers"></div>
+    </div>
+  </div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- FITNESS -->
+<div class="page" id="page-fitness">
+  <div class="page-header"><div class="page-title">Fitness</div><div class="page-sub">Condition · Sharpness · Fatigue · Morale</div></div>
+
+  <div style="padding:0 16px 14px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">Today</div></div>
+      <div class="card-pad">
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px" id="fitness-rings"></div>
+        <div style="background:var(--grey-50);border-radius:var(--r-sm);padding:12px;font-size:13px;color:var(--grey-600)" id="fitness-advice"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px 14px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">Morale</div></div>
+      <div class="card-pad">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+          <div id="m-ring"></div>
+          <div style="flex:1" id="m-breakdown"></div>
+        </div>
+        <div id="m-advice" style="background:var(--grey-50);border-radius:var(--r-sm);padding:12px;font-size:13px;color:var(--grey-600)"></div>
+      </div>
+    </div>
+  </div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- POSITIONS -->
+<div class="page" id="page-positions">
+  <div class="page-header"><div class="page-title">Position Familiarity</div><div class="page-sub">Natural · Accomplished · Learning positions</div></div>
+
+  <div style="padding:0 16px 14px">
+    <div class="card card-pad" id="pos-familiarity"></div>
+  </div>
+
+  <div style="padding:0 16px 14px">
+    <div class="card">
+      <div class="card-header"><div class="card-header-title">Retrain a Position</div></div>
+      <div class="card-pad">
+        <div style="font-size:13px;color:var(--grey-600);margin-bottom:12px">Ask your coach to schedule position-specific training sessions. Each session increases familiarity by ~2%.</div>
+        <div class="form-group">
+          <label class="form-label">Target Position</label>
+          <select class="form-select" id="retrain-pos">
+            <option>CAM — Attacking Midfielder</option>
+            <option>CDM — Defensive Midfielder</option>
+            <option>AML/AMR — Wide Attacker</option>
+            <option>ST — Striker</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-block btn-sm" onclick="PP.toast('Position retraining request sent to coach')">Request Position Training</button>
+      </div>
+    </div>
+  </div>
+  <div style="height:24px"></div>
+</div>
+
+<!-- SCOUT REPORT -->
+<div class="page" id="page-scout">
+  <div class="page-header"><div class="page-title">Scout Report</div><div class="page-sub">AI-generated scouting assessment</div></div>
+
+  <div style="padding:0 16px 14px">
+    <div class="scout-card">
+      <div style="font-size:12px;font-weight:700;color:var(--green-dark);margin-bottom:6px">🤖 AI Scout Report — Generated automatically</div>
+      <div id="scout-overview" style="font-size:14px;line-height:1.6;color:var(--grey-800)"></div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px 14px">
+    <div class="card card-pad">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--green-dark);margin-bottom:8px">✅ Strengths</div>
+          <div id="scout-strengths"></div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--red-dark);margin-bottom:8px">⚠️ Areas to Improve</div>
+          <div id="scout-weaknesses"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px 14px">
+    <div class="card card-pad" id="scout-recommendation-block"></div>
+  </div>
+
+  <div style="padding:0 16px 14px">
+    <div class="card card-pad">
+      <div style="font-size:13px;font-weight:700;color:var(--grey-700);margin-bottom:10px">Similar Players</div>
+      <div id="similar-players"></div>
+    </div>
+  </div>
+  <div style="height:24px"></div>
+</div>
+
+</main>
+
+<nav class="app-bottom-nav">
+  <div class="bn-tab active" data-page="passport"><div class="bn-tab-icon">🪪</div><span>Passport</span></div>
+  <div class="bn-tab" data-page="dna"><div class="bn-tab-icon">🧬</div><span>DNA</span></div>
+  <div class="bn-tab" data-page="attributes"><div class="bn-tab-icon">📊</div><span>Attrs</span></div>
+  <div class="bn-tab" data-page="development"><div class="bn-tab-icon">📈</div><span>Growth</span></div>
+  <div class="bn-tab" data-page="fitness"><div class="bn-tab-icon">💪</div><span>Fitness</span></div>
+</nav>
+</div>
+
+<script src="../js/shared_dashboard_components.js"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/repositories.js"></script>
+<script src="../js/dashboard_integration.js"></script>
+<script src="../js/playpro_audit_fixes.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  await DI.boot("player");
+  initDashboard();
+});
+
+function initDashboard() {
+const D=PP.data, PL=D.players;
+// Player: use live data from DI.boot (PP.data._me)
+const ME=PP.data._me || PL[0];
+
+document.getElementById('top-av').textContent=PP.initials(ME.name);
+document.getElementById('s-av').textContent=PP.initials(ME.name);
+document.getElementById('s-nm').textContent=ME.preferred;
+document.getElementById('s-role').textContent=ME.role+' · '+PP.posLabel(ME.pos);
+
+// Nav
+const pages=document.querySelectorAll('.page'),tabs=document.querySelectorAll('.bn-tab'),sides=document.querySelectorAll('.sidebar-item');
+function goPage(n){pages.forEach(p=>p.classList.toggle('active',p.id==='page-'+n));tabs.forEach(t=>t.classList.toggle('active',t.dataset.page===n));sides.forEach(s=>s.classList.toggle('active',s.dataset.page===n))}
+tabs.forEach(t=>t.addEventListener('click',()=>goPage(t.dataset.page)));
+sides.forEach(s=>s.addEventListener('click',()=>goPage(s.dataset.page)));
+
+// ── PASSPORT ──────────────────────────────────────────────────
+document.getElementById('pp-name').textContent=ME.name;
+document.getElementById('pp-role').textContent=ME.role+' · '+PP.posLabel(ME.pos);
+document.getElementById('pp-club').textContent='#'+ME.jersey+' · '+ME.club+' · Age '+ME.age;
+document.getElementById('pp-badges').innerHTML=PP.bandBadge(ME.dna.band)+' '+`<span class="badge badge-gold">🎯 ${PP.potLabel(ME.potential.category)}</span>`+(ME.projection.wonderkid?'<span class="badge badge-purple">⭐ Wonderkid</span>':'');
+document.getElementById('pp-passport-score').textContent=ME.passport.score;
+document.getElementById('pp-passport-band').textContent=ME.passport.band.toUpperCase();
+document.getElementById('pp-dna-score').textContent=ME.dna.overall;
+document.getElementById('pp-dna-band').textContent=ME.dna.band.toUpperCase();
+document.getElementById('pp-stats-strip').innerHTML=[
+  {n:ME.stats.apps,l:'Apps'},{n:ME.stats.goals,l:'Goals'},
+  {n:ME.stats.assists,l:'Assists'},{n:ME.stats.rating_avg,l:'Rating'}
+].map(s=>`<div style="padding:10px;text-align:center;background:rgba(0,0,0,.15)"><div style="font-size:18px;font-weight:800;color:white">${s.n}</div><div style="font-size:10px;opacity:.6">${s.l}</div></div>`).join('');
+
+// DNA bars dark
+const dnaBarDark=(label,v,c)=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+  <div style="width:72px;font-size:12px;font-weight:600;color:rgba(255,255,255,.7)">${label}</div>
+  <div style="flex:1;height:6px;background:rgba(255,255,255,.15);border-radius:999px;overflow:hidden"><div style="height:100%;width:${v}%;background:${c};border-radius:999px"></div></div>
+  <div style="font-size:13px;font-weight:700;color:white;width:24px;text-align:right">${v}</div>
+</div>`;
+document.getElementById('pp-dna-bars-dark').innerHTML=
+  dnaBarDark('Technical',ME.dna.technical,'var(--green)')+
+  dnaBarDark('Physical',ME.dna.physical,'#60a5fa')+
+  dnaBarDark('Mental',ME.dna.mental,'#c4b5fd)')+
+  dnaBarDark('Tactical',ME.dna.tactical,'var(--gold)');
+
+document.getElementById('pp-potential-block').innerHTML=`
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+    ${[['DNA Now',ME.dna.overall,'var(--green)'],['Potential',ME.potential.score,'var(--gold)'],['Peak DNA',ME.projection.peak_dna,'var(--purple)']].map(([l,v,c])=>`
+      <div style="text-align:center;padding:12px;border:1px solid var(--grey-200);border-radius:var(--r-sm)">
+        <div style="font-size:22px;font-weight:800;color:${c}">${v}</div>
+        <div style="font-size:11px;color:var(--grey-400);margin-top:2px">${l}</div>
+      </div>`).join('')}
+  </div>
+  <div style="font-size:13px;color:var(--grey-600);line-height:1.6">
+    Your projected peak DNA is <strong style="color:var(--gold)">${ME.projection.peak_dna}</strong> at age ${ME.projection.peak_age}.
+    You are currently in the <strong>${ME.projection.phase}</strong> phase.
+    ${ME.projection.wonderkid?'⭐ You have been identified as a <strong>Wonderkid</strong>. Keep working hard!':'Continue training consistently to maximise your potential.'}
+  </div>`;
+
+// ── DNA ───────────────────────────────────────────────────────
+document.getElementById('dna-page-overall').textContent=ME.dna.overall;
+document.getElementById('dna-radar').innerHTML=PP.radar(
+  [ME.dna.technical,ME.dna.physical,ME.dna.mental,ME.dna.tactical,ME.potential.score],
+  ['Tech','Phys','Mental','Tact','Pot'],{size:160,color:'var(--green)'});
+document.getElementById('dna-page-bars').innerHTML=
+  PP.dnaBar('Technical',ME.dna.technical,'var(--green)')+
+  PP.dnaBar('Physical',ME.dna.physical,'var(--blue)')+
+  PP.dnaBar('Mental',ME.dna.mental,'var(--purple)')+
+  PP.dnaBar('Tactical',ME.dna.tactical,'var(--gold)');
+
+document.getElementById('dna-history').innerHTML=`
+  ${PP.lineChart(D.dna_history,{w:320,h:90,color:'var(--green)',showDots:true,showLabels:true,labels:['8w','7w','6w','5w','4w','3w','2w','Now'],showArea:true})}
+  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--grey-400);margin-top:4px">
+    <span>${D.dna_history[0]} — 8 weeks ago</span>
+    <span style="color:var(--green);font-weight:700">+${D.dna_history[D.dna_history.length-1]-D.dna_history[0]} overall</span>
+    <span>${D.dna_history[D.dna_history.length-1]} — Now</span>
+  </div>`;
+
+// ── ATTRIBUTES ────────────────────────────────────────────────
+const attrGroups=[
+  {id:'technical',cls:'',attrs:['passing','dribbling','finishing','first_touch','tackling','heading']},
+  {id:'physical',cls:'p',attrs:['pace','stamina','strength','agility']},
+  {id:'mental',cls:'m',attrs:['leadership','composure','teamwork','work_rate']},
+  {id:'tactical',cls:'t',attrs:['positioning','vision','decision_making','anticipation']}
+];
+attrGroups.forEach(g=>{
+  document.getElementById('attrs-'+g.id).innerHTML=g.attrs.map(a=>{
+    const lbl=a.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    return PP.attrDots(lbl,ME.attrs[a]||0,g.cls);
+  }).join('');
+});
+
+// ── DEVELOPMENT ───────────────────────────────────────────────
+document.getElementById('prog-trend-badge').innerHTML=`<span class="badge badge-green">${PP.trendIcon(ME.trend)} ${ME.trend.replace(/_/g,' ')}</span>`;
+const pHistory=D.passport_history;
+document.getElementById('prog-chart').innerHTML=`
+  <div style="font-size:12px;color:var(--grey-500);margin-bottom:8px">Passport Score — last 8 weeks</div>
+  ${PP.lineChart(pHistory,{w:320,h:90,color:'var(--green)',showDots:true,showLabels:true,labels:['8w','7w','6w','5w','4w','3w','2w','Now'],showArea:true})}`;
+
+const phases={emerging:{label:'Emerging',desc:'You are in the earliest stage of your football journey. Every session matters. Focus on technical fundamentals.',color:'var(--blue)'},developing:{label:'Developing',desc:'You are in the key growth window. Attributes are improving rapidly. This is the most important phase of your career.',color:'var(--green)'},peak:{label:'Peak',desc:'You are at or near your peak ability. Focus on consistency and maintaining your attributes through training.',color:'var(--gold)'},declining:{label:'Declining',desc:'Physical attributes may be declining. Focus on mental and tactical development to extend your career.',color:'var(--red)'}};
+const phase=phases[ME.projection.phase]||phases.developing;
+document.getElementById('dev-phase-block').innerHTML=`
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+    <div style="width:48px;height:48px;border-radius:50%;background:${phase.color}15;color:${phase.color};display:flex;align-items:center;justify-content:center;font-size:22px">📈</div>
+    <div><div style="font-size:18px;font-weight:800;color:${phase.color}">${phase.label}</div><div style="font-size:12px;color:var(--grey-400)">Development Phase · Age ${ME.age}</div></div>
+  </div>
+  <div style="font-size:13px;color:var(--grey-600);line-height:1.6">${phase.desc}</div>`;
+
+document.getElementById('growth-drivers').innerHTML=[
+  {icon:'🏋️',label:'Training Attendance',value:ME.training_score+'%',positive:ME.training_score>=70,desc:ME.training_score>=70?'Excellent. Consistent attendance accelerates growth.':'Improve attendance to unlock faster attribute growth.'},
+  {icon:'🎯',label:'Match Experience',value:ME.stats.apps+' apps',positive:true,desc:'Playing regularly builds tactical and mental attributes.'},
+  {icon:'💪',label:'Professionalism',value:ME.hidden.professionalism+'/20',positive:ME.hidden.professionalism>=12,desc:ME.hidden.professionalism>=12?'High professionalism compounds your training gains.':'Improving your dedication will accelerate development.'},
+  {icon:'🔥',label:'Ambition',value:ME.hidden.ambition+'/20',positive:ME.hidden.ambition>=12,desc:'High ambition drives faster growth especially under 23.'}
+].map(d=>`
+  <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--grey-100)">
+    <div style="font-size:20px;width:24px;text-align:center;flex-shrink:0">${d.icon}</div>
+    <div style="flex:1">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <div style="font-size:13px;font-weight:600;color:var(--grey-700)">${d.label}</div>
+        <div style="font-size:13px;font-weight:800;color:${d.positive?'var(--green)':'var(--gold)'}">${d.value}</div>
+      </div>
+      <div style="font-size:12px;color:var(--grey-500)">${d.desc}</div>
+    </div>
+  </div>`).join('');
+
+// ── FITNESS ───────────────────────────────────────────────────
+const F=ME.fitness, M=ME.morale;
+document.getElementById('fitness-rings').innerHTML=[
+  {v:F.condition,l:'Condition',c:'var(--green)'},
+  {v:F.sharpness,l:'Sharpness',c:'var(--blue)'},
+  {v:100-F.fatigue,l:'Energy',c:'var(--purple)'},
+  {v:ME.training_score,l:'Training',c:'var(--gold)'}
+].map(r=>`<div class="ring-wrap">${PP.ring(r.v,100,{size:68,stroke:8,color:r.c,label:r.v,sublabel:'%'})}<div class="ring-label">${r.l}</div></div>`).join('');
+
+document.getElementById('fitness-advice').textContent=
+  F.condition>=80?`✅ Excellent shape. Sharpness ${F.sharpness}%, fatigue only ${F.fatigue}%. You're ready to perform.`
+  :F.condition>=60?`⚡ Good condition. Slight fatigue (${F.fatigue}%). Ensure 8 hours sleep and good nutrition before next match.`
+  :`⚠️ Elevated fatigue (${F.fatigue}%). Speak with your physio and prioritise recovery.`;
+
+document.getElementById('m-ring').innerHTML=PP.ring(M.score,100,{size:80,stroke:9,color:M.score>=70?'var(--green)':'var(--gold)',label:M.score,sublabel:'morale'});
+document.getElementById('m-breakdown').innerHTML=[['Playing Time',M.playing_sat,'var(--blue)'],['Training',M.training_sat,'var(--green)'],['Form',M.form_sat,'var(--purple)']].map(([l,v,c])=>`
+  <div style="margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:var(--grey-500)">${l}</span><span style="font-weight:700">${v}%</span></div>
+    <div class="progress-wrap"><div class="progress-fill" style="width:${v}%;background:${c}"></div></div>
+  </div>`).join('');
+const moraleAdvice={ecstatic:"You're on fire! Exceptional form and playing time. Keep this up.",happy:'Great morale. You\'re enjoying your football. Stay focused in training.',content:'Stable morale. Consistent performances will push this higher.',unsettled:'Talk to your coach about your role in the team. More playing time could help.',unhappy:'Your morale needs attention. Have an honest conversation with your coach.',miserable:'Seek support. Talk to your coach, parents, or club management.'};
+document.getElementById('m-advice').textContent=moraleAdvice[M.band]||'';
+
+// ── POSITIONS ─────────────────────────────────────────────────
+document.getElementById('pos-familiarity').innerHTML=`
+  <div style="font-size:13px;font-weight:700;color:var(--grey-700);margin-bottom:12px">Your Position Profile</div>
+  ${ME.position_familiarity.map(pf=>`
+    <div class="pos-fam-bar">
+      <div class="pos-fam-label">${pf.pos}</div>
+      <div class="pos-fam-track"><div class="pos-fam-fill" style="width:${pf.pct}%;background:${pf.pct>=90?'var(--green)':pf.pct>=70?'var(--blue)':pf.pct>=50?'var(--gold)':'var(--grey-300)'}"></div></div>
+      <div class="pos-fam-pct">${pf.pct}%</div>
+      <div class="pos-fam-level ${pf.level+'-badge'}">${pf.level.charAt(0).toUpperCase()+pf.level.slice(1)}</div>
+    </div>`).join('')}
+  <div style="font-size:12px;color:var(--grey-400);margin-top:10px">100% = Natural · 70–89% = Accomplished · 50–69% = Competent · 20–49% = Learning</div>`;
+
+// ── SCOUT REPORT ──────────────────────────────────────────────
+document.getElementById('scout-overview').textContent=`${ME.preferred} is a ${ME.age}-year-old ${ME.role} with a DNA rating of ${ME.dna.overall} (${ME.dna.band}). Their Football Passport score is ${ME.passport.score}. Exceptional mental attributes (${ME.dna.mental}/100) and high tactical awareness (${ME.dna.tactical}/100) are the primary strengths. Projected to reach ${ME.projection.peak_dna} DNA at peak age ${ME.projection.peak_age}. ${ME.projection.wonderkid?'Identified as a Wonderkid prospect.':''}`;
+
+const strengths=Object.entries(ME.attrs).filter(([,v])=>v>=14).sort(([,a],[,b])=>b-a).slice(0,5);
+const weaknesses=Object.entries(ME.attrs).filter(([,v])=>v<=10).sort(([,a],[,b])=>a-b).slice(0,5);
+document.getElementById('scout-strengths').innerHTML=strengths.map(([a,v])=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:13px"><span style="color:var(--grey-700)">${a.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</span><span style="font-weight:800;color:var(--green)">${v}/20</span></div>`).join('');
+document.getElementById('scout-weaknesses').innerHTML=weaknesses.map(([a,v])=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:13px"><span style="color:var(--grey-700)">${a.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</span><span style="font-weight:800;color:var(--red)">${v}/20</span></div>`).join('');
+
+const recColors={strongly_recommended:'var(--green)',recommended:'var(--blue)',monitor:'var(--gold)',not_recommended:'var(--red)'};
+const rec=ME.scout_recommendation||'monitor';
+document.getElementById('scout-recommendation-block').innerHTML=`
+  <div style="display:flex;align-items:center;gap:12px">
+    <div style="width:52px;height:52px;border-radius:50%;background:${recColors[rec]}15;color:${recColors[rec]};display:flex;align-items:center;justify-content:center;font-size:24px">🔍</div>
+    <div>
+      <div style="font-size:12px;color:var(--grey-400);margin-bottom:3px">Scout Recommendation</div>
+      <div style="font-size:18px;font-weight:800;color:${recColors[rec]}">${rec.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</div>
+      <div style="font-size:12px;color:var(--grey-500);margin-top:3px">Development trend: ${PP.trendIcon(ME.trend)} ${ME.trend.replace(/_/g,' ')}</div>
+    </div>
+  </div>`;
+
+// Similar players
+const similars=PL.filter(p=>p.id!==ME.id&&p.pos===ME.pos).slice(0,3);
+document.getElementById('similar-players').innerHTML=similars.map(p=>`
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--grey-100)">
+    <div class="player-avatar" style="width:36px;height:36px;font-size:12px;background:${PP.bandColor(p.dna.band)}15;color:${PP.bandColor(p.dna.band)}">${PP.initials(p.name)}</div>
+    <div style="flex:1"><div style="font-size:14px;font-weight:600">${p.preferred}</div><div style="font-size:11px;color:var(--grey-400)">${p.role}</div></div>
+    <div style="font-size:18px;font-weight:800;color:${PP.bandColor(p.dna.band)}">${p.dna.overall}</div>
+  </div>`).join('');
+
+function notifHTML(){
+  return`<div class="modal-handle"></div><div class="modal-header"><div class="modal-title">Notifications</div></div>
+  <div class="modal-body">
+    ${[{icon:'🧬',title:'DNA assessment completed',time:'Yesterday'},{icon:'📈',title:'Passport Score updated: '+ME.passport.score,time:'Yesterday'},{icon:'🏃',title:'Training tomorrow 09:00 — Technical',time:'Today'}].map(e=>`<div class="event-item"><div class="event-icon">${e.icon}</div><div class="event-body"><div class="event-title">${e.title}</div><div class="event-meta">${e.time}</div></div></div>`).join('')}
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-block" onclick="PP.closeModal()">Close</button></div>`;
+}
+} // end initDashboard
+</script>
+</body>
+</html>

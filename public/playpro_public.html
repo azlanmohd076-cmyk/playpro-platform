@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlayPro — Football Ecosystem Platform</title>
+<style>
+/* ── Reset & Base ─────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#00b341;--green-dark:#008f34;--green-light:#e6f9ed;
+  --blue:#1a56db;--blue-light:#eff4ff;
+  --gold:#f59e0b;--gold-light:#fef3c7;
+  --red:#e3342f;--red-light:#fef2f2;
+  --grey-50:#f9fafb;--grey-100:#f3f4f6;--grey-200:#e5e7eb;
+  --grey-300:#d1d5db;--grey-400:#9ca3af;--grey-500:#6b7280;
+  --grey-600:#4b5563;--grey-700:#374151;--grey-800:#1f2937;--grey-900:#111827;
+  --white:#ffffff;
+  --radius-sm:6px;--radius:10px;--radius-lg:16px;--radius-xl:24px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+  --shadow:0 4px 16px rgba(0,0,0,.10);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.14);
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --nav-h:60px;--bottom-h:64px;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--grey-50);color:var(--grey-900);
+  padding-bottom:var(--bottom-h);min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{font-family:var(--font);cursor:pointer;border:none;background:none}
+img{max-width:100%;display:block}
+input,select{font-family:var(--font)}
+
+/* ── Utility ─────────────────────────────────────────────── */
+.hidden{display:none!important}
+.flex{display:flex}.flex-col{flex-direction:column}
+.items-center{align-items:center}.justify-between{justify-content:space-between}
+.justify-center{justify-content:center}.gap-2{gap:8px}.gap-3{gap:12px}
+.gap-4{gap:16px}.gap-6{gap:24px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.w-full{width:100%}.text-center{text-align:center}
+.text-sm{font-size:13px}.text-xs{font-size:11px}.text-lg{font-size:18px}
+.text-xl{font-size:22px}.text-2xl{font-size:28px}.text-3xl{font-size:36px}
+.font-bold{font-weight:700}.font-semibold{font-weight:600}.font-medium{font-weight:500}
+.text-green{color:var(--green)}.text-blue{color:var(--blue)}
+.text-gold{color:var(--gold)}.text-red{color:var(--red)}
+.text-grey{color:var(--grey-500)}.text-dark{color:var(--grey-800)}
+.bg-green{background:var(--green)}.bg-blue{background:var(--blue)}
+.bg-white{background:var(--white)}.bg-grey{background:var(--grey-100)}
+.rounded{border-radius:var(--radius)}.rounded-sm{border-radius:var(--radius-sm)}
+.rounded-lg{border-radius:var(--radius-lg)}.rounded-full{border-radius:999px}
+.shadow{box-shadow:var(--shadow)}.shadow-sm{box-shadow:var(--shadow-sm)}
+.p-3{padding:12px}.p-4{padding:16px}.p-5{padding:20px}.p-6{padding:24px}
+.px-4{padding-left:16px;padding-right:16px}
+.py-2{padding-top:8px;padding-bottom:8px}.py-3{padding-top:12px;padding-bottom:12px}
+.mt-1{margin-top:4px}.mt-2{margin-top:8px}.mt-3{margin-top:12px}
+.mt-4{margin-top:16px}.mt-6{margin-top:24px}.mb-2{margin-bottom:8px}
+.mb-4{margin-bottom:16px}.mb-6{margin-bottom:24px}
+.border{border:1px solid var(--grey-200)}
+.border-top{border-top:1px solid var(--grey-200)}
+.truncate{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.overflow-hidden{overflow:hidden}
+.relative{position:relative}.absolute{position:absolute}
+
+/* ── Top Navigation ──────────────────────────────────────── */
+#top-nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  height:var(--nav-h);background:var(--white);
+  border-bottom:1px solid var(--grey-200);
+  display:flex;align-items:center;padding:0 16px;gap:12px;
+  box-shadow:var(--shadow-sm);
+}
+.nav-logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px}
+.nav-logo-icon{
+  width:32px;height:32px;background:var(--green);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-size:16px;flex-shrink:0;
+}
+.nav-search{
+  flex:1;display:flex;align-items:center;gap:8px;
+  background:var(--grey-100);border-radius:999px;
+  padding:8px 14px;border:1.5px solid transparent;
+  transition:border-color .15s;max-width:360px;
+}
+.nav-search:focus-within{border-color:var(--green);background:white}
+.nav-search input{
+  border:none;background:none;outline:none;font-size:14px;
+  color:var(--grey-900);width:100%;
+}
+.nav-search input::placeholder{color:var(--grey-400)}
+.nav-auth{display:flex;gap:8px;margin-left:auto}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px 16px;border-radius:999px;font-size:14px;font-weight:600;
+  transition:all .15s;cursor:pointer;border:none;
+}
+.btn-ghost{background:none;color:var(--grey-700);border:1.5px solid var(--grey-300)}
+.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+.btn-primary{background:var(--green);color:white}
+.btn-primary:hover{background:var(--green-dark)}
+.btn-sm{padding:6px 14px;font-size:13px}
+.btn-blue{background:var(--blue);color:white}
+.btn-blue:hover{filter:brightness(1.1)}
+.btn-gold{background:var(--gold);color:white}
+.btn-outline-green{background:none;color:var(--green);border:1.5px solid var(--green)}
+.btn-outline-green:hover{background:var(--green-light)}
+
+/* ── Content area ────────────────────────────────────────── */
+#app{padding-top:var(--nav-h)}
+
+/* ── Screens ─────────────────────────────────────────────── */
+.screen{display:none;min-height:calc(100vh - var(--nav-h) - var(--bottom-h))}
+.screen.active{display:block}
+
+/* ── Bottom Navigation ───────────────────────────────────── */
+#bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  height:var(--bottom-h);background:var(--white);
+  border-top:1px solid var(--grey-200);
+  display:flex;align-items:stretch;
+  box-shadow:0 -2px 12px rgba(0,0,0,.08);
+}
+.bottom-tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:3px;font-size:10px;font-weight:500;
+  color:var(--grey-400);cursor:pointer;transition:color .15s;
+  padding:8px 0;border:none;background:none;
+}
+.bottom-tab.active{color:var(--green)}
+.bottom-tab .tab-icon{font-size:20px;line-height:1}
+.bottom-tab span{line-height:1}
+
+/* ── Hero ────────────────────────────────────────────────── */
+.hero{
+  background:linear-gradient(135deg,#0a2e16 0%,#1a5c32 60%,#00b341 100%);
+  padding:40px 20px 32px;color:white;position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;top:-40px;right:-60px;
+  width:220px;height:220px;border-radius:50%;
+  background:rgba(255,255,255,.05);
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.15);border-radius:999px;
+  padding:4px 12px;font-size:12px;font-weight:600;
+  backdrop-filter:blur(4px);margin-bottom:16px;
+}
+.hero h1{font-size:28px;font-weight:800;line-height:1.2;margin-bottom:8px}
+.hero p{font-size:14px;opacity:.8;margin-bottom:24px;line-height:1.5}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:rgba(255,255,255,.1);border-radius:var(--radius);overflow:hidden}
+.hero-stat{padding:12px 8px;text-align:center;background:rgba(0,0,0,.2)}
+.hero-stat-num{font-size:20px;font-weight:800}
+.hero-stat-lbl{font-size:10px;opacity:.7;margin-top:2px}
+
+/* ── Section header ─────────────────────────────────────── */
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 16px 12px;
+}
+.section-title{font-size:16px;font-weight:700;color:var(--grey-800)}
+.section-link{font-size:13px;color:var(--green);font-weight:600}
+
+/* ── Cards ───────────────────────────────────────────────── */
+.card{background:var(--white);border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);border:1px solid var(--grey-200);overflow:hidden}
+.card-pad{padding:16px}
+
+/* ── League card ─────────────────────────────────────────── */
+.league-card{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  background:white;border-bottom:1px solid var(--grey-100);cursor:pointer;
+}
+.league-card:hover{background:var(--grey-50)}
+.league-avatar{
+  width:44px;height:44px;border-radius:10px;
+  background:linear-gradient(135deg,#1a5c32,#00b341);
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-weight:800;font-size:16px;flex-shrink:0;
+}
+.league-info{flex:1;min-width:0}
+.league-name{font-weight:600;font-size:15px;truncate}
+.league-meta{font-size:12px;color:var(--grey-500);margin-top:2px}
+.league-badge{
+  font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;
+}
+.badge-live{background:#fef3c7;color:#92400e}
+.badge-active{background:var(--green-light);color:var(--green-dark)}
+.badge-upcoming{background:var(--blue-light);color:var(--blue)}
+
+/* ── Player card (list row) ──────────────────────────────── */
+.player-row{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;border-bottom:1px solid var(--grey-100);
+  cursor:pointer;transition:background .1s;
+}
+.player-row:hover{background:var(--grey-50)}
+.player-avatar{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  background:var(--grey-200);display:flex;align-items:center;
+  justify-content:center;font-weight:700;font-size:16px;color:var(--grey-500);
+  overflow:hidden;
+}
+.player-avatar img{width:100%;height:100%;object-fit:cover}
+.player-info{flex:1;min-width:0}
+.player-name{font-weight:600;font-size:15px}
+.player-meta{font-size:12px;color:var(--grey-500);margin-top:2px}
+.dna-chip{
+  display:flex;flex-direction:column;align-items:center;flex-shrink:0;
+}
+.dna-score{font-size:20px;font-weight:800;line-height:1}
+.dna-band{font-size:10px;font-weight:600;padding:2px 6px;border-radius:999px;margin-top:3px}
+.band-elite{background:#fef3c7;color:#92400e}
+.band-advanced{background:var(--green-light);color:var(--green-dark)}
+.band-developing{background:var(--blue-light);color:var(--blue)}
+.band-emerging{background:#f3f4f6;color:var(--grey-600)}
+.band-beginner{background:#f3f4f6;color:var(--grey-500)}
+.band-null{background:#f3f4f6;color:var(--grey-400)}
+
+/* ── Passport page ───────────────────────────────────────── */
+.passport-hero{
+  background:linear-gradient(160deg,#0a2e16 0%,#1a5c32 100%);
+  padding:24px 20px 0;color:white;
+}
+.passport-identity{display:flex;gap:16px;align-items:flex-start}
+.passport-photo{
+  width:80px;height:80px;border-radius:14px;flex-shrink:0;
+  background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;color:rgba(255,255,255,.7);overflow:hidden;
+}
+.passport-name{font-size:22px;font-weight:800;line-height:1.1}
+.passport-sub{font-size:13px;opacity:.75;margin-top:4px;line-height:1.4}
+.passport-tabs{
+  display:flex;gap:0;margin-top:20px;
+  border-bottom:2px solid rgba(255,255,255,.1);
+}
+.passport-tab{
+  padding:10px 14px;font-size:13px;font-weight:600;
+  color:rgba(255,255,255,.6);cursor:pointer;border:none;background:none;
+  border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;
+  white-space:nowrap;
+}
+.passport-tab.active{color:white;border-bottom-color:var(--green)}
+
+/* ── DNA Card ────────────────────────────────────────────── */
+.dna-card{
+  background:white;border-radius:var(--radius-lg);
+  box-shadow:var(--shadow);margin:16px;overflow:hidden;
+}
+.dna-header{
+  background:linear-gradient(135deg,#0a2e16,#1a5c32);
+  padding:16px 20px;color:white;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.dna-overall-display{text-align:center}
+.dna-overall-num{font-size:48px;font-weight:900;line-height:1;color:white}
+.dna-overall-label{font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:.5px}
+.dna-overall-band{
+  display:inline-block;margin-top:4px;padding:3px 10px;
+  border-radius:999px;font-size:11px;font-weight:700;
+  background:rgba(255,255,255,.15);
+}
+.dna-bars{padding:16px 20px}
+.dna-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.dna-bar-label{font-size:13px;font-weight:600;color:var(--grey-700);width:80px;flex-shrink:0}
+.dna-bar-track{flex:1;height:8px;background:var(--grey-100);border-radius:999px;overflow:hidden}
+.dna-bar-fill{height:100%;border-radius:999px;transition:width .6s ease;background:var(--green)}
+.dna-bar-fill.physical{background:#3b82f6}
+.dna-bar-fill.mental{background:#8b5cf6}
+.dna-bar-fill.tactical{background:#f59e0b}
+.dna-bar-val{font-size:14px;font-weight:700;color:var(--grey-800);width:32px;text-align:right}
+.dna-potential{
+  border-top:1px solid var(--grey-100);padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.potential-label{font-size:12px;color:var(--grey-500);font-weight:500}
+.potential-value{
+  display:flex;align-items:center;gap:8px;
+  font-size:16px;font-weight:700;color:var(--grey-800);
+}
+.potential-badge{
+  font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;
+  background:var(--gold-light);color:#92400e;
+}
+
+/* ── Attribute grid ──────────────────────────────────────── */
+.attr-section{padding:0 16px 8px}
+.attr-section-title{
+  font-size:12px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.8px;color:var(--grey-400);
+  padding:12px 0 8px;
+}
+.attr-row{
+  display:flex;align-items:center;gap:10px;margin-bottom:8px;
+}
+.attr-name{font-size:13px;color:var(--grey-600);width:100px;flex-shrink:0}
+.attr-dots{display:flex;gap:3px;flex:1}
+.attr-dot{
+  width:14px;height:14px;border-radius:3px;
+  background:var(--grey-200);transition:background .3s;
+}
+.attr-dot.filled{background:var(--green)}
+.attr-dot.filled.p{background:#3b82f6}
+.attr-dot.filled.m{background:#8b5cf6}
+.attr-dot.filled.t{background:#f59e0b}
+.attr-val{font-size:14px;font-weight:700;color:var(--grey-800);width:24px;text-align:right}
+
+/* ── Stats strip ─────────────────────────────────────────── */
+.stats-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--grey-200);border-radius:var(--radius);
+  overflow:hidden;margin:0 16px;
+}
+.stat-cell{
+  background:white;padding:14px 8px;text-align:center;
+}
+.stat-num{font-size:22px;font-weight:800;color:var(--grey-800)}
+.stat-lbl{font-size:11px;color:var(--grey-500);margin-top:2px}
+
+/* ── Passport score block ────────────────────────────────── */
+.passport-score-block{
+  margin:16px;padding:20px;background:white;
+  border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);
+  border:1px solid var(--grey-200);
+}
+.ps-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.ps-label{font-size:13px;color:var(--grey-600);flex:1}
+.ps-bar{flex:2;height:6px;background:var(--grey-100);border-radius:999px;overflow:hidden}
+.ps-bar-fill{height:100%;border-radius:999px}
+.ps-pct{font-size:12px;font-weight:600;color:var(--grey-500);width:36px;text-align:right}
+
+/* ── Claim CTA ───────────────────────────────────────────── */
+.claim-cta{
+  margin:16px;padding:20px;
+  background:linear-gradient(135deg,#eff4ff,#dbeafe);
+  border-radius:var(--radius-lg);border:1.5px solid #bfdbfe;
+}
+.claim-cta h3{font-size:16px;font-weight:700;color:#1e3a8a;margin-bottom:6px}
+.claim-cta p{font-size:13px;color:#1e40af;line-height:1.5;margin-bottom:14px}
+
+/* ── Progress timeline ───────────────────────────────────── */
+.timeline{padding:0 16px}
+.timeline-item{
+  display:flex;gap:12px;padding:12px 0;
+  border-bottom:1px solid var(--grey-100);
+}
+.timeline-dot{
+  width:32px;height:32px;border-radius:50%;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:14px;background:var(--green-light);color:var(--green-dark);
+}
+.timeline-content{flex:1}
+.timeline-title{font-size:14px;font-weight:600;color:var(--grey-800)}
+.timeline-meta{font-size:12px;color:var(--grey-500);margin-top:2px}
+
+/* ── Progression graph ───────────────────────────────────── */
+.prog-graph{
+  margin:0 16px;background:white;border-radius:var(--radius);
+  border:1px solid var(--grey-200);padding:16px;
+}
+.prog-graph svg{width:100%;height:120px}
+
+/* ── Club card ───────────────────────────────────────────── */
+.club-card{
+  background:white;border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);border:1px solid var(--grey-200);
+  overflow:hidden;cursor:pointer;
+}
+.club-card-header{
+  padding:16px;display:flex;gap:12px;align-items:center;
+}
+.club-logo{
+  width:52px;height:52px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,#1a5c32,#00b341);
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-weight:800;font-size:20px;
+}
+.club-info .club-name{font-weight:700;font-size:16px}
+.club-info .club-meta{font-size:12px;color:var(--grey-500);margin-top:3px}
+.club-dna-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--grey-100);
+}
+.club-dna-cell{padding:10px 8px;text-align:center}
+.club-dna-cell .val{font-size:16px;font-weight:700;color:var(--grey-800)}
+.club-dna-cell .lbl{font-size:10px;color:var(--grey-500);margin-top:2px}
+.club-dna-cell.tech .val{color:var(--green)}
+.club-dna-cell.phys .val{color:#3b82f6}
+.club-dna-cell.ment .val{color:#8b5cf6}
+.club-dna-cell.tact .val{color:var(--gold)}
+
+/* ── Standings table ─────────────────────────────────────── */
+.standings-table{width:100%;border-collapse:collapse;font-size:13px}
+.standings-table th{
+  padding:8px 10px;text-align:left;font-size:11px;font-weight:700;
+  text-transform:uppercase;color:var(--grey-500);
+  border-bottom:2px solid var(--grey-200);background:var(--grey-50);
+}
+.standings-table td{padding:10px;border-bottom:1px solid var(--grey-100)}
+.standings-table tr:hover td{background:var(--grey-50)}
+.pos-badge{
+  width:22px;height:22px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:12px;
+}
+.pos-1{background:#fef3c7;color:#92400e}
+.pos-2{background:#f3f4f6;color:#374151}
+.pos-3{background:#fef3c7;color:#b45309}
+
+/* ── Search results ──────────────────────────────────────── */
+.search-section{padding:16px}
+.search-input-wrap{
+  display:flex;align-items:center;gap:10px;
+  background:white;border-radius:var(--radius);
+  padding:12px 16px;border:1.5px solid var(--grey-200);
+  box-shadow:var(--shadow-sm);margin-bottom:16px;
+}
+.search-input-wrap input{
+  border:none;outline:none;font-size:15px;flex:1;color:var(--grey-800)
+}
+.filter-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}
+.filter-chip{
+  padding:6px 14px;border-radius:999px;font-size:13px;font-weight:500;
+  border:1.5px solid var(--grey-300);background:white;color:var(--grey-600);
+  cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;
+}
+.filter-chip.active{border-color:var(--green);background:var(--green-light);color:var(--green-dark)}
+
+/* ── My Account ──────────────────────────────────────────── */
+.account-header{
+  background:linear-gradient(135deg,#0a2e16,#1a5c32);
+  padding:32px 20px 24px;color:white;text-align:center;
+}
+.account-avatar{
+  width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;margin:0 auto 12px;border:2px solid rgba(255,255,255,.3);
+}
+.account-role-badge{
+  display:inline-block;padding:4px 12px;border-radius:999px;
+  font-size:12px;font-weight:600;background:rgba(255,255,255,.15);
+  margin-top:6px;
+}
+.menu-section{padding:8px 16px}
+.menu-section-label{
+  font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.8px;color:var(--grey-400);padding:12px 0 6px;
+}
+.menu-item{
+  display:flex;align-items:center;gap:12px;padding:14px 0;
+  border-bottom:1px solid var(--grey-100);cursor:pointer;
+}
+.menu-item:hover{opacity:.8}
+.menu-icon{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.menu-icon.green{background:var(--green-light)}
+.menu-icon.blue{background:var(--blue-light)}
+.menu-icon.purple{background:#f3e8ff}
+.menu-icon.gold{background:var(--gold-light)}
+.menu-icon.grey{background:var(--grey-100)}
+.menu-text{flex:1}
+.menu-title{font-size:15px;font-weight:600;color:var(--grey-800)}
+.menu-sub{font-size:12px;color:var(--grey-500);margin-top:1px}
+.menu-arrow{color:var(--grey-400);font-size:16px}
+.menu-badge{
+  background:var(--green);color:white;
+  font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;
+}
+
+/* ── Claim modal ─────────────────────────────────────────── */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:200;display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;visibility:hidden;transition:all .2s;
+}
+.modal-backdrop.open{opacity:1;visibility:visible}
+.modal{
+  background:white;border-radius:var(--radius-xl) var(--radius-xl) 0 0;
+  width:100%;max-width:480px;max-height:85vh;overflow-y:auto;
+  transform:translateY(20px);transition:transform .25s;
+}
+.modal-backdrop.open .modal{transform:translateY(0)}
+.modal-handle{
+  width:36px;height:4px;background:var(--grey-300);border-radius:999px;
+  margin:12px auto 4px;
+}
+.modal-header{padding:8px 20px 16px}
+.modal-title{font-size:18px;font-weight:700;color:var(--grey-800)}
+.modal-sub{font-size:13px;color:var(--grey-500);margin-top:4px}
+.modal-body{padding:0 20px 20px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--grey-700);margin-bottom:6px}
+.form-input{
+  width:100%;padding:11px 14px;border:1.5px solid var(--grey-300);
+  border-radius:var(--radius-sm);font-size:14px;outline:none;
+  transition:border-color .15s;
+}
+.form-input:focus{border-color:var(--green)}
+.form-select{
+  width:100%;padding:11px 14px;border:1.5px solid var(--grey-300);
+  border-radius:var(--radius-sm);font-size:14px;outline:none;
+  background:white;appearance:none;
+}
+.modal-footer{padding:0 20px 32px;display:flex;flex-direction:column;gap:10px}
+.claim-step{
+  display:flex;gap:12px;align-items:flex-start;padding:10px 0;
+  border-bottom:1px solid var(--grey-100);
+}
+.claim-step-num{
+  width:24px;height:24px;border-radius:50%;background:var(--green);
+  color:white;font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+}
+.claim-step-text{font-size:13px;color:var(--grey-600);line-height:1.5}
+.claim-step-text strong{color:var(--grey-800)}
+
+/* ── Fixtures list ───────────────────────────────────────── */
+.fixture-card{
+  background:white;border-radius:var(--radius);border:1px solid var(--grey-200);
+  padding:14px 16px;margin:0 16px 10px;box-shadow:var(--shadow-sm);
+}
+.fixture-meta{font-size:11px;color:var(--grey-500);margin-bottom:10px;text-align:center}
+.fixture-teams{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.fixture-team{text-align:center;flex:1;min-width:0}
+.fixture-team-name{font-size:14px;font-weight:700;color:var(--grey-800)}
+.fixture-score{
+  display:flex;gap:6px;align-items:center;font-size:24px;font-weight:900;
+  color:var(--grey-800);padding:0 12px;
+}
+.fixture-status{
+  text-align:center;margin-top:8px;font-size:11px;font-weight:600;
+  color:var(--green);
+}
+.fixture-status.live{color:var(--red)}
+
+/* ── Notification toast ──────────────────────────────────── */
+.toast{
+  position:fixed;top:72px;left:50%;transform:translateX(-50%);
+  background:var(--grey-800);color:white;padding:10px 20px;
+  border-radius:var(--radius-sm);font-size:14px;font-weight:500;
+  z-index:300;opacity:0;transition:opacity .2s;pointer-events:none;
+  white-space:nowrap;
+}
+.toast.show{opacity:1}
+
+/* ── Scroll container ────────────────────────────────────── */
+.h-scroll{display:flex;gap:12px;overflow-x:auto;padding:0 16px 8px;
+  scrollbar-width:none}
+.h-scroll::-webkit-scrollbar{display:none}
+.h-card{
+  flex-shrink:0;width:160px;background:white;border-radius:var(--radius);
+  border:1px solid var(--grey-200);overflow:hidden;cursor:pointer;
+  box-shadow:var(--shadow-sm);
+}
+.h-card-img{
+  height:80px;background:linear-gradient(135deg,#1a5c32,#00b341);
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-size:28px;
+}
+.h-card-body{padding:10px}
+.h-card-name{font-size:13px;font-weight:700;color:var(--grey-800);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-card-meta{font-size:11px;color:var(--grey-500);margin-top:2px}
+
+/* ── Follow button ───────────────────────────────────────── */
+.follow-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 16px;border-radius:999px;font-size:13px;font-weight:600;
+  border:1.5px solid var(--green);color:var(--green);background:none;
+  cursor:pointer;transition:all .15s;
+}
+.follow-btn.following{background:var(--green);color:white}
+.follow-btn:hover{filter:brightness(.95)}
+
+/* ── Live match badge ────────────────────────────────────── */
+.live-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--red);color:white;border-radius:999px;
+  padding:3px 8px;font-size:11px;font-weight:700;
+}
+.live-dot{width:6px;height:6px;border-radius:50%;background:white;
+  animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── Responsive helpers ──────────────────────────────────── */
+@media(min-width:640px){
+  .grid-2{grid-template-columns:repeat(2,1fr)}
+  #bottom-nav{display:none}
+  body{padding-bottom:0}
+  #app{max-width:480px;margin:0 auto}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<!-- ── Top Nav ─────────────────────────────────────────────── -->
+<nav id="top-nav">
+  <div class="nav-logo" onclick="showScreen('home')">
+    <div class="nav-logo-icon">⚽</div>
+    <span>PlayPro</span>
+  </div>
+  <div class="nav-search" id="global-search-bar" onclick="focusSearch()">
+    <span style="color:var(--grey-400);font-size:16px">🔍</span>
+    <input id="global-search-input" placeholder="Search players, clubs, leagues…"
+      oninput="handleSearch(this.value)">
+  </div>
+  <div class="nav-auth" id="nav-auth-area">
+    <button class="btn btn-ghost btn-sm" onclick="showScreen('login')">Sign In</button>
+    <button class="btn btn-primary btn-sm" onclick="showRegisterModal()">Join</button>
+  </div>
+</nav>
+
+<div id="app">
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN: HOME
+════════════════════════════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">🏆 Malaysia's Football Platform</div>
+    <h1>Your Football.<br>Your Passport.</h1>
+    <p>Track every player, every match, every league — all in one place.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-num">24</div><div class="hero-stat-lbl">Leagues</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">386</div><div class="hero-stat-lbl">Clubs</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">4.2k</div><div class="hero-stat-lbl">Players</div></div>
+    </div>
+  </div>
+
+  <!-- Live fixtures banner -->
+  <div style="background:#fef2f2;border-bottom:1px solid #fecaca;padding:10px 16px;">
+    <div class="flex items-center gap-3">
+      <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+      <span style="font-size:13px;font-weight:600;color:var(--grey-800)">FC Seremban U21 vs Nilai FC</span>
+      <span style="font-size:16px;font-weight:800;color:var(--grey-800);margin-left:auto">2 — 1</span>
+    </div>
+    <div style="font-size:11px;color:var(--grey-500);margin-top:3px">Liga 1 Seremban U21 · 67'</div>
+  </div>
+
+  <!-- Quick actions -->
+  <div style="padding:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+    <button onclick="showScreen('football')" style="background:var(--green-light);border:none;border-radius:12px;padding:14px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+      <span style="font-size:22px">🏆</span>
+      <span style="font-size:11px;font-weight:600;color:var(--green-dark)">Leagues</span>
+    </button>
+    <button onclick="showScreen('clubs-list')" style="background:#eff4ff;border:none;border-radius:12px;padding:14px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+      <span style="font-size:22px">🛡️</span>
+      <span style="font-size:11px;font-weight:600;color:#1e3a8a">Clubs</span>
+    </button>
+    <button onclick="showScreen('players-list')" style="background:#f3e8ff;border:none;border-radius:12px;padding:14px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+      <span style="font-size:22px">👤</span>
+      <span style="font-size:11px;font-weight:600;color:#581c87">Players</span>
+    </button>
+    <button onclick="showScreen('passport-hub')" style="background:var(--gold-light);border:none;border-radius:12px;padding:14px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+      <span style="font-size:22px">🧬</span>
+      <span style="font-size:11px;font-weight:600;color:#92400e">DNA</span>
+    </button>
+  </div>
+
+  <!-- Top DNA players -->
+  <div class="section-header">
+    <div class="section-title">🧬 Top DNA Ratings</div>
+    <div class="section-link" onclick="showScreen('players-list')">See all →</div>
+  </div>
+  <div id="home-top-players"></div>
+
+  <!-- Featured clubs -->
+  <div class="section-header">
+    <div class="section-title">🛡️ Featured Clubs</div>
+    <div class="section-link" onclick="showScreen('clubs-list')">See all →</div>
+  </div>
+  <div class="h-scroll" id="home-clubs"></div>
+
+  <!-- Active leagues -->
+  <div class="section-header">
+    <div class="section-title">🏆 Active Leagues</div>
+    <div class="section-link" onclick="showScreen('football')">See all →</div>
+  </div>
+  <div class="card" style="margin:0 16px 20px">
+    <div id="home-leagues"></div>
+  </div>
+
+</div><!-- /screen-home -->
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN: FOOTBALL (Leagues hub)
+════════════════════════════════════════════════════════ -->
+<div id="screen-football" class="screen">
+  <div style="padding:20px 16px 12px">
+    <h2 style="font-size:20px;font-weight:800;color:var(--grey-800)">⚽ Football</h2>
+    <p style="font-size:13px;color:var(--grey-500);margin-top:4px">Browse leagues, fixtures, and standings</p>
+  </div>
+  <div class="filter-chips" style="padding:0 16px 12px">
+    <div class="filter-chip active" onclick="filterLeagues('all',this)">All</div>
+    <div class="filter-chip" onclick="filterLeagues('active',this)">Active</div>
+    <div class="filter-chip" onclick="filterLeagues('upcoming',this)">Upcoming</div>
+    <div class="filter-chip" onclick="filterLeagues('completed',this)">Completed</div>
+  </div>
+  <div class="card" style="margin:0 16px">
+    <div id="leagues-list"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN: LEAGUE DETAIL
+════════════════════════════════════════════════════════ -->
+<div id="screen-league-detail" class="screen">
+  <div id="league-detail-content"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN: CLUBS LIST
+════════════════════════════════════════════════════════ -->
+<div id="screen-clubs-list" class="screen">
+  <div style="padding:20px 16px 12px">
+    <h2 style="font-size:20px;font-weight:800">🛡️ Clubs</h2>
+    <p style="font-size:13px;color:var(--grey-500);margin-top:4px">Explore club DNA and squad profiles</p>
+  </div>
+  <div class="filter-chips" style="padding:0 16px 12px">
+    <div class="filter-chip active" onclick="filterClubs('all',this)">All</div>
+    <div class="filter-chip" onclick="filterClubs('liga_super',this)">Liga Super</div>
+    <div class="filter-chip" onclick="filterClubs('liga_premier',this)">Liga Premier</div>
+    <div class="filter-chip" onclick="filterClubs('state',this)">State</div>
+    <div class="filter-chip" onclick="filterClubs('youth',this)">Youth</div>
+  </div>
+  <div id="clubs-grid" style="padding:0 16px;display:flex;flex-direction:column;gap:10px"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN: CLUB DETAIL
+════════════════════════════════════════════════════════ -->
+<div id="screen-club-detail" class="screen">
+  <div id="club-detail-content"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN: PLAYERS LIST
+════════════════════════════════════════════════════════ -->
+<div id="screen-players-list" class="screen">
+  <div style="padding:20px 16px 8px">
+    <h2 style="font-size:20px;font-weight:800">👤 Players</h2>
+    <p style="font-size:13px;color:var(--grey-500);margin-top:4px">Browse Football Passports & DNA ratings</p>
+  </div>
+  <div style="padding:0 16px 12px">
+    <div class="search-input-wrap">
+      <span style="font-size:16px;color:var(--grey-400)">🔍</span>
+      <input placeholder="Search by name, club, position…" oninput="filterPlayers(this.value)">
+    </div>
+    <div class="filter-chips">
+      <div class="filter-chip active" onclick="filterByPosition('all',this)">All</div>
+      <div class="filter-chip" onclick="filterByPosition('goalkeeper',this)">GK</div>
+      <div class="filter-chip" onclick="filterByPosition('defender',this)">DEF</div>
+      <div class="filter-chip" onclick="filterByPosition('midfielder',this)">MID</div>
+      <div class="filter-chip" onclick="filterByPosition('forward',this)">FWD</div>
+    </div>
+  </div>
+  <div class="card" style="margin:0 16px">
+    <div id="players-list-content"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN: PLAYER PASSPORT
+════════════════════════════════════════════════════════ -->
+<div id="screen-passport" class="screen">
+  <div id="passport-content"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN: PASSPORT HUB (DNA leaderboard)
+════════════════════════════════════════════════════════ -->
+<div id="screen-passport-hub" class="screen">
+  <div style="padding:20px 16px 12px">
+    <h2 style="font-size:20px;font-weight:800">🧬 Football Passport</h2>
+    <p style="font-size:13px;color:var(--grey-500);margin-top:4px">DNA ratings, potential scores, and player passports</p>
+  </div>
+  <div class="filter-chips" style="padding:0 16px 12px">
+    <div class="filter-chip active" onclick="filterPassport('all',this)">All Players</div>
+    <div class="filter-chip" onclick="filterPassport('elite',this)">🏅 Elite</div>
+    <div class="filter-chip" onclick="filterPassport('advanced',this)">⭐ Advanced</div>
+    <div class="filter-chip" onclick="filterPassport('potential',this)">🎯 High Potential</div>
+  </div>
+  <div class="card" style="margin:0 16px">
+    <div id="passport-hub-list"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN: MY ACCOUNT
+════════════════════════════════════════════════════════ -->
+<div id="screen-account" class="screen">
+  <div id="account-content"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN: SEARCH RESULTS
+════════════════════════════════════════════════════════ -->
+<div id="screen-search" class="screen">
+  <div style="padding:16px">
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:12px">Search Results</h2>
+    <div id="search-results"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN: CLAIM PLAYER
+════════════════════════════════════════════════════════ -->
+<div id="screen-claim" class="screen">
+  <div style="padding:20px 16px">
+    <button onclick="goBack()" style="font-size:22px;background:none;border:none;cursor:pointer;margin-bottom:12px">←</button>
+    <h2 style="font-size:20px;font-weight:800;margin-bottom:4px">Claim Your Passport</h2>
+    <p style="font-size:13px;color:var(--grey-500);margin-bottom:20px">Link your identity to your football record</p>
+
+    <div style="background:white;border-radius:var(--radius-lg);border:1px solid var(--grey-200);padding:20px;margin-bottom:16px">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:12px">How it works</h3>
+      <div class="claim-step">
+        <div class="claim-step-num">1</div>
+        <div class="claim-step-text"><strong>Select your player record</strong><br>Search for your name in the PlayPro database</div>
+      </div>
+      <div class="claim-step">
+        <div class="claim-step-num">2</div>
+        <div class="claim-step-text"><strong>Submit a claim</strong><br>Your Club Admin will verify your identity</div>
+      </div>
+      <div class="claim-step">
+        <div class="claim-step-num">3</div>
+        <div class="claim-step-text"><strong>Claim approved</strong><br>Your passport is now yours to manage</div>
+      </div>
+      <div class="claim-step" style="border-bottom:none">
+        <div class="claim-step-num">4</div>
+        <div class="claim-step-text"><strong>Edit your profile</strong><br>Add biography, photo, and track your progress</div>
+      </div>
+    </div>
+
+    <div style="background:white;border-radius:var(--radius-lg);border:1px solid var(--grey-200);padding:20px">
+      <div class="form-group">
+        <label class="form-label">Claim Type</label>
+        <select class="form-select" id="claim-type-select" onchange="toggleGuardianField()">
+          <option value="self">I am this player (adult 18+)</option>
+          <option value="guardian">I am the parent/guardian of this player</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Search for player record</label>
+        <input class="form-input" placeholder="Type player full name…" oninput="searchForClaim(this.value)">
+        <div id="claim-player-results" style="margin-top:8px"></div>
+      </div>
+      <div class="form-group hidden" id="guardian-dob-group">
+        <label class="form-label">Player's Date of Birth</label>
+        <input class="form-input" type="date" placeholder="DD/MM/YYYY">
+        <p style="font-size:11px;color:var(--grey-500);margin-top:4px">Required for guardian claims. Player must be under 18.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Relationship to this club</label>
+        <select class="form-select">
+          <option>Currently registered player</option>
+          <option>Former player</option>
+          <option>Parent/Guardian</option>
+        </select>
+      </div>
+      <button class="btn btn-primary w-full" onclick="submitClaim()">Submit Claim Request</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- ── Bottom Navigation ──────────────────────────────────── -->
+<nav id="bottom-nav">
+  <button class="bottom-tab active" id="tab-home" onclick="showScreen('home')">
+    <span class="tab-icon">🏠</span><span>Home</span>
+  </button>
+  <button class="bottom-tab" id="tab-football" onclick="showScreen('football')">
+    <span class="tab-icon">⚽</span><span>Football</span>
+  </button>
+  <button class="bottom-tab" id="tab-passport" onclick="showScreen('passport-hub')">
+    <span class="tab-icon">🧬</span><span>Passport</span>
+  </button>
+  <button class="bottom-tab" id="tab-account" onclick="showScreen('account')">
+    <span class="tab-icon">👤</span><span>Me</span>
+  </button>
+</nav>
+
+<!-- ── Toast notification ─────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── Claim Modal ────────────────────────────────────────── -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="closeModal(event)">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────
+   DATA — Demo dataset (replaces Supabase calls in prototype)
+───────────────────────────────────────────────────────── */
+const DATA = {
+  leagues:[
+    {id:'l1',name:'Liga 1 Seremban U21',status:'active',tier:'youth',
+     clubs:8,season:'2025/26',founded:2019,description:'U21 youth league serving Seremban district'},
+    {id:'l2',name:'Liga Premier Negeri Sembilan',status:'active',tier:'liga_premier',
+     clubs:12,season:'2025/26',founded:2015,description:'Second division state league'},
+    {id:'l3',name:'Liga Super Selangor',status:'active',tier:'liga_super',
+     clubs:10,season:'2025/26',founded:2010,description:'Top flight Selangor competition'},
+    {id:'l4',name:'FA Cup Negeri Sembilan',status:'upcoming',tier:'state',
+     clubs:16,season:'2026',founded:2012,description:'State knockout cup competition'},
+    {id:'l5',name:'Liga Veteran Seremban',status:'completed',tier:'amateur',
+     clubs:6,season:'2024/25',founded:2020,description:'35+ veteran competition'},
+  ],
+  clubs:[
+    {id:'c1',name:'FC Seremban U21',league:'l1',tier:'youth',
+     dna:{tech:68,phys:72,ment:71,tact:65,overall:69},passport:62,players:22,
+     description:'Youth development club based in Seremban, Negeri Sembilan.'},
+    {id:'c2',name:'Nilai FC',league:'l1',tier:'youth',
+     dna:{tech:74,phys:70,ment:69,tact:73,overall:72},passport:67,players:20,
+     description:'Competitive U21 outfit from Nilai township.'},
+    {id:'c3',name:'Port Dickson Athletic',league:'l2',tier:'liga_premier',
+     dna:{tech:76,phys:75,ment:78,tact:74,overall:76},passport:71,players:28,
+     description:'Semi-professional club from the coastal district.'},
+    {id:'c4',name:'Seremban City FC',league:'l2',tier:'liga_premier',
+     dna:{tech:72,phys:68,ment:74,tact:71,overall:71},passport:66,players:26,
+     description:'City club representing central Seremban.'},
+    {id:'c5',name:'Petaling Jaya FC',league:'l3',tier:'liga_super',
+     dna:{tech:82,phys:80,ment:84,tact:81,overall:82},passport:78,players:32,
+     description:'Established Liga Super club from the Klang Valley.'},
+    {id:'c6',name:'Subang Jaya United',league:'l3',tier:'liga_super',
+     dna:{tech:79,phys:78,ment:76,tact:80,overall:78},passport:74,players:30,
+     description:'Top-flight club with strong academy pipeline.'},
+  ],
+  players:[
+    {id:'p1',name:'Ahmad Zulkifli',preferred:'Zulkifli',pos:'midfielder',
+     club:'c1',age:21,nationality:'Malaysian',height:175,weight:70,
+     photo:null,passport:72,band:'advanced',
+     dna:{tech:74,phys:71,ment:84,tact:80,overall:77},
+     potential:{score:88,cat:'national_prospect'},
+     attrs:{
+       technical:{passing:14,dribbling:15,finishing:11,first_touch:14,tackling:9,heading:11},
+       physical:{pace:14,stamina:15,strength:12,agility:13},
+       mental:{leadership:13,composure:16,teamwork:15,work_rate:17},
+       tactical:{positioning:15,vision:16,decision_making:15,anticipation:14}
+     },
+     stats:{apps:18,goals:4,assists:7,yellows:2,reds:0},
+     timeline:[
+       {icon:'⚽',title:'Joined FC Seremban U21',date:'Jan 2024'},
+       {icon:'🏆',title:'Liga 1 Seremban U21 — Champion',date:'Dec 2024'},
+       {icon:'🌟',title:'First DNA Assessment',date:'Feb 2025'},
+       {icon:'📈',title:'Passport Score reached 70+',date:'Apr 2025'},
+     ],
+     claimed:false},
+    {id:'p2',name:'Fariz Ibrahim',preferred:'Fariz',pos:'forward',
+     club:'c1',age:19,nationality:'Malaysian',height:178,weight:73,
+     photo:null,passport:68,band:'developing',
+     dna:{tech:71,phys:74,ment:68,tact:65,overall:70},
+     potential:{score:82,cat:'national_prospect'},
+     attrs:{
+       technical:{passing:11,dribbling:13,finishing:16,first_touch:13,tackling:7,heading:14},
+       physical:{pace:16,stamina:14,strength:13,agility:15},
+       mental:{leadership:10,composure:13,teamwork:14,work_rate:14},
+       tactical:{positioning:12,vision:11,decision_making:13,anticipation:12}
+     },
+     stats:{apps:16,goals:11,assists:3,yellows:3,reds:0},
+     timeline:[
+       {icon:'⚽',title:'Joined FC Seremban U21',date:'Mar 2024'},
+       {icon:'🥇',title:'Top Scorer — Liga 1 Seremban',date:'Dec 2024'},
+     ],
+     claimed:false},
+    {id:'p3',name:'Azrul Nizam',preferred:'Azrul',pos:'defender',
+     club:'c2',age:22,nationality:'Malaysian',height:183,weight:80,
+     photo:null,passport:65,band:'developing',
+     dna:{tech:64,phys:76,ment:70,tact:74,overall:71},
+     potential:{score:70,cat:'regional_prospect'},
+     attrs:{
+       technical:{passing:10,dribbling:9,finishing:8,first_touch:11,tackling:14,heading:13},
+       physical:{pace:13,stamina:15,strength:16,agility:11},
+       mental:{leadership:14,composure:13,teamwork:16,work_rate:15},
+       tactical:{positioning:15,vision:12,decision_making:14,anticipation:13}
+     },
+     stats:{apps:20,goals:1,assists:2,yellows:4,reds:1},
+     timeline:[
+       {icon:'⚽',title:'Joined Nilai FC',date:'Aug 2023'},
+       {icon:'🛡️',title:'Club Captain appointed',date:'Jan 2025'},
+     ],
+     claimed:false},
+    {id:'p4',name:'Hafiz Rahman',preferred:'Hafiz',pos:'goalkeeper',
+     club:'c3',age:24,nationality:'Malaysian',height:188,weight:85,
+     photo:null,passport:71,band:'advanced',
+     dna:{tech:68,phys:72,ment:76,tact:70,overall:72},
+     potential:{score:75,cat:'regional_prospect'},
+     attrs:{
+       technical:{passing:9,dribbling:5,finishing:4,first_touch:10,tackling:6,heading:11},
+       physical:{pace:10,stamina:14,strength:15,agility:12},
+       mental:{leadership:15,composure:16,teamwork:14,work_rate:13},
+       tactical:{positioning:15,vision:13,decision_making:15,anticipation:14}
+     },
+     stats:{apps:22,goals:0,assists:0,yellows:1,reds:0},
+     timeline:[
+       {icon:'🧤',title:'Joined Port Dickson Athletic',date:'Jul 2022'},
+       {icon:'🌟',title:'Liga Premier Golden Glove',date:'May 2024'},
+     ],
+     claimed:false},
+    {id:'p5',name:'Syafiq Aizat',preferred:'Syafiq',pos:'midfielder',
+     club:'c5',age:23,nationality:'Malaysian',height:172,weight:68,
+     photo:null,passport:79,band:'advanced',
+     dna:{tech:82,phys:79,ment:81,tact:83,overall:81},
+     potential:{score:86,cat:'elite_prospect'},
+     attrs:{
+       technical:{passing:16,dribbling:15,finishing:13,first_touch:16,tackling:11,heading:10},
+       physical:{pace:15,stamina:16,strength:12,agility:16},
+       mental:{leadership:14,composure:17,teamwork:16,work_rate:16},
+       tactical:{positioning:16,vision:17,decision_making:16,anticipation:15}
+     },
+     stats:{apps:24,goals:7,assists:11,yellows:1,reds:0},
+     timeline:[
+       {icon:'⚽',title:'Joined Petaling Jaya FC',date:'Jan 2022'},
+       {icon:'🌟',title:'U23 National Team call-up',date:'Jun 2024'},
+       {icon:'🏆',title:'Liga Super Champion',date:'Dec 2024'},
+     ],
+     claimed:false},
+  ],
+  standings:{
+    l1:[
+      {pos:1,club:'c1',name:'FC Seremban U21',p:16,w:11,d:2,l:3,gf:34,ga:18,gd:16,pts:35},
+      {pos:2,club:'c2',name:'Nilai FC',p:16,w:10,d:3,l:3,gf:29,ga:16,gd:13,pts:33},
+      {pos:3,club:'c4',name:'Seremban City FC',p:16,w:8,d:4,l:4,gf:26,ga:22,gd:4,pts:28},
+      {pos:4,club:'c3',name:'Port Dickson Athletic',p:16,w:7,d:2,l:7,gf:24,ga:28,gd:-4,pts:23},
+    ],
+    l2:[
+      {pos:1,club:'c3',name:'Port Dickson Athletic',p:18,w:12,d:3,l:3,gf:38,ga:19,gd:19,pts:39},
+      {pos:2,club:'c4',name:'Seremban City FC',p:18,w:10,d:4,l:4,gf:32,ga:22,gd:10,pts:34},
+    ]
+  },
+  fixtures:[
+    {id:'f1',home:'FC Seremban U21',away:'Nilai FC',home_score:2,away_score:1,
+     league:'Liga 1 Seremban U21',date:'8 Jun 2026',status:'live',minute:67},
+    {id:'f2',home:'Port Dickson Athletic',away:'Seremban City FC',home_score:null,away_score:null,
+     league:'Liga Premier NS',date:'10 Jun 2026',status:'upcoming',minute:null},
+    {id:'f3',home:'Petaling Jaya FC',away:'Subang Jaya United',home_score:3,away_score:1,
+     league:'Liga Super Selangor',date:'7 Jun 2026',status:'completed',minute:null},
+  ]
+};
+
+/* ─────────────────────────────────────────────────────────
+   STATE
+───────────────────────────────────────────────────────── */
+let state = {
+  currentScreen: 'home',
+  prevScreen: null,
+  user: null,           // null = anonymous
+  follows: new Set(),   // entity ids user follows
+  currentPlayer: null,
+  currentClub: null,
+  currentLeague: null,
+  passportTab: 'dna',
+  positionFilter: 'all',
+  leagueFilter: 'all',
+  clubFilter: 'all',
+  passportFilter: 'all',
+};
+
+/* ─────────────────────────────────────────────────────────
+   NAVIGATION
+───────────────────────────────────────────────────────── */
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const s = document.getElementById('screen-' + name);
+  if (!s) { console.warn('No screen:', name); return; }
+  s.classList.add('active');
+
+  // Update bottom nav
+  document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
+  const tabMap = {home:'tab-home',football:'tab-football','football':'tab-football',
+    'league-detail':'tab-football','clubs-list':'tab-football','club-detail':'tab-football',
+    'players-list':'tab-passport','passport':'tab-passport','passport-hub':'tab-passport',
+    account:'tab-account',login:'tab-account',claim:'tab-account'};
+  const tabId = tabMap[name];
+  if (tabId) document.getElementById(tabId)?.classList.add('active');
+
+  state.prevScreen = state.currentScreen;
+  state.currentScreen = name;
+
+  // Render
+  renderScreen(name);
+}
+
+function goBack() {
+  showScreen(state.prevScreen || 'home');
+}
+
+function renderScreen(name) {
+  switch(name) {
+    case 'home':          renderHome(); break;
+    case 'football':      renderLeaguesList(); break;
+    case 'clubs-list':    renderClubsList(); break;
+    case 'players-list':  renderPlayersList(); break;
+    case 'passport-hub':  renderPassportHub(); break;
+    case 'account':       renderAccount(); break;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   RENDER: HOME
+───────────────────────────────────────────────────────── */
+function renderHome() {
+  // Top DNA players (top 3)
+  const sorted = [...DATA.players].sort((a,b) => b.dna.overall - a.dna.overall).slice(0,3);
+  document.getElementById('home-top-players').innerHTML =
+    '<div class="card" style="margin:0 16px">' +
+    sorted.map(p => playerRowHTML(p)).join('') + '</div>';
+
+  // Featured clubs horizontal scroll
+  document.getElementById('home-clubs').innerHTML =
+    DATA.clubs.slice(0,4).map(c => `
+      <div class="h-card" onclick="showClubDetail('${c.id}')">
+        <div class="h-card-img">${clubInitials(c.name)}</div>
+        <div class="h-card-body">
+          <div class="h-card-name">${c.name}</div>
+          <div class="h-card-meta">DNA: ${c.dna.overall} · ${c.players} players</div>
+        </div>
+      </div>`).join('');
+
+  // Leagues
+  document.getElementById('home-leagues').innerHTML =
+    DATA.leagues.filter(l => l.status === 'active').slice(0,3)
+      .map(l => leagueRowHTML(l)).join('');
+}
+
+/* ─────────────────────────────────────────────────────────
+   RENDER: LEAGUES LIST
+───────────────────────────────────────────────────────── */
+function renderLeaguesList(filter) {
+  const f = filter || state.leagueFilter;
+  const leagues = f === 'all' ? DATA.leagues : DATA.leagues.filter(l => l.status === f);
+  document.getElementById('leagues-list').innerHTML =
+    leagues.map(l => leagueRowHTML(l)).join('') ||
+    '<div style="padding:24px;text-align:center;color:var(--grey-400)">No leagues found</div>';
+}
+
+function leagueRowHTML(l) {
+  const badge = l.status === 'active'
+    ? '<span class="league-badge badge-active">Active</span>'
+    : l.status === 'upcoming'
+    ? '<span class="league-badge badge-upcoming">Upcoming</span>'
+    : '<span class="league-badge" style="background:var(--grey-100);color:var(--grey-500)">Completed</span>';
+  return `
+    <div class="league-card" onclick="showLeagueDetail('${l.id}')">
+      <div class="league-avatar">${l.name.charAt(0)}</div>
+      <div class="league-info">
+        <div class="league-name">${l.name}</div>
+        <div class="league-meta">${l.clubs} clubs · Season ${l.season}</div>
+      </div>
+      ${badge}
+    </div>`;
+}
+
+function filterLeagues(f, el) {
+  state.leagueFilter = f;
+  document.querySelectorAll('#screen-football .filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderLeaguesList(f);
+}
+
+/* ─────────────────────────────────────────────────────────
+   RENDER: LEAGUE DETAIL
+───────────────────────────────────────────────────────── */
+function showLeagueDetail(id) {
+  state.currentLeague = id;
+  const l = DATA.leagues.find(x => x.id === id);
+  if (!l) return;
+  const stands = DATA.standings[id] || [];
+  const followed = state.follows.has(id);
+
+  document.getElementById('league-detail-content').innerHTML = `
+    <div style="background:linear-gradient(135deg,#0a2e16,#1a5c32);padding:20px;color:white">
+      <button onclick="goBack()" style="font-size:22px;background:none;border:none;cursor:pointer;color:white;margin-bottom:12px">←</button>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div style="font-size:24px;font-weight:800;line-height:1.1">${l.name}</div>
+          <div style="font-size:13px;opacity:.75;margin-top:6px">${l.clubs} clubs · Season ${l.season}</div>
+          <div style="font-size:12px;opacity:.6;margin-top:4px">${l.description}</div>
+        </div>
+        <button class="follow-btn ${followed?'following':''}"
+          onclick="toggleFollow('${id}','league',this)"
+          style="margin-top:4px;flex-shrink:0">
+          ${followed?'✓ Following':'+ Follow'}
+        </button>
+      </div>
+    </div>
+    <div style="padding:0 16px">
+      <div class="section-header" style="padding-left:0;padding-right:0">
+        <div class="section-title">Standings</div>
+      </div>
+      ${stands.length ? `
+      <div class="card" style="overflow:auto">
+        <table class="standings-table" style="width:100%">
+          <thead><tr>
+            <th>#</th><th>Club</th>
+            <th style="text-align:center">P</th>
+            <th style="text-align:center">W</th>
+            <th style="text-align:center">D</th>
+            <th style="text-align:center">L</th>
+            <th style="text-align:center">GD</th>
+            <th style="text-align:center;color:var(--green)">Pts</th>
+          </tr></thead>
+          <tbody>
+            ${stands.map(s => `<tr onclick="showPlayersByClub('${s.club}')">
+              <td><span class="pos-badge ${s.pos<=3?'pos-'+s.pos:''}">${s.pos}</span></td>
+              <td style="font-weight:600">${s.name}</td>
+              <td style="text-align:center">${s.p}</td>
+              <td style="text-align:center">${s.w}</td>
+              <td style="text-align:center">${s.d}</td>
+              <td style="text-align:center">${s.l}</td>
+              <td style="text-align:center">${s.gd>0?'+'+s.gd:s.gd}</td>
+              <td style="text-align:center;font-weight:800;color:var(--green)">${s.pts}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>` : '<div style="padding:20px;text-align:center;color:var(--grey-400)">No standings data yet</div>'}
+
+      <div class="section-header" style="padding-left:0;padding-right:0;margin-top:8px">
+        <div class="section-title">Fixtures</div>
+      </div>
+      ${DATA.fixtures.map(f => fixtureCardHTML(f)).join('')}
+    </div>`;
+
+  showScreen('league-detail');
+}
+
+function fixtureCardHTML(f) {
+  const isLive = f.status === 'live';
+  const score = f.home_score !== null
+    ? `<div class="fixture-score"><span>${f.home_score}</span><span style="font-size:14px;color:var(--grey-400)">—</span><span>${f.away_score}</span></div>`
+    : `<div class="fixture-score" style="font-size:14px;color:var(--grey-500)">vs</div>`;
+  return `
+    <div class="fixture-card">
+      <div class="fixture-meta">
+        ${isLive ? '<span class="live-badge"><div class="live-dot"></div>LIVE '+f.minute+"'</span> · " : ''}
+        ${f.date} · ${f.league}
+      </div>
+      <div class="fixture-teams">
+        <div class="fixture-team"><div class="fixture-team-name">${f.home}</div></div>
+        ${score}
+        <div class="fixture-team"><div class="fixture-team-name">${f.away}</div></div>
+      </div>
+      ${isLive ? '<div class="fixture-status live">⚡ Match in progress</div>' : ''}
+    </div>`;
+}
+
+/* ─────────────────────────────────────────────────────────
+   RENDER: CLUBS LIST
+───────────────────────────────────────────────────────── */
+function renderClubsList(filter) {
+  const f = filter || state.clubFilter;
+  const clubs = f === 'all' ? DATA.clubs : DATA.clubs.filter(c => c.tier === f);
+  document.getElementById('clubs-grid').innerHTML =
+    clubs.map(c => clubCardHTML(c)).join('') ||
+    '<div style="padding:24px;text-align:center;color:var(--grey-400)">No clubs found</div>';
+}
+
+function clubCardHTML(c) {
+  return `
+    <div class="club-card" onclick="showClubDetail('${c.id}')">
+      <div class="club-card-header">
+        <div class="club-logo">${clubInitials(c.name)}</div>
+        <div class="club-info">
+          <div class="club-name">${c.name}</div>
+          <div class="club-meta">${c.players} players · DNA ${c.dna.overall}</div>
+        </div>
+        <div style="margin-left:auto;font-size:22px;font-weight:900;color:var(--grey-800)">${c.dna.overall}</div>
+      </div>
+      <div class="club-dna-strip">
+        <div class="club-dna-cell tech">
+          <div class="val">${c.dna.tech}</div><div class="lbl">Tech</div>
+        </div>
+        <div class="club-dna-cell phys">
+          <div class="val">${c.dna.phys}</div><div class="lbl">Phys</div>
+        </div>
+        <div class="club-dna-cell ment">
+          <div class="val">${c.dna.ment}</div><div class="lbl">Mental</div>
+        </div>
+        <div class="club-dna-cell tact">
+          <div class="val">${c.dna.tact}</div><div class="lbl">Tactic</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function filterClubs(f, el) {
+  state.clubFilter = f;
+  document.querySelectorAll('#screen-clubs-list .filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderClubsList(f);
+}
+
+/* ─────────────────────────────────────────────────────────
+   RENDER: CLUB DETAIL
+───────────────────────────────────────────────────────── */
+function showClubDetail(id) {
+  const c = DATA.clubs.find(x => x.id === id);
+  if (!c) return;
+  state.currentClub = id;
+  const players = DATA.players.filter(p => p.club === id);
+  const followed = state.follows.has(id);
+
+  document.getElementById('club-detail-content').innerHTML = `
+    <div style="background:linear-gradient(135deg,#0a2e16,#1a5c32);padding:20px;color:white">
+      <button onclick="goBack()" style="font-size:22px;background:none;border:none;cursor:pointer;color:white;margin-bottom:12px">←</button>
+      <div style="display:flex;align-items:flex-start;gap:14px">
+        <div style="width:64px;height:64px;border-radius:12px;background:rgba(255,255,255,.15);
+          display:flex;align-items:center;justify-content:center;
+          font-size:22px;font-weight:800;flex-shrink:0">${clubInitials(c.name)}</div>
+        <div style="flex:1">
+          <div style="font-size:22px;font-weight:800">${c.name}</div>
+          <div style="font-size:12px;opacity:.7;margin-top:4px">${c.description}</div>
+          <div style="margin-top:10px">
+            <button class="follow-btn ${followed?'following':''}"
+              onclick="toggleFollow('${id}','club',this)">
+              ${followed?'✓ Following':'+ Follow'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Club DNA -->
+    <div style="margin:16px">
+      <div class="section-title" style="margin-bottom:12px">🧬 Club DNA Rating</div>
+      <div style="background:white;border-radius:var(--radius-lg);border:1px solid var(--grey-200);overflow:hidden;box-shadow:var(--shadow-sm)">
+        <div style="background:linear-gradient(135deg,#0a2e16,#1a5c32);padding:16px 20px;color:white;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;opacity:.7">Overall DNA</div>
+            <div style="font-size:42px;font-weight:900;line-height:1">${c.dna.overall}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;opacity:.7">Passport Score</div>
+            <div style="font-size:28px;font-weight:800">${c.passport}</div>
+            <div style="font-size:11px;background:rgba(255,255,255,.15);border-radius:999px;padding:3px 10px;margin-top:4px">
+              ${passportBandLabel(c.passport)}
+            </div>
+          </div>
+        </div>
+        <div style="padding:16px 20px">
+          ${dnaBarHTML('Technical','tech',c.dna.tech,'var(--green)')}
+          ${dnaBarHTML('Physical','phys',c.dna.phys,'#3b82f6')}
+          ${dnaBarHTML('Mental','ment',c.dna.ment,'#8b5cf6')}
+          ${dnaBarHTML('Tactical','tact',c.dna.tact,'#f59e0b')}
+        </div>
+        <div style="padding:10px 20px;border-top:1px solid var(--grey-100);font-size:12px;color:var(--grey-500)">
+          ${c.players} registered players · ${players.filter(p=>p.dna.overall).length} assessed
+        </div>
+      </div>
+    </div>
+
+    <!-- Squad -->
+    <div class="section-header" style="padding:16px 16px 8px">
+      <div class="section-title">Squad (${players.length})</div>
+    </div>
+    <div class="card" style="margin:0 16px 20px">
+      ${players.length
+        ? players.map(p => playerRowHTML(p)).join('')
+        : '<div style="padding:20px;text-align:center;color:var(--grey-400)">No players found</div>'}
+    </div>`;
+
+  showScreen('club-detail');
+}
+
+function dnaBarHTML(label, key, val, color) {
+  return `
+    <div class="dna-bar-row" style="margin-bottom:10px">
+      <div style="width:80px;font-size:13px;font-weight:600;color:var(--grey-700)">${label}</div>
+      <div style="flex:1;height:8px;background:var(--grey-100);border-radius:999px;overflow:hidden">
+        <div style="height:100%;width:${val}%;background:${color};border-radius:999px;transition:width .6s"></div>
+      </div>
+      <div style="width:32px;text-align:right;font-size:14px;font-weight:700;color:var(--grey-800)">${val}</div>
+    </div>`;
+}
+
+/* ─────────────────────────────────────────────────────────
+   RENDER: PLAYERS LIST
+───────────────────────────────────────────────────────── */
+function renderPlayersList(filter, posFilter) {
+  let players = [...DATA.players];
+  if (posFilter && posFilter !== 'all') {
+    players = players.filter(p => p.pos === posFilter);
+  }
+  players.sort((a,b) => (b.dna.overall||0) - (a.dna.overall||0));
+  document.getElementById('players-list-content').innerHTML =
+    players.map(p => playerRowHTML(p)).join('') ||
+    '<div style="padding:24px;text-align:center;color:var(--grey-400)">No players found</div>';
+}
+
+function filterPlayers(q) {
+  const players = DATA.players.filter(p =>
+    p.name.toLowerCase().includes(q.toLowerCase()) ||
+    DATA.clubs.find(c=>c.id===p.club)?.name.toLowerCase().includes(q.toLowerCase())
+  );
+  document.getElementById('players-list-content').innerHTML =
+    players.map(p => playerRowHTML(p)).join('') ||
+    `<div style="padding:24px;text-align:center;color:var(--grey-400)">No results for "${q}"</div>`;
+}
+
+function filterByPosition(pos, el) {
+  state.positionFilter = pos;
+  document.querySelectorAll('#screen-players-list .filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderPlayersList(null, pos);
+}
+
+function playerRowHTML(p) {
+  const club = DATA.clubs.find(c => c.id === p.club);
+  const band = p.band || 'null';
+  return `
+    <div class="player-row" onclick="showPassport('${p.id}')">
+      <div class="player-avatar">${p.photo
+        ? `<img src="${p.photo}" alt="${p.name}">`
+        : playerInitials(p.name)}</div>
+      <div class="player-info">
+        <div class="player-name">${p.preferred || p.name}</div>
+        <div class="player-meta">${posLabel(p.pos)} · ${club?.name||'Unattached'} · Age ${p.age}</div>
+      </div>
+      <div class="dna-chip">
+        <div class="dna-score">${p.dna.overall || '—'}</div>
+        <div class="dna-band band-${band}">${bandLabel(band)}</div>
+      </div>
+    </div>`;
+}
+
+/* ─────────────────────────────────────────────────────────
+   RENDER: PLAYER PASSPORT
+───────────────────────────────────────────────────────── */
+function showPassport(id) {
+  state.currentPlayer = id;
+  state.passportTab = 'dna';
+  renderPassport();
+  showScreen('passport');
+}
+
+function renderPassport() {
+  const p = DATA.players.find(x => x.id === state.currentPlayer);
+  if (!p) return;
+  const club = DATA.clubs.find(c => c.id === p.club);
+  const followed = state.follows.has(p.id);
+  const tab = state.passportTab;
+
+  document.getElementById('passport-content').innerHTML = `
+    <!-- Passport Hero -->
+    <div class="passport-hero">
+      <button onclick="goBack()" style="font-size:22px;background:none;border:none;cursor:pointer;color:white;margin-bottom:12px;padding:0">←</button>
+      <div class="passport-identity">
+        <div class="passport-photo">${p.photo?`<img src="${p.photo}">`:'👤'}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+            <div>
+              <div class="passport-name">${p.preferred||p.name}</div>
+              <div class="passport-sub">
+                ${posLabel(p.pos)} · ${club?.name||'Unattached'}<br>
+                Age ${p.age} · ${p.nationality} · ${p.height}cm
+              </div>
+            </div>
+            <button class="follow-btn ${followed?'following':''} btn-sm"
+              onclick="toggleFollow('${p.id}','player',this)"
+              style="flex-shrink:0;margin-top:2px">
+              ${followed?'✓':'+'} ${followed?'Following':'Follow'}
+            </button>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <div style="background:rgba(255,255,255,.15);border-radius:8px;padding:8px 12px;text-align:center">
+              <div style="font-size:22px;font-weight:800">${p.passport}</div>
+              <div style="font-size:10px;opacity:.7">Passport</div>
+            </div>
+            <div style="background:rgba(255,255,255,.15);border-radius:8px;padding:8px 12px;text-align:center">
+              <div style="font-size:22px;font-weight:800">${p.dna.overall}</div>
+              <div style="font-size:10px;opacity:.7">DNA</div>
+            </div>
+            <div style="background:rgba(255,255,255,.15);border-radius:8px;padding:8px 12px;text-align:center">
+              <div style="font-size:22px;font-weight:800">${p.potential.score}</div>
+              <div style="font-size:10px;opacity:.7">Potential</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Tabs -->
+      <div class="passport-tabs">
+        ${['dna','stats','career','passport'].map(t => `
+          <button class="passport-tab ${tab===t?'active':''}"
+            onclick="switchPassportTab('${t}')">
+            ${t==='dna'?'🧬 DNA':t==='stats'?'📊 Stats':t==='career'?'📅 Career':'🪪 Passport'}
+          </button>`).join('')}
+      </div>
+    </div>
+
+    <!-- Tab content -->
+    <div id="passport-tab-content">
+      ${renderPassportTab(p, tab)}
+    </div>`;
+}
+
+function switchPassportTab(tab) {
+  state.passportTab = tab;
+  const p = DATA.players.find(x => x.id === state.currentPlayer);
+  document.querySelectorAll('.passport-tab').forEach(t => {
+    t.classList.toggle('active', t.onclick?.toString().includes(`'${tab}'`));
+  });
+  document.querySelectorAll('.passport-tab').forEach(t => {
+    t.classList.remove('active');
+    if (t.getAttribute('onclick')?.includes(`'${tab}'`)) t.classList.add('active');
+  });
+  document.getElementById('passport-tab-content').innerHTML = renderPassportTab(p, tab);
+}
+
+function renderPassportTab(p, tab) {
+  if (tab === 'dna')     return renderDNATab(p);
+  if (tab === 'stats')   return renderStatsTab(p);
+  if (tab === 'career')  return renderCareerTab(p);
+  if (tab === 'passport') return renderPassportScoreTab(p);
+  return '';
+}
+
+function renderDNATab(p) {
+  const a = p.attrs;
+  return `
+    <!-- DNA Summary Card -->
+    <div class="dna-card">
+      <div class="dna-header">
+        <div>
+          <div style="font-size:13px;opacity:.7;text-transform:uppercase;letter-spacing:.5px">Football DNA</div>
+          <div style="font-size:14px;margin-top:4px;opacity:.8">${p.preferred||p.name} · ${posLabel(p.pos)}</div>
+        </div>
+        <div class="dna-overall-display">
+          <div class="dna-overall-num">${p.dna.overall}</div>
+          <div class="dna-overall-label">Overall</div>
+          <div class="dna-overall-band">${bandLabel(p.band)}</div>
+        </div>
+      </div>
+      <div class="dna-bars">
+        ${dnaCategoryBar('Technical', p.dna.tech, 'var(--green)', '')}
+        ${dnaCategoryBar('Physical', p.dna.phys, '#3b82f6', 'physical')}
+        ${dnaCategoryBar('Mental', p.dna.ment, '#8b5cf6', 'mental')}
+        ${dnaCategoryBar('Tactical', p.dna.tact, '#f59e0b', 'tactical')}
+      </div>
+      <div class="dna-potential">
+        <div>
+          <div class="potential-label">Potential Score</div>
+        </div>
+        <div class="potential-value">
+          ${p.potential.score}
+          <span class="potential-badge">${potentialLabel(p.potential.cat)}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Attribute Grid -->
+    <div style="margin:0 16px 8px">
+      <div style="font-size:14px;font-weight:700;color:var(--grey-800);margin-bottom:4px">All Attributes</div>
+      <div style="font-size:12px;color:var(--grey-500)">Assessed by Coach · Confidence: High</div>
+    </div>
+
+    <div class="attr-section">
+      <div class="attr-section-title">Technical</div>
+      ${Object.entries(a.technical).map(([k,v]) => attrRow(k,v,'')).join('')}
+    </div>
+    <div class="attr-section">
+      <div class="attr-section-title" style="color:#93c5fd">Physical</div>
+      ${Object.entries(a.physical).map(([k,v]) => attrRow(k,v,'p')).join('')}
+    </div>
+    <div class="attr-section">
+      <div class="attr-section-title" style="color:#c4b5fd">Mental</div>
+      ${Object.entries(a.mental).map(([k,v]) => attrRow(k,v,'m')).join('')}
+    </div>
+    <div class="attr-section">
+      <div class="attr-section-title" style="color:#fcd34d">Tactical</div>
+      ${Object.entries(a.tactical).map(([k,v]) => attrRow(k,v,'t')).join('')}
+    </div>
+
+    <!-- Progression graph -->
+    <div style="margin:8px 16px 0">
+      <div style="font-size:14px;font-weight:700;color:var(--grey-800);margin-bottom:10px">📈 DNA Progression</div>
+    </div>
+    <div class="prog-graph">
+      ${progressionSVG(p)}
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--grey-400);margin-top:4px">
+        <span>Season 2023</span><span>2024</span><span>2025</span><span>2026</span>
+      </div>
+    </div>
+
+    <!-- Claim CTA -->
+    ${!p.claimed ? `
+    <div class="claim-cta" style="margin:16px">
+      <h3>Is this you?</h3>
+      <p>Claim your Football Passport to manage your profile, view your full attribute history, and take ownership of your football identity.</p>
+      <button class="btn btn-blue w-full" onclick="showClaimFlow('${p.id}')">
+        🪪 Claim This Passport
+      </button>
+    </div>` : ''}
+    <div style="height:24px"></div>`;
+}
+
+function renderStatsTab(p) {
+  const s = p.stats;
+  return `
+    <div style="padding:16px 16px 8px">
+      <div style="font-size:14px;font-weight:700;color:var(--grey-800);margin-bottom:12px">Season 2025/26 Statistics</div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-cell"><div class="stat-num">${s.apps}</div><div class="stat-lbl">Apps</div></div>
+      <div class="stat-cell"><div class="stat-num">${s.goals}</div><div class="stat-lbl">Goals</div></div>
+      <div class="stat-cell"><div class="stat-num">${s.assists}</div><div class="stat-lbl">Assists</div></div>
+      <div class="stat-cell"><div class="stat-num">${s.goals+s.assists}</div><div class="stat-lbl">G+A</div></div>
+    </div>
+    <div class="stats-strip" style="margin-top:8px">
+      <div class="stat-cell"><div class="stat-num" style="color:var(--gold)">${s.yellows}</div><div class="stat-lbl">Yellows</div></div>
+      <div class="stat-cell"><div class="stat-num" style="color:var(--red)">${s.reds}</div><div class="stat-lbl">Reds</div></div>
+      <div class="stat-cell"><div class="stat-num">${(s.goals/Math.max(s.apps,1)).toFixed(2)}</div><div class="stat-lbl">G/Game</div></div>
+      <div class="stat-cell"><div class="stat-num">${((s.goals+s.assists)/Math.max(s.apps,1)).toFixed(2)}</div><div class="stat-lbl">G+A/G</div></div>
+    </div>
+    <div style="margin:16px;padding:16px;background:white;border-radius:var(--radius);border:1px solid var(--grey-200)">
+      <div style="font-size:13px;font-weight:700;color:var(--grey-700);margin-bottom:10px">Passport Score Breakdown</div>
+      ${psBreakdownBar('Match Performance',40,'var(--green)')}
+      ${psBreakdownBar('Attribute DNA',25,'#8b5cf6')}
+      ${psBreakdownBar('Discipline',15,'#3b82f6')}
+      ${psBreakdownBar('Activity',10,'#f59e0b')}
+      ${psBreakdownBar('Development',10,'#10b981')}
+    </div>
+    <div style="height:24px"></div>`;
+}
+
+function psBreakdownBar(label, pct, color) {
+  return `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <div style="font-size:12px;color:var(--grey-600);width:110px;flex-shrink:0">${label}</div>
+      <div style="flex:1;height:6px;background:var(--grey-100);border-radius:999px;overflow:hidden">
+        <div style="height:100%;width:${pct*2}%;background:${color};border-radius:999px"></div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--grey-500);width:28px;text-align:right">${pct}%</div>
+    </div>`;
+}
+
+function renderCareerTab(p) {
+  return `
+    <div style="padding:16px 16px 8px">
+      <div style="font-size:14px;font-weight:700;color:var(--grey-800);margin-bottom:4px">Career Timeline</div>
+      <div style="font-size:12px;color:var(--grey-500)">Key events in ${p.preferred||p.name}'s career</div>
+    </div>
+    <div class="timeline" style="padding:0 16px">
+      ${p.timeline.map(t => `
+        <div class="timeline-item">
+          <div class="timeline-dot">${t.icon}</div>
+          <div class="timeline-content">
+            <div class="timeline-title">${t.title}</div>
+            <div class="timeline-meta">${t.date}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+    ${!p.claimed ? `
+    <div style="margin:16px;padding:16px;background:var(--blue-light);border-radius:var(--radius);border:1.5px solid #bfdbfe">
+      <div style="font-size:14px;font-weight:700;color:#1e3a8a;margin-bottom:6px">Add to your timeline</div>
+      <div style="font-size:13px;color:#1e40af;margin-bottom:12px">Claim your passport to add achievements, media, and personal milestones.</div>
+      <button class="btn btn-blue btn-sm" onclick="showClaimFlow('${p.id}')">Claim Passport</button>
+    </div>` : ''}
+    <div style="height:24px"></div>`;
+}
+
+function renderPassportScoreTab(p) {
+  return `
+    <div style="padding:16px">
+      <div style="background:linear-gradient(135deg,#0a2e16,#1a5c32);border-radius:var(--radius-lg);padding:24px;color:white;text-align:center;margin-bottom:16px">
+        <div style="font-size:13px;opacity:.7;text-transform:uppercase;letter-spacing:.5px">Football Passport Score</div>
+        <div style="font-size:72px;font-weight:900;line-height:1;margin:8px 0">${p.passport}</div>
+        <div style="display:inline-block;padding:6px 18px;background:rgba(255,255,255,.15);border-radius:999px;font-size:14px;font-weight:600">${passportBandLabel(p.passport)}</div>
+      </div>
+
+      <div style="background:white;border-radius:var(--radius-lg);border:1px solid var(--grey-200);padding:20px;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px">Score Components</div>
+        ${[['Match Performance',40,'var(--green)',p.stats.goals+p.stats.assists],
+           ['Attribute DNA',25,'#8b5cf6',p.dna.overall],
+           ['Discipline',15,'#3b82f6',100-p.stats.yellows*10-p.stats.reds*30],
+           ['Activity',10,'#f59e0b',90],
+           ['Development',10,'#10b981',75]
+          ].map(([l,w,c,v]) => `
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:13px;color:var(--grey-600)">${l} <span style="color:var(--grey-400);font-size:11px">(${w}% weight)</span></span>
+            </div>
+            <div style="height:8px;background:var(--grey-100);border-radius:999px;overflow:hidden">
+              <div style="height:100%;width:${Math.max(0,Math.min(100,v))}%;background:${c};border-radius:999px"></div>
+            </div>
+          </div>`).join('')}
+      </div>
+
+      <div style="background:var(--grey-50);border-radius:var(--radius);border:1px solid var(--grey-200);padding:14px">
+        <div style="font-size:12px;color:var(--grey-500);line-height:1.6">
+          <strong style="color:var(--grey-700)">How is this calculated?</strong><br>
+          Passport Score = 40% Match Performance + 25% DNA Rating + 15% Discipline + 10% Activity + 10% Development, scaled by league quality tier.
+        </div>
+      </div>
+    </div>
+    <div style="height:24px"></div>`;
+}
+
+/* ─────────────────────────────────────────────────────────
+   RENDER: PASSPORT HUB
+───────────────────────────────────────────────────────── */
+function renderPassportHub(filter) {
+  const f = filter || state.passportFilter;
+  let players = [...DATA.players];
+  if (f === 'elite') players = players.filter(p => p.band === 'elite');
+  if (f === 'advanced') players = players.filter(p => p.band === 'advanced');
+  if (f === 'potential') players = players.sort((a,b)=>b.potential.score-a.potential.score);
+  else players.sort((a,b) => (b.dna.overall||0)-(a.dna.overall||0));
+
+  document.getElementById('passport-hub-list').innerHTML =
+    players.map(p => playerRowHTML(p)).join('') ||
+    '<div style="padding:24px;text-align:center;color:var(--grey-400)">No players match this filter</div>';
+}
+
+function filterPassport(f, el) {
+  state.passportFilter = f;
+  document.querySelectorAll('#screen-passport-hub .filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderPassportHub(f);
+}
+
+/* ─────────────────────────────────────────────────────────
+   RENDER: ACCOUNT
+───────────────────────────────────────────────────────── */
+function renderAccount() {
+  const el = document.getElementById('account-content');
+  if (!state.user) {
+    el.innerHTML = `
+      <div class="account-header">
+        <div class="account-avatar">👤</div>
+        <div style="font-size:20px;font-weight:700">Welcome to PlayPro</div>
+        <div style="font-size:13px;opacity:.7;margin-top:6px">Sign in or create an account</div>
+      </div>
+      <div style="padding:24px 16px;display:flex;flex-direction:column;gap:12px">
+        <button class="btn btn-primary w-full" onclick="showRegisterModal()" style="padding:14px">
+          🚀 Create Account — Free
+        </button>
+        <button class="btn btn-ghost w-full" onclick="showLoginModal()" style="padding:14px">
+          Sign In
+        </button>
+      </div>
+      <div style="margin:0 16px;padding:16px;background:var(--green-light);border-radius:var(--radius-lg);border:1.5px solid #86efac">
+        <div style="font-size:14px;font-weight:700;color:var(--green-dark);margin-bottom:6px">Are you a footballer?</div>
+        <div style="font-size:13px;color:var(--green-dark);margin-bottom:12px;line-height:1.5">Create an account and claim your Football Passport. Own your football identity.</div>
+        <button class="btn btn-primary btn-sm" onclick="showRegisterModal()">Claim My Passport</button>
+      </div>
+      <div class="menu-section">
+        <div class="menu-section-label">Browse without account</div>
+        <div class="menu-item" onclick="showScreen('players-list')">
+          <div class="menu-icon green">👤</div>
+          <div class="menu-text"><div class="menu-title">Browse Players</div><div class="menu-sub">View Football Passports & DNA ratings</div></div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <div class="menu-item" onclick="showScreen('clubs-list')">
+          <div class="menu-icon blue">🛡️</div>
+          <div class="menu-text"><div class="menu-title">Browse Clubs</div><div class="menu-sub">Club DNA and squad profiles</div></div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <div class="menu-item" onclick="showScreen('football')">
+          <div class="menu-icon gold">🏆</div>
+          <div class="menu-text"><div class="menu-title">Browse Leagues</div><div class="menu-sub">Standings, fixtures, and results</div></div>
+          <div class="menu-arrow">›</div>
+        </div>
+        <div class="menu-item" onclick="window.open('index.html','_blank')">
+          <div class="menu-icon grey">⚙️</div>
+          <div class="menu-text"><div class="menu-title">Operations Portal</div><div class="menu-sub">For league admins and club staff</div></div>
+          <div class="menu-arrow">›</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Logged in
+  el.innerHTML = `
+    <div class="account-header">
+      <div class="account-avatar">${state.user.name.charAt(0)}</div>
+      <div style="font-size:20px;font-weight:700">${state.user.name}</div>
+      <div style="font-size:13px;opacity:.7;margin-top:4px">${state.user.email}</div>
+      <div class="account-role-badge">${roleLabel(state.user.role)}</div>
+    </div>
+    <div class="menu-section">
+      <div class="menu-section-label">My Football</div>
+      ${state.user.role === 'player' ? `
+      <div class="menu-item" onclick="showPassport('${DATA.players[0].id}')">
+        <div class="menu-icon green">🪪</div>
+        <div class="menu-text"><div class="menu-title">My Passport</div><div class="menu-sub">View your Football Passport</div></div>
+        <div class="menu-arrow">›</div>
+      </div>` : ''}
+      <div class="menu-item" onclick="showScreen('passport-hub')">
+        <div class="menu-icon green">🧬</div>
+        <div class="menu-text"><div class="menu-title">DNA Leaderboard</div><div class="menu-sub">Rankings by DNA rating</div></div>
+        <div class="menu-arrow">›</div>
+      </div>
+      <div class="menu-item" onclick="showFollowing()">
+        <div class="menu-icon blue">❤️</div>
+        <div class="menu-text"><div class="menu-title">Following</div><div class="menu-sub">${state.follows.size} entities followed</div></div>
+        <span class="menu-badge">${state.follows.size}</span>
+        <div class="menu-arrow">›</div>
+      </div>
+    </div>
+    <div class="menu-section">
+      <div class="menu-section-label">Operations</div>
+      ${['club_admin','coach','league_admin','league_founder','referee'].includes(state.user.role) ? `
+      <div class="menu-item" onclick="window.open('portals.html','_blank')">
+        <div class="menu-icon gold">⚙️</div>
+        <div class="menu-text"><div class="menu-title">Operations Portal</div><div class="menu-sub">Manage leagues, clubs, and matches</div></div>
+        <div class="menu-arrow">›</div>
+      </div>` : ''}
+      <div class="menu-item" onclick="showScreen('claim')">
+        <div class="menu-icon purple">🪪</div>
+        <div class="menu-text"><div class="menu-title">Claim a Passport</div><div class="menu-sub">Link your player record</div></div>
+        <div class="menu-arrow">›</div>
+      </div>
+    </div>
+    <div class="menu-section">
+      <div class="menu-section-label">Account</div>
+      <div class="menu-item" onclick="signOut()">
+        <div class="menu-icon grey">🚪</div>
+        <div class="menu-text"><div class="menu-title">Sign Out</div></div>
+        <div class="menu-arrow">›</div>
+      </div>
+    </div>`;
+}
+
+/* ─────────────────────────────────────────────────────────
+   AUTH MODALS
+───────────────────────────────────────────────────────── */
+function showLoginModal() {
+  openModal(`
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">Sign In</div>
+      <div class="modal-sub">Welcome back to PlayPro</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="login-email" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="login-pw" placeholder="••••••••">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary w-full" onclick="doLogin()" style="padding:14px">Sign In</button>
+      <button class="btn btn-ghost w-full" onclick="closeModal()">Cancel</button>
+    </div>`);
+}
+
+function showRegisterModal() {
+  openModal(`
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">Create Account</div>
+      <div class="modal-sub">Join PlayPro — it's free</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" type="text" id="reg-name" placeholder="Ahmad bin Abdullah">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="reg-email" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">I am a…</label>
+        <select class="form-select" id="reg-role">
+          <option value="fan">Football Fan / Parent</option>
+          <option value="player">Player</option>
+          <option value="coach">Coach</option>
+          <option value="club_admin">Club Administrator</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="reg-pw" placeholder="Min 8 characters">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary w-full" onclick="doRegister()" style="padding:14px">Create Account</button>
+      <button class="btn btn-ghost w-full" onclick="closeModal()">Cancel</button>
+    </div>`);
+}
+
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) { showToast('Please enter your email'); return; }
+  // Demo: simulate login
+  state.user = {
+    name: email.split('@')[0].replace(/\./g,' ').replace(/\b\w/g,c=>c.toUpperCase()),
+    email,
+    role: 'fan'
+  };
+  closeModal();
+  renderAccount();
+  showToast('Welcome back!');
+}
+
+function doRegister() {
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const role  = document.getElementById('reg-role').value;
+  if (!name || !email) { showToast('Please fill in all fields'); return; }
+  state.user = { name, email, role };
+  closeModal();
+  showToast('Account created! Welcome to PlayPro 🎉');
+  renderAccount();
+  // If player, prompt claim
+  if (role === 'player') {
+    setTimeout(() => showScreen('claim'), 800);
+  }
+}
+
+function signOut() {
+  state.user = null;
+  showToast('Signed out');
+  renderAccount();
+}
+
+/* ─────────────────────────────────────────────────────────
+   CLAIM FLOW
+───────────────────────────────────────────────────────── */
+function showClaimFlow(playerId) {
+  if (!state.user) {
+    openModal(`
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title">Sign in to claim</div>
+        <div class="modal-sub">You need a PlayPro account to claim a passport</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary w-full" onclick="closeModal();showRegisterModal()">Create Account</button>
+        <button class="btn btn-ghost w-full" onclick="closeModal();showLoginModal()">Sign In</button>
+      </div>`);
+    return;
+  }
+  state.currentPlayer = playerId;
+  showScreen('claim');
+  closeModal();
+}
+
+function toggleGuardianField() {
+  const t = document.getElementById('claim-type-select').value;
+  document.getElementById('guardian-dob-group').classList.toggle('hidden', t !== 'guardian');
+}
+
+function searchForClaim(q) {
+  const el = document.getElementById('claim-player-results');
+  if (!q || q.length < 2) { el.innerHTML = ''; return; }
+  const results = DATA.players.filter(p =>
+    p.name.toLowerCase().includes(q.toLowerCase()));
+  el.innerHTML = results.length
+    ? results.map(p => `
+        <div onclick="selectClaimPlayer('${p.id}')" style="padding:10px 12px;background:var(--grey-50);border:1px solid var(--grey-200);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--grey-200);display:flex;align-items:center;justify-content:center;font-weight:700">${playerInitials(p.name)}</div>
+          <div><div style="font-weight:600;font-size:14px">${p.name}</div>
+          <div style="font-size:12px;color:var(--grey-500)">${posLabel(p.pos)} · ${DATA.clubs.find(c=>c.id===p.club)?.name}</div></div>
+        </div>`).join('')
+    : '<div style="padding:10px;font-size:13px;color:var(--grey-400)">No players found</div>';
+}
+
+function selectClaimPlayer(id) {
+  state.currentPlayer = id;
+  const p = DATA.players.find(x => x.id === id);
+  document.getElementById('claim-player-results').innerHTML =
+    `<div style="padding:10px 12px;background:var(--green-light);border:1.5px solid var(--green);border-radius:var(--radius-sm);font-weight:600;color:var(--green-dark)">
+      ✓ Selected: ${p.name}
+    </div>`;
+}
+
+function submitClaim() {
+  if (!state.user) { showToast('Please sign in first'); return; }
+  if (!state.currentPlayer) { showToast('Please select a player'); return; }
+  const p = DATA.players.find(x => x.id === state.currentPlayer);
+  openModal(`
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">Claim submitted ✓</div>
+      <div class="modal-sub">Your claim for ${p.name} has been submitted</div>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;padding:20px 0">
+        <div style="font-size:56px;margin-bottom:12px">🪪</div>
+        <div style="font-size:15px;font-weight:600;color:var(--grey-800)">Awaiting Club Verification</div>
+        <div style="font-size:13px;color:var(--grey-500);margin-top:8px;line-height:1.6">
+          Your Club Admin at ${DATA.clubs.find(c=>c.id===p.club)?.name} will review and approve your claim.<br><br>
+          You'll receive a notification once approved.
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary w-full" onclick="closeModal();showScreen('account')">Done</button>
+    </div>`);
+}
+
+/* ─────────────────────────────────────────────────────────
+   SEARCH
+───────────────────────────────────────────────────────── */
+function focusSearch() {
+  document.getElementById('global-search-input').focus();
+}
+
+function handleSearch(q) {
+  if (!q || q.length < 2) return;
+  const players = DATA.players.filter(p =>
+    p.name.toLowerCase().includes(q.toLowerCase()) ||
+    p.preferred?.toLowerCase().includes(q.toLowerCase()));
+  const clubs = DATA.clubs.filter(c => c.name.toLowerCase().includes(q.toLowerCase()));
+  const leagues = DATA.leagues.filter(l => l.name.toLowerCase().includes(q.toLowerCase()));
+
+  document.getElementById('search-results').innerHTML = `
+    ${players.length ? `<div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--grey-400);margin-bottom:8px">Players</div>
+    <div class="card" style="margin-bottom:16px">${players.map(p=>playerRowHTML(p)).join('')}</div>` : ''}
+    ${clubs.length ? `<div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--grey-400);margin-bottom:8px">Clubs</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">${clubs.map(c=>clubCardHTML(c)).join('')}</div>` : ''}
+    ${leagues.length ? `<div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--grey-400);margin-bottom:8px">Leagues</div>
+    <div class="card">${leagues.map(l=>leagueRowHTML(l)).join('')}</div>` : ''}
+    ${!players.length && !clubs.length && !leagues.length
+      ? `<div style="text-align:center;padding:40px;color:var(--grey-400)">No results for "${q}"</div>` : ''}`;
+
+  showScreen('search');
+}
+
+function showPlayersByClub(clubId) {
+  state.clubFilter = 'all';
+  showClubDetail(clubId);
+}
+
+/* ─────────────────────────────────────────────────────────
+   FOLLOW SYSTEM
+───────────────────────────────────────────────────────── */
+function toggleFollow(id, type, btn) {
+  if (!state.user) {
+    showToast('Sign in to follow');
+    return;
+  }
+  if (state.follows.has(id)) {
+    state.follows.delete(id);
+    btn.className = 'follow-btn';
+    btn.textContent = '+ Follow';
+    showToast('Unfollowed');
+  } else {
+    state.follows.add(id);
+    btn.className = 'follow-btn following';
+    btn.textContent = '✓ Following';
+    showToast(`Following! You'll get updates.`);
+  }
+}
+
+function showFollowing() {
+  if (state.follows.size === 0) {
+    showToast('You are not following anyone yet');
+    return;
+  }
+  showToast(`You follow ${state.follows.size} entity/entities`);
+}
+
+/* ─────────────────────────────────────────────────────────
+   MODAL
+───────────────────────────────────────────────────────── */
+function openModal(html) {
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-backdrop').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-backdrop')) return;
+  document.getElementById('modal-backdrop').classList.remove('open');
+}
+
+/* ─────────────────────────────────────────────────────────
+   TOAST
+───────────────────────────────────────────────────────── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ─────────────────────────────────────────────────────────
+   SVG HELPERS
+───────────────────────────────────────────────────────── */
+function progressionSVG(p) {
+  // Simulated DNA progression over 4 seasons
+  const base = Math.max(40, p.dna.overall - 15);
+  const points = [base, base+4, base+9, p.dna.overall];
+  const w = 300, h = 100, pad = 20;
+  const xs = points.map((_,i) => pad + i * ((w-2*pad)/3));
+  const ys = points.map(v => h - pad - ((v-30)/(90-30)) * (h-2*pad));
+  const path = xs.map((x,i) => `${i===0?'M':'L'}${x},${ys[i]}`).join(' ');
+  const area = `M${xs[0]},${h-pad} ` + xs.map((x,i)=>`L${x},${ys[i]}`).join(' ') + ` L${xs[xs.length-1]},${h-pad} Z`;
+  return `<svg viewBox="0 0 ${w} ${h}" style="overflow:visible">
+    <defs>
+      <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--green)" stop-opacity=".25"/>
+        <stop offset="100%" stop-color="var(--green)" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <path d="${area}" fill="url(#g1)"/>
+    <path d="${path}" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linejoin="round"/>
+    ${xs.map((x,i)=>`
+      <circle cx="${x}" cy="${ys[i]}" r="4" fill="var(--green)"/>
+      <text x="${x}" y="${ys[i]-8}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--grey-700)">${points[i]}</text>
+    `).join('')}
+  </svg>`;
+}
+
+function dnaCategoryBar(label, val, color, cls) {
+  return `
+    <div class="dna-bar-row">
+      <div class="dna-bar-label">${label}</div>
+      <div class="dna-bar-track">
+        <div class="dna-bar-fill ${cls}" style="width:${val}%;background:${color}"></div>
+      </div>
+      <div class="dna-bar-val">${val}</div>
+    </div>`;
+}
+
+function attrRow(code, val, cls) {
+  const label = code.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  const dots = Array.from({length:20},(_,i) =>
+    `<div class="attr-dot ${i<val?'filled '+cls:''}" title="${i+1}"></div>`
+  ).join('');
+  return `
+    <div class="attr-row">
+      <div class="attr-name">${label}</div>
+      <div class="attr-dots">${dots}</div>
+      <div class="attr-val">${val}</div>
+    </div>`;
+}
+
+/* ─────────────────────────────────────────────────────────
+   UTILITY HELPERS
+───────────────────────────────────────────────────────── */
+function clubInitials(name) {
+  return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+function playerInitials(name) {
+  return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+function posLabel(pos) {
+  return {goalkeeper:'GK',defender:'DEF',midfielder:'MID',forward:'FWD'}[pos]||pos;
+}
+function bandLabel(band) {
+  return {elite:'ELITE',advanced:'ADV',developing:'DEV',emerging:'EMRG',beginner:'BEG',null:'—'}[band]||band;
+}
+function passportBandLabel(score) {
+  if (score>=85) return '🏅 Elite';
+  if (score>=70) return '⭐ Advanced';
+  if (score>=55) return '📈 Developing';
+  if (score>=40) return '🌱 Emerging';
+  return '🎯 Beginner';
+}
+function potentialLabel(cat) {
+  return {
+    elite_prospect:'Elite Prospect',
+    national_prospect:'National Prospect',
+    regional_prospect:'Regional Prospect',
+    development_prospect:'Development',
+    recreational:'Recreational'
+  }[cat]||cat;
+}
+function roleLabel(role) {
+  return {fan:'Fan',player:'Player',coach:'Coach',
+    club_admin:'Club Admin',league_admin:'League Admin',
+    league_founder:'League Founder',referee:'Referee'}[role]||role;
+}
+
+/* ─────────────────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', async () => {
+  // Boot with live Supabase data; PublicDI.boot() populates window.DATA
+  // then existing render functions use it automatically.
+  await DI.boot('public');
+  renderHome();
+});
+</script>
+<script src="../js/supabase.js"></script>
+<script src="../js/repositories.js"></script>
+<script src="../js/dashboard_integration.js"></script>
+<script src="../js/playpro_audit_fixes.js"></script>
+</body>
+</html>
