@@ -2,23 +2,23 @@
   "outputDirectory": "public",
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/",         "destination": "/playpro_public.html" },
-    { "source": "/coach",    "destination": "/coach_command_center.html" },
-    { "source": "/club",     "destination": "/club_command_center.html" },
-    { "source": "/player",   "destination": "/player_command_center.html" },
-    { "source": "/parent",   "destination": "/parent_command_center.html" },
+    { "source": "/", "destination": "/playpro_public.html" },
+    { "source": "/coach", "destination": "/coach_command_center.html" },
+    { "source": "/club", "destination": "/club_command_center.html" },
+    { "source": "/player", "destination": "/player_command_center.html" },
+    { "source": "/parent", "destination": "/parent_command_center.html" },
     { "source": "/observer", "destination": "/match_observer.html" },
-    { "source": "/portals",  "destination": "/portals.html" },
-    { "source": "/ops",      "destination": "/index.html" }
+    { "source": "/portals", "destination": "/portals.html" },
+    { "source": "/ops", "destination": "/index.html" }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Frame-Options",           "value": "SAMEORIGIN" },
-        { "key": "X-Content-Type-Options",    "value": "nosniff" },
-        { "key": "Referrer-Policy",           "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy",        "value": "camera=(), microphone=(), geolocation=()" }
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
       ]
     }
   ]
