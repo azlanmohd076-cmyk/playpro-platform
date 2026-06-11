@@ -1,8 +1,6 @@
 {
   "outputDirectory": "public",
-  "cleanUrls": true,
   "rewrites": [
-    { "source": "/", "destination": "/playpro_public.html" },
     { "source": "/coach", "destination": "/coach_command_center.html" },
     { "source": "/club", "destination": "/club_command_center.html" },
     { "source": "/player", "destination": "/player_command_center.html" },
