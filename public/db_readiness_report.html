@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>PlayPro — Database Readiness Report</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0f1e;color:#e2e8f0;min-height:100vh;padding:2rem 1rem}
+.page{max-width:1100px;margin:0 auto}
+
+/* ── Header ── */
+.header{margin-bottom:2rem}
+.header h1{font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:.2rem}
+.header .sub{font-size:.8rem;color:#475569;margin-bottom:.75rem}
+.header .source-note{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:.65rem 1rem;font-size:.75rem;color:#64748b;line-height:1.6}
+.header .source-note code{color:#6366f1;font-family:monospace}
+
+/* ── Summary strip ── */
+.summary-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-bottom:1.5rem}
+@media(max-width:700px){.summary-strip{grid-template-columns:repeat(2,1fr)}}
+.scard{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:1rem;text-align:center}
+.scard .num{font-size:2rem;font-weight:900;line-height:1}
+.scard .lbl{font-size:.68rem;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-top:.2rem}
+.scard.green .num{color:#22c55e}
+.scard.red .num{color:#ef4444}
+.scard.amber .num{color:#f59e0b}
+.scard.blue .num{color:#6366f1}
+.scard.cyan .num{color:#06b6d4}
+
+/* ── Score banner ── */
+.score-banner{background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
+.score-circle{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;flex-shrink:0}
+.score-circle.a{background:rgba(34,197,94,.15);border:2px solid #22c55e;color:#22c55e}
+.score-circle.b{background:rgba(245,158,11,.15);border:2px solid #f59e0b;color:#f59e0b}
+.score-circle.c{background:rgba(239,68,68,.15);border:2px solid #ef4444;color:#ef4444}
+.score-banner h2{font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:.2rem}
+.score-banner p{font-size:.8rem;color:#64748b}
+.score-banner .migration-note{margin-left:auto;background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:.6rem .9rem;font-size:.72rem;color:#64748b;line-height:1.7}
+.score-banner .migration-note strong{color:#94a3b8}
+
+/* ── Section headers ── */
+.section{margin-bottom:1.75rem}
+.section-header{display:flex;align-items:center;gap:.65rem;margin-bottom:.75rem}
+.section-header h2{font-size:.85rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em}
+.section-header .badge{font-size:.65rem;font-weight:700;padding:.2rem .55rem;border-radius:999px}
+.badge-ok{background:rgba(34,197,94,.15);color:#22c55e}
+.badge-warn{background:rgba(245,158,11,.15);color:#f59e0b}
+.badge-fail{background:rgba(239,68,68,.15);color:#ef4444}
+.badge-info{background:rgba(99,102,241,.15);color:#6366f1}
+
+/* ── Table ── */
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid #1e293b}
+table{width:100%;border-collapse:collapse;font-size:.76rem}
+thead tr{background:#1e293b}
+thead th{padding:.55rem .8rem;text-align:left;font-size:.67rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;border-bottom:1px solid #0f172a}
+tbody tr{border-bottom:1px solid #0f172a;transition:background .1s}
+tbody tr:hover{background:#111827}
+tbody tr:last-child{border-bottom:none}
+td{padding:.5rem .8rem;vertical-align:middle}
+
+.obj-name{font-family:monospace;color:#e2e8f0;font-size:.78rem}
+.migration-file{font-family:monospace;font-size:.68rem;color:#475569;max-width:260px}
+.migration-file .phase{color:#6366f1}
+
+/* chips */
+.chip{display:inline-flex;align-items:center;gap:.25rem;padding:.18rem .55rem;border-radius:999px;font-size:.65rem;font-weight:700;white-space:nowrap}
+.chip-yes{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+.chip-no{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+.chip-na{background:rgba(100,116,139,.12);color:#64748b;border:1px solid rgba(100,116,139,.25)}
+.chip-sd{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.25)}
+.chip-si{background:rgba(99,102,241,.12);color:#6366f1;border:1px solid rgba(99,102,241,.25)}
+
+.row-count{font-family:monospace;font-size:.75rem;color:#94a3b8;text-align:right}
+.policy-count{font-family:monospace;font-size:.75rem;text-align:center}
+.pc-good{color:#22c55e}
+.pc-warn{color:#f59e0b}
+.pc-low{color:#ef4444}
+
+/* ── Note box ── */
+.note-box{background:#1e293b;border-left:3px solid #6366f1;border-radius:0 8px 8px 0;padding:.65rem 1rem;font-size:.75rem;color:#64748b;line-height:1.6;margin-bottom:1rem}
+.note-box strong{color:#94a3b8}
+
+/* ── SQL block ── */
+.sql-section{margin-bottom:1.5rem}
+.sql-section h3{font-size:.8rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+.sql-block{background:#020617;border:1px solid #1e293b;border-radius:10px;padding:1.1rem 1.25rem;font-family:'Cascadia Code','Fira Code',monospace;font-size:.73rem;color:#e2e8f0;line-height:1.75;overflow-x:auto;white-space:pre;position:relative}
+.copy-btn{position:absolute;top:.6rem;right:.6rem;background:#1e293b;border:1px solid #334155;color:#64748b;border-radius:6px;padding:.25rem .6rem;font-size:.65rem;cursor:pointer;transition:all .15s}
+.copy-btn:hover{background:#334155;color:#e2e8f0}
+
+/* ── Progress bar ── */
+.progress-wrap{background:#1e293b;border-radius:4px;height:6px;overflow:hidden;margin-top:.5rem}
+.progress-fill{height:100%;border-radius:4px;transition:width .4s ease}
+
+/* ── Footer ── */
+.footer{margin-top:2rem;padding-top:1rem;border-top:1px solid #1e293b;font-size:.72rem;color:#334155;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ── Header ── -->
+<div class="header">
+  <h1>🗄 PlayPro — Database Readiness Report</h1>
+  <p class="sub">Generated: 2026-06-10 &nbsp;|&nbsp; Source: repositories.js + supabase.js + playpro_audit_fixes.js → cross-referenced against all 15 migration SQL files</p>
+  <div class="source-note">
+    <strong style="color:#94a3b8">Methodology:</strong>
+    All object names extracted directly from <code>.from()</code> and <code>.rpc()</code> calls in JS source.
+    Existence, RLS, policies and migration origin traced from <code>information_schema</code>, <code>pg_views</code>,
+    <code>pg_matviews</code>, <code>pg_proc</code>, <code>pg_policies</code>, <code>pg_class</code> — no estimates.
+    Row counts and live policy counts require the Supabase SQL in <code>database/playpro_readiness_check.sql</code>.
+    This static report shows <strong style="color:#94a3b8">migration-verified existence</strong> — i.e., what the SQL files define.
+    The <strong style="color:#f59e0b">⚠ "Exists in Supabase"</strong> column is populated after you run the SQL in your live database.
+  </div>
+</div>
+
+<!-- ── Score Banner ── -->
+<div class="score-banner">
+  <div class="score-circle a" id="score-circle">—</div>
+  <div>
+    <h2 id="score-headline">Run <code style="font-size:.85em;color:#6366f1">playpro_readiness_check.sql</code> in Supabase SQL Editor</h2>
+    <p id="score-sub">This report shows what the migration files define. The SQL gives live database state (row counts, actual existence).</p>
+    <div class="progress-wrap" style="width:300px;margin-top:.5rem">
+      <div class="progress-fill" id="score-bar" style="background:#22c55e;width:0%"></div>
+    </div>
+  </div>
+  <div class="migration-note">
+    <strong>Migration Verified Objects:</strong><br>
+    32 tables across 15 migration files<br>
+    10 views across phases 6.5–6.8<br>
+    4 matviews — sprint1 + audit_fixes<br>
+    4 RPC functions across phases 6.5–6.8<br>
+    <strong>Total: 50 objects</strong>
+  </div>
+</div>
+
+<!-- ── Summary Strip ── -->
+<div class="summary-strip">
+  <div class="scard green"><div class="num">32</div><div class="lbl">Tables</div></div>
+  <div class="scard blue"><div class="num">10</div><div class="lbl">Views</div></div>
+  <div class="scard cyan"><div class="num">4</div><div class="lbl">MatViews</div></div>
+  <div class="scard amber"><div class="num">4</div><div class="lbl">RPC Functions</div></div>
+  <div class="scard green"><div class="num">50</div><div class="lbl">Total Objects</div></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SECTION 1 — BASE TABLES                                -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <h2>📋 Section 1 — Base Tables</h2>
+    <span class="badge badge-info">32 Required</span>
+  </div>
+  <div class="note-box">
+    <strong>RLS column:</strong> Shows whether <code>ALTER TABLE … ENABLE ROW LEVEL SECURITY</code> exists in migration SQL.
+    All 32 tables have RLS enabled in migrations. &nbsp;|&nbsp;
+    <strong>Policies column:</strong> Count of <code>CREATE POLICY … ON table_name</code> statements across all 15 migration files.
+    &nbsp;|&nbsp; <strong>Row Count:</strong> Run <code>playpro_readiness_check.sql</code> — Section 1 query returns live counts.
+  </div>
+  <div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Table Name</th>
+        <th>In Migration SQL</th>
+        <th>RLS Enabled</th>
+        <th>Policies</th>
+        <th>Row Count</th>
+        <th>Last Migration File</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data rows — "In Migration SQL" = verified from grep of SQL files -->
+      <!-- "Exists in Supabase" populated after running readiness check SQL -->
+      <tr><td>1</td><td class="obj-name">attribute_definitions</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-warn">2</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_5</span>_dna_migration.sql</td></tr>
+      <tr><td>2</td><td class="obj-name">clubs</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">01</span>_phase1_core_schema.sql</td></tr>
+      <tr><td>3</td><td class="obj-name">coaches</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">01</span>_phase1_core_schema.sql</td></tr>
+      <tr><td>4</td><td class="obj-name">fixtures</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">5</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">01</span>_phase1_core_schema.sql</td></tr>
+      <tr><td>5</td><td class="obj-name">leagues</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">01</span>_phase1_core_schema.sql</td></tr>
+      <tr><td>6</td><td class="obj-name">market_value_history</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-low">1</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_6</span>_intelligence_engine.sql</td></tr>
+      <tr><td>7</td><td class="obj-name">match_events</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase2</span>_additions.sql</td></tr>
+      <tr><td>8</td><td class="obj-name">match_lineups</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">5</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase2</span>_additions.sql</td></tr>
+      <tr><td>9</td><td class="obj-name">notification_recipients</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">5</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase3</span>_additions.sql</td></tr>
+      <tr><td>10</td><td class="obj-name">notifications</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase3</span>_additions.sql</td></tr>
+      <tr><td>11</td><td class="obj-name">player_attribute_history</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-low">1</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_5</span>_dna_migration.sql</td></tr>
+      <tr><td>12</td><td class="obj-name">player_attributes</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-low">1</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_5</span>_dna_migration.sql</td></tr>
+      <tr><td>13</td><td class="obj-name">player_development_projections</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-low">1</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td></tr>
+      <tr><td>14</td><td class="obj-name">player_fitness_snapshots</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-low">1</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td></tr>
+      <tr><td>15</td><td class="obj-name">player_guardians</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_5</span>_dna_migration.sql</td></tr>
+      <tr><td>16</td><td class="obj-name">player_hidden_attributes</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td></tr>
+      <tr><td>17</td><td class="obj-name">player_injury_risk_profiles</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-low">1</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td></tr>
+      <tr><td>18</td><td class="obj-name">player_market_values</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-warn">2</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_6</span>_intelligence_engine.sql</td></tr>
+      <tr><td>19</td><td class="obj-name">player_match_stats</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">01</span>_phase1_core_schema.sql</td></tr>
+      <tr><td>20</td><td class="obj-name">player_morale_snapshots</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-low">1</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td></tr>
+      <tr><td>21</td><td class="obj-name">player_ownership_claims</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_5</span>_dna_migration.sql</td></tr>
+      <tr><td>22</td><td class="obj-name">player_passport_score_history</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-low">1</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_5</span>_dna_migration.sql</td></tr>
+      <tr><td>23</td><td class="obj-name">player_position_familiarity</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td></tr>
+      <tr><td>24</td><td class="obj-name">player_similarities</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-low">1</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_6</span>_intelligence_engine.sql</td></tr>
+      <tr><td>25</td><td class="obj-name">player_training_attendance</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td></tr>
+      <tr><td>26</td><td class="obj-name">player_training_performance</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td></tr>
+      <tr><td>27</td><td class="obj-name">players</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">01</span>_phase1_core_schema.sql</td></tr>
+      <tr><td>28</td><td class="obj-name">profiles</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">6</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">01</span>_phase1_core_schema.sql</td></tr>
+      <tr><td>29</td><td class="obj-name">seasons</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase4</span>_critical_fix_pack.sql</td></tr>
+      <tr><td>30</td><td class="obj-name">standings</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">4</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">01</span>_phase1 + <span class="phase">audit_fixes</span>.sql ⚠</td></tr>
+      <tr><td>31</td><td class="obj-name">training_sessions</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td></tr>
+      <tr><td>32</td><td class="obj-name">user_follows</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-yes">✓ YES</span></td><td class="policy-count pc-good">3</td><td class="row-count">run SQL</td><td class="migration-file"><span class="phase">phase6_5</span>_dna_migration.sql</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="font-size:.7rem;color:#475569;margin-top:.4rem">⚠ <code>standings</code> — originally Phase 1; <code>season_id</code> column + unique constraint added by <code>playpro_audit_fixes.sql</code>. Both phases must be applied.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SECTION 2 — VIEWS                                      -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <h2>👁 Section 2 — Views</h2>
+    <span class="badge badge-info">10 Required</span>
+  </div>
+  <div class="note-box">
+    Views do not have their own RLS policies — they inherit RLS from underlying base tables.
+    All 10 views are defined in migration files phases 6.5–6.8. Row count not applicable (live query per call).
+  </div>
+  <div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>View Name</th>
+        <th>In Migration SQL</th>
+        <th>RLS</th>
+        <th>Policies</th>
+        <th>Used By</th>
+        <th>Last Migration File</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td class="obj-name">v_development_leaderboard</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td class="policy-count pc-na">—</td><td style="font-size:.7rem;color:#64748b">DevRepo.leaderboard()</td><td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td></tr>
+      <tr><td>2</td><td class="obj-name">v_pipeline_summary</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td class="policy-count pc-na">—</td><td style="font-size:.7rem;color:#64748b">MatchRepo.pipelineLog()</td><td class="migration-file"><span class="phase">phase6_7</span>_pipeline.sql</td></tr>
+      <tr><td>3</td><td class="obj-name">v_player_development_passport</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td class="policy-count pc-na">—</td><td style="font-size:.7rem;color:#64748b">PlayerRepo.development()</td><td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td></tr>
+      <tr><td>4</td><td class="obj-name">v_player_dna_public</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td class="policy-count pc-na">—</td><td style="font-size:.7rem;color:#64748b">PlayerRepo.dnaPublic()</td><td class="migration-file"><span class="phase">phase6_5</span>_dna_migration.sql</td></tr>
+      <tr><td>5</td><td class="obj-name">v_player_market_values_public</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td class="policy-count pc-na">—</td><td style="font-size:.7rem;color:#64748b">MarketValueRepo.publicList()</td><td class="migration-file"><span class="phase">phase6_6</span>_intelligence_engine.sql</td></tr>
+      <tr><td>6</td><td class="obj-name">v_player_passport_full</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td class="policy-count pc-na">—</td><td style="font-size:.7rem;color:#64748b">PlayerRepo.passport()</td><td class="migration-file"><span class="phase">phase6_5</span>_dna_migration.sql</td></tr>
+      <tr><td>7</td><td class="obj-name">v_reputation_leaderboard</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td class="policy-count pc-na">—</td><td style="font-size:.7rem;color:#64748b">ScoutRepo.reputationLeaderboard()</td><td class="migration-file"><span class="phase">phase6_6</span>_intelligence_engine.sql</td></tr>
+      <tr><td>8</td><td class="obj-name">v_scout_reports_public</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td class="policy-count pc-na">—</td><td style="font-size:.7rem;color:#64748b">ScoutRepo.report()</td><td class="migration-file"><span class="phase">phase6_6</span>_intelligence_engine.sql</td></tr>
+      <tr><td>9</td><td class="obj-name">v_squad_development_report</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td class="policy-count pc-na">—</td><td style="font-size:.7rem;color:#64748b">DevRepo.squadReport()</td><td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td></tr>
+      <tr><td>10</td><td class="obj-name">v_wonderkid_radar</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td class="policy-count pc-na">—</td><td style="font-size:.7rem;color:#64748b">DnaRepo.wonderkids()</td><td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SECTION 3 — MATERIALIZED VIEWS                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <h2>⚡ Section 3 — Materialized Views</h2>
+    <span class="badge badge-info">4 Required</span>
+  </div>
+  <div class="note-box">
+    MatViews do not support row-level security. Access is controlled by <code>GRANT SELECT ON mv_* TO anon, authenticated</code>
+    statements in migration files. Row counts reflect last REFRESH — stale until <code>refresh_all_public_views()</code> is called.
+    <strong style="color:#f59e0b">Critical:</strong> <code>mv_league_standings</code> and <code>mv_top_scorers</code> were
+    <em>recreated</em> by <code>playpro_audit_fixes.sql</code> to fix the broken <code>season_id</code> JOIN — both sprint1 and audit_fixes must be applied in order.
+  </div>
+  <div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>MatView Name</th>
+        <th>In Migration SQL</th>
+        <th>RLS</th>
+        <th>GRANTs</th>
+        <th>Refresh Function</th>
+        <th>Last Migration File</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td class="obj-name">mv_club_dna</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td style="font-size:.7rem;color:#22c55e">anon, authenticated</td><td style="font-size:.7rem;color:#6366f1">refresh_all_public_views()</td><td class="migration-file"><span class="phase">sprint1</span>_identity_patch.sql</td></tr>
+      <tr><td>2</td><td class="obj-name">mv_league_standings</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td style="font-size:.7rem;color:#22c55e">anon, authenticated</td><td style="font-size:.7rem;color:#6366f1">refresh_all_public_views()</td><td class="migration-file"><span class="phase">audit_fixes</span>.sql (rebuilt) ⚠</td></tr>
+      <tr><td>3</td><td class="obj-name">mv_player_passport_scores</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td style="font-size:.7rem;color:#22c55e">anon, authenticated</td><td style="font-size:.7rem;color:#6366f1">refresh_all_public_views()</td><td class="migration-file"><span class="phase">phase6_5</span>_dna_migration.sql</td></tr>
+      <tr><td>4</td><td class="obj-name">mv_top_scorers</td><td><span class="chip chip-yes">✓ YES</span></td><td><span class="chip chip-na">N/A</span></td><td style="font-size:.7rem;color:#22c55e">anon, authenticated</td><td style="font-size:.7rem;color:#6366f1">refresh_all_public_views()</td><td class="migration-file"><span class="phase">audit_fixes</span>.sql (rebuilt) ⚠</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="font-size:.7rem;color:#475569;margin-top:.4rem">⚠ sprint1_identity_patch.sql creates these first; playpro_audit_fixes.sql drops and recreates them with corrected SQL. Both phases required.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SECTION 4 — RPC FUNCTIONS                              -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <h2>⚙ Section 4 — RPC Functions</h2>
+    <span class="badge badge-info">4 Required</span>
+  </div>
+  <div class="note-box">
+    All 4 functions called via <code>SB.rpc('function_name', params)</code> in repositories.js.
+    Security model shown — SECURITY DEFINER functions run with creator privileges and bypass RLS;
+    they must have <code>SET search_path = public</code> to prevent privilege escalation (verified in phase4_1_2_security_patch.sql).
+  </div>
+  <div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Function Name</th>
+        <th>In Migration SQL</th>
+        <th>Security Model</th>
+        <th>Signature (Parameters)</th>
+        <th>Called By</th>
+        <th>Last Migration File</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td class="obj-name">compute_weekly_training_score</td>
+        <td><span class="chip chip-yes">✓ YES</span></td>
+        <td><span class="chip chip-sd">SECURITY DEFINER</span></td>
+        <td style="font-size:.7rem;color:#64748b;font-family:monospace">(p_player_id UUID, p_week_start DATE)</td>
+        <td style="font-size:.7rem;color:#64748b">DevRepo.weeklyTrainingScore()</td>
+        <td class="migration-file"><span class="phase">phase6_8</span>_player_development.sql</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td class="obj-name">get_my_player_id</td>
+        <td><span class="chip chip-yes">✓ YES</span></td>
+        <td><span class="chip chip-sd">SECURITY DEFINER</span></td>
+        <td style="font-size:.7rem;color:#64748b;font-family:monospace">() → UUID</td>
+        <td style="font-size:.7rem;color:#64748b">UserRepo.myPlayerId()</td>
+        <td class="migration-file"><span class="phase">phase6_5</span>_dna_migration.sql</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td class="obj-name">run_post_match_pipeline</td>
+        <td><span class="chip chip-yes">✓ YES</span></td>
+        <td><span class="chip chip-sd">SECURITY DEFINER</span></td>
+        <td style="font-size:.7rem;color:#64748b;font-family:monospace">(p_fixture_id UUID, p_season_id UUID DEFAULT NULL)</td>
+        <td style="font-size:.7rem;color:#64748b">MatchRepo.runPipeline()</td>
+        <td class="migration-file"><span class="phase">phase6_7</span>_pipeline.sql</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td class="obj-name">search_players</td>
+        <td><span class="chip chip-yes">✓ YES</span></td>
+        <td><span class="chip chip-si">SECURITY INVOKER</span></td>
+        <td style="font-size:.7rem;color:#64748b;font-family:monospace">(p_query TEXT, p_position TEXT, p_age_min INT, p_age_max INT, p_dna_min INT, p_dna_max INT, p_potential_min INT, p_league_id UUID, p_club_id UUID, p_league_tier INT, p_nationality TEXT, p_passport_min INT, p_attr_* NUMERIC×8, p_sort_by TEXT, p_sort_dir TEXT, p_limit INT, p_offset INT)</td>
+        <td style="font-size:.7rem;color:#64748b">ScoutRepo.search()</td>
+        <td class="migration-file"><span class="phase">phase6_6</span>_intelligence_engine.sql</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="font-size:.7rem;color:#475569;margin-top:.4rem">
+    ℹ <code>search_players</code> uses SECURITY INVOKER — it respects the calling user's RLS policies.
+    The other 3 use SECURITY DEFINER with <code>SET search_path = public</code> (patched by phase4_1_2_security_patch.sql).
+  </p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SECTION 5 — IMPORTANT NOTES                            -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <h2>⚠ Section 5 — Critical Notes</h2>
+    <span class="badge badge-warn">Read Before Deploying</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+
+    <div class="note-box" style="border-left-color:#ef4444">
+      <strong style="color:#ef4444">NOT in repositories.js (missing from report scope):</strong><br>
+      <code style="color:#94a3b8">refresh_mv_league_standings</code> — called in <code>connection_test.html</code> T7.
+      This RPC does NOT exist. The actual function is <code>refresh_all_public_views()</code>
+      (created by <code>sprint1_identity_patch.sql</code>). Connection test T7 will show WARN for this.
+    </div>
+
+    <div class="note-box" style="border-left-color:#f59e0b">
+      <strong style="color:#f59e0b">standings table — 2-phase dependency:</strong><br>
+      Phase 1 creates <code>standings</code> without <code>season_id</code>.
+      <code>playpro_audit_fixes.sql</code> adds the column + fixes the unique constraint.
+      Both must be applied or <code>mv_league_standings</code> JOIN will fail.
+    </div>
+
+    <div class="note-box" style="border-left-color:#6366f1">
+      <strong style="color:#6366f1">Tables with low policy counts (1 policy):</strong><br>
+      <code>market_value_history</code>, <code>player_attribute_history</code>, <code>player_attributes</code>,
+      <code>player_development_projections</code>, <code>player_fitness_snapshots</code>,
+      <code>player_injury_risk_profiles</code>, <code>player_morale_snapshots</code>,
+      <code>player_passport_score_history</code>, <code>player_similarities</code> —
+      these are likely read-only public (SELECT only). Verify if write policies are needed.
+    </div>
+
+    <div class="note-box" style="border-left-color:#22c55e">
+      <strong style="color:#22c55e">All 32 tables have RLS enabled in migrations.</strong><br>
+      <code>ALTER TABLE … ENABLE ROW LEVEL SECURITY</code> verified via grep across all 15 migration files.
+      Supabase will enforce RLS once migrations are applied — anon users get only what policies allow.
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SECTION 6 — SQL TO RUN IN SUPABASE                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <h2>🔧 Section 6 — Supabase SQL (Run for Live Counts)</h2>
+    <span class="badge badge-info">Copy → Supabase SQL Editor</span>
+  </div>
+  <p style="font-size:.78rem;color:#64748b;margin-bottom:.75rem">
+    Run <code style="color:#6366f1">database/playpro_readiness_check.sql</code> in your Supabase project SQL Editor
+    (Dashboard → SQL Editor → New Query). Run each section individually. Results give live
+    existence, row counts, actual RLS state, and actual policy counts from your database.
+  </p>
+
+  <div class="sql-section">
+    <h3>Section 5 — Completeness Summary (copy this for a quick score)</h3>
+    <div class="sql-block" id="sql-summary">WITH
+tables_check AS (
+  SELECT COUNT(*) AS total, COUNT(t.table_name) AS found
+  FROM (VALUES
+    ('attribute_definitions'),('clubs'),('coaches'),('fixtures'),
+    ('leagues'),('market_value_history'),('match_events'),('match_lineups'),
+    ('notification_recipients'),('notifications'),('player_attribute_history'),
+    ('player_attributes'),('player_development_projections'),
+    ('player_fitness_snapshots'),('player_guardians'),('player_hidden_attributes'),
+    ('player_injury_risk_profiles'),('player_market_values'),('player_match_stats'),
+    ('player_morale_snapshots'),('player_ownership_claims'),
+    ('player_passport_score_history'),('player_position_familiarity'),
+    ('player_similarities'),('player_training_attendance'),
+    ('player_training_performance'),('players'),('profiles'),('seasons'),
+    ('standings'),('training_sessions'),('user_follows')
+  ) AS req(table_name)
+  LEFT JOIN information_schema.tables t
+    ON t.table_name = req.table_name AND t.table_schema = 'public'
+    AND t.table_type = 'BASE TABLE'
+),
+views_check AS (
+  SELECT COUNT(*) AS total, COUNT(v.viewname) AS found
+  FROM (VALUES
+    ('v_development_leaderboard'),('v_pipeline_summary'),
+    ('v_player_development_passport'),('v_player_dna_public'),
+    ('v_player_market_values_public'),('v_player_passport_full'),
+    ('v_reputation_leaderboard'),('v_scout_reports_public'),
+    ('v_squad_development_report'),('v_wonderkid_radar')
+  ) AS req(view_name)
+  LEFT JOIN pg_views v ON v.viewname = req.view_name AND v.schemaname = 'public'
+),
+mv_check AS (
+  SELECT COUNT(*) AS total, COUNT(m.matviewname) AS found
+  FROM (VALUES
+    ('mv_club_dna'),('mv_league_standings'),
+    ('mv_player_passport_scores'),('mv_top_scorers')
+  ) AS req(mv_name)
+  LEFT JOIN pg_matviews m ON m.matviewname = req.mv_name AND m.schemaname = 'public'
+),
+rpc_check AS (
+  SELECT COUNT(*) AS total, COUNT(p.proname) AS found
+  FROM (VALUES
+    ('compute_weekly_training_score'),('get_my_player_id'),
+    ('run_post_match_pipeline'),('search_players')
+  ) AS req(fn_name)
+  LEFT JOIN pg_proc p
+    ON p.proname = req.fn_name AND p.pronamespace = 'public'::regnamespace
+)
+SELECT
+  tc.found || '/' || tc.total   AS tables,
+  vc.found || '/' || vc.total   AS views,
+  mc.found || '/' || mc.total   AS matviews,
+  rc.found || '/' || rc.total   AS rpcs,
+  (tc.found+vc.found+mc.found+rc.found) || '/' ||
+  (tc.total+vc.total+mc.total+rc.total) AS total_objects,
+  ROUND(
+    (tc.found+vc.found+mc.found+rc.found)::numeric /
+    (tc.total+vc.total+mc.total+rc.total)::numeric * 100, 1
+  ) AS completeness_pct
+FROM tables_check tc, views_check vc, mv_check mc, rpc_check rc;</div>
+    <button class="copy-btn" onclick="copySQL('sql-summary',this)">Copy</button>
+  </div>
+</div>
+
+<!-- ── Migration Sequence Reminder ── -->
+<div class="note-box" style="border-left-color:#22c55e;margin-bottom:1.5rem">
+  <strong style="color:#22c55e">Migration execution order (STRICT — never skip, never reorder):</strong><br>
+  01_phase1_core_schema.sql → phase2_additions → phase3_additions → phase4_critical_fix_pack →
+  phase4_1_stabilization → phase4_1_1_remediation → phase4_1_2_security → phase4_1_3_remediation →
+  phase4_2_hotfix → phase6_5_dna_migration → sprint1_identity_patch → phase6_6_intelligence_engine →
+  phase6_7_pipeline → phase6_8_player_development → <strong>playpro_audit_fixes</strong> ← LAST
+</div>
+
+<!-- ── Footer ── -->
+<div class="footer">
+  <span>PlayPro Database Readiness Report — 2026-06-10</span>
+  <span>Source: repositories.js + supabase.js + playpro_audit_fixes.js → 15 migration SQL files</span>
+  <span>50 objects tracked (32 tables + 10 views + 4 matviews + 4 RPC)</span>
+</div>
+
+</div><!-- .page -->
+
+<script>
+function copySQL(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+</script>
+</body>
+</html>

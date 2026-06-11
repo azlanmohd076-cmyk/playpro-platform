@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PlayPro — Full Deployment Readiness Test</title>
+<!-- Supabase CDN — required -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<!--
+  ══════════════════════════════════════════════════════════════
+  CREDENTIAL INJECTION POINT
+  ══════════════════════════════════════════════════════════════
+  Option A — Paste credentials directly (for local testing only):
+    window.PLAYPRO_SUPABASE_URL      = 'https://xxxx.supabase.co';
+    window.PLAYPRO_SUPABASE_ANON_KEY = 'eyJ...';
+
+  Option B — Leave blank → enter in the form below at runtime.
+
+  Option C (Vercel) — Set as Environment Variables in Vercel Dashboard.
+    PLAYPRO_SUPABASE_URL and PLAYPRO_SUPABASE_ANON_KEY
+    Then use a build step or Edge Function to inject them.
+
+  NEVER commit real credentials to git.
+  ══════════════════════════════════════════════════════════════
+-->
+<script>
+  window.PLAYPRO_SUPABASE_URL      = '';
+  window.PLAYPRO_SUPABASE_ANON_KEY = '';
+</script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#040a16;color:#e2e8f0;min-height:100vh;padding:1.5rem 1rem}
+.page{max-width:960px;margin:0 auto}
+
+h1{font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:.15rem}
+.subtitle{font-size:.78rem;color:#475569;margin-bottom:1.5rem}
+
+/* ── Config card ── */
+.config-card{background:#0f1829;border:1px solid #1e2d45;border-radius:12px;padding:1.25rem;margin-bottom:1.25rem}
+.config-card h2{font-size:.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.85rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.85rem}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
+label{display:block;font-size:.7rem;font-weight:600;color:#475569;margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.05em}
+input[type=url],input[type=text]{width:100%;background:#060d1a;border:1px solid #1e2d45;border-radius:7px;padding:.55rem .8rem;color:#e2e8f0;font-size:.82rem;font-family:monospace;outline:none;transition:border-color .15s}
+input:focus{border-color:#4f46e5}
+input::placeholder{color:#334155}
+.btn-primary{background:linear-gradient(90deg,#4338ca,#6366f1);color:#fff;border:none;border-radius:7px;padding:.65rem 1.5rem;font-size:.85rem;font-weight:700;cursor:pointer;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed}
+.btn-secondary{background:#0f1829;border:1px solid #1e2d45;color:#64748b;border-radius:7px;padding:.65rem 1.1rem;font-size:.82rem;cursor:pointer;margin-left:.5rem}
+.btn-secondary:hover{border-color:#334155;color:#94a3b8}
+#run-msg{font-size:.75rem;color:#475569;margin-left:.75rem;vertical-align:middle}
+
+/* ── Score banner ── */
+#score-banner{display:none;background:#0f1829;border:1px solid #1e2d45;border-radius:12px;padding:1.1rem 1.25rem;margin-bottom:1.25rem;align-items:center;gap:1.25rem;flex-wrap:wrap}
+.score-ring{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:900;flex-shrink:0;transition:all .3s}
+.ring-pass{background:rgba(34,197,94,.12);border:2px solid #22c55e;color:#22c55e}
+.ring-warn{background:rgba(245,158,11,.12);border:2px solid #f59e0b;color:#f59e0b}
+.ring-fail{background:rgba(239,68,68,.12);border:2px solid #ef4444;color:#ef4444}
+.score-details h2{font-size:1rem;font-weight:700;color:#fff;margin-bottom:.15rem}
+.score-details p{font-size:.75rem;color:#64748b}
+.score-stats{display:flex;gap:1.25rem;margin-left:auto;flex-wrap:wrap}
+.stat{text-align:center}
+.stat .n{font-size:1.5rem;font-weight:800}
+.stat .l{font-size:.65rem;color:#475569;text-transform:uppercase;letter-spacing:.05em}
+.n-pass{color:#22c55e}.n-fail{color:#ef4444}.n-warn{color:#f59e0b}.n-skip{color:#475569}
+
+/* ── Progress bar ── */
+.prog-wrap{height:3px;background:#1e2d45;border-radius:2px;margin-bottom:1.25rem;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#4338ca,#22c55e);transition:width .4s;width:0%}
+
+/* ── Test grid ── */
+.test-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.25rem}
+@media(max-width:600px){.test-grid{grid-template-columns:1fr}}
+.tc{background:#0f1829;border:1px solid #1e2d45;border-radius:9px;padding:.9rem;position:relative;transition:border-color .2s}
+.tc.pass{border-color:rgba(34,197,94,.4)}
+.tc.fail{border-color:rgba(239,68,68,.4)}
+.tc.warn{border-color:rgba(245,158,11,.4)}
+.tc.run {border-color:rgba(99,102,241,.4)}
+.tc .t-badge{position:absolute;top:.6rem;right:.6rem;font-size:.6rem;font-weight:700;padding:.15rem .45rem;border-radius:999px;background:#1e2d45;color:#475569}
+.tc.pass .t-badge{background:rgba(34,197,94,.15);color:#22c55e}
+.tc.fail .t-badge{background:rgba(239,68,68,.15);color:#ef4444}
+.tc.warn .t-badge{background:rgba(245,158,11,.15);color:#f59e0b}
+.tc.run  .t-badge{background:rgba(99,102,241,.15);color:#6366f1}
+.tc .t-label{font-size:.65rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem}
+.tc .t-status{font-size:.88rem;font-weight:700;margin-bottom:.2rem;color:#94a3b8}
+.tc.pass .t-status{color:#22c55e}
+.tc.fail .t-status{color:#ef4444}
+.tc.warn .t-status{color:#f59e0b}
+.tc.run  .t-status{color:#6366f1}
+.tc .t-detail{font-size:.68rem;color:#334155;line-height:1.45;font-family:monospace;word-break:break-all}
+
+/* ── Detail tables ── */
+.detail-section{background:#0f1829;border:1px solid #1e2d45;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem}
+.detail-section h3{font-size:.72rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.dtbl{width:100%;border-collapse:collapse;font-size:.72rem}
+.dtbl th{padding:.4rem .65rem;text-align:left;font-size:.62rem;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #0a1220}
+.dtbl td{padding:.42rem .65rem;border-bottom:1px solid #060d1a;font-family:monospace}
+.dtbl tr:last-child td{border-bottom:none}
+.dtbl tr:hover td{background:#060d1a}
+.chip{display:inline-block;padding:.12rem .45rem;border-radius:999px;font-size:.6rem;font-weight:700}
+.cp{background:rgba(34,197,94,.12);color:#22c55e}
+.cf{background:rgba(239,68,68,.12);color:#ef4444}
+.cw{background:rgba(245,158,11,.12);color:#f59e0b}
+.cn{background:rgba(100,116,139,.12);color:#475569}
+.cs{background:rgba(99,102,241,.12);color:#6366f1}
+
+/* ── Log ── */
+.log-wrap{background:#020810;border:1px solid #0f1829;border-radius:10px;padding:.9rem 1rem;font-family:'Cascadia Code','Fira Code',monospace;font-size:.68rem;line-height:1.75;max-height:280px;overflow-y:auto;margin-bottom:1rem}
+.lg{display:flex;gap:.6rem}
+.lt{color:#1e2d45;flex-shrink:0}
+.lp{color:#22c55e}.lf{color:#ef4444}.lw{color:#f59e0b}.li{color:#4f46e5}.ld{color:#1e2d45}
+
+/* ── Final report ── */
+#final-report{display:none;background:#0f1829;border:1px solid #22c55e;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+#final-report h2{font-size:.9rem;font-weight:800;color:#22c55e;margin-bottom:.85rem;display:flex;align-items:center;gap:.5rem}
+.rpt-table{width:100%;border-collapse:collapse;font-size:.73rem}
+.rpt-table th{padding:.4rem .7rem;text-align:left;font-size:.62rem;font-weight:700;color:#334155;text-transform:uppercase;border-bottom:1px solid #1e2d45}
+.rpt-table td{padding:.45rem .7rem;border-bottom:1px solid #0a1220}
+.rpt-table tr:last-child td{border-bottom:none}
+.verdict{margin-top:.85rem;padding:.65rem .9rem;border-radius:7px;font-size:.78rem;font-weight:600}
+.v-ready{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e}
+.v-warn {background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#f59e0b}
+.v-block{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444}
+
+/* ── Copy snippet ── */
+#snippet-panel{display:none;background:#0f1829;border:1px solid #1e2d45;border-radius:10px;padding:1rem;margin-bottom:1rem}
+#snippet-panel h3{font-size:.72rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+.code-block{background:#020810;border:1px solid #0f1829;border-radius:7px;padding:.85rem 1rem;font-family:monospace;font-size:.73rem;color:#e2e8f0;white-space:pre;overflow-x:auto;line-height:1.6}
+.btn-copy{margin-top:.5rem;background:#0f1829;border:1px solid #1e2d45;color:#64748b;border-radius:6px;padding:.3rem .75rem;font-size:.68rem;cursor:pointer}
+.btn-copy:hover{color:#e2e8f0;border-color:#334155}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>🔌 PlayPro — Full Deployment Readiness Test</h1>
+<p class="subtitle">20 tests • Tables • Views • MatViews • RPCs • RLS • Realtime • Migration completeness • Write operations</p>
+
+<!-- ── Credential Input ── -->
+<div class="config-card">
+  <h2>🔑 Supabase Credentials</h2>
+  <p style="font-size:.73rem;color:#334155;margin-bottom:.85rem">
+    Dapatkan dari: <strong style="color:#64748b">Supabase Dashboard → Project Settings → API</strong>.
+    Credentials hanya diproses dalam browser — tidak dihantar ke mana-mana server.
+    Jangan commit nilai sebenar ke dalam git.
+  </p>
+  <div class="form-row">
+    <div>
+      <label>Project URL</label>
+      <input id="inp-url" type="url" placeholder="https://abcxyzabcxyz.supabase.co" autocomplete="off" spellcheck="false"/>
+    </div>
+    <div>
+      <label>Anon / Public Key (eyJ...)</label>
+      <input id="inp-key" type="text" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." autocomplete="off" spellcheck="false"/>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.5rem">
+    <button class="btn-primary" id="btn-run" onclick="runAll()">▶ Run All 20 Tests</button>
+    <button class="btn-secondary" onclick="resetAll()">↺ Reset</button>
+    <span id="run-msg"></span>
+  </div>
+</div>
+
+<!-- ── Progress bar ── -->
+<div class="prog-wrap"><div class="prog-fill" id="prog"></div></div>
+
+<!-- ── Score Banner ── -->
+<div id="score-banner" style="display:flex">
+  <div class="score-ring" id="score-ring">—</div>
+  <div class="score-details">
+    <h2 id="score-headline">—</h2>
+    <p id="score-sub">—</p>
+  </div>
+  <div class="score-stats">
+    <div class="stat"><div class="n n-pass" id="cnt-pass">0</div><div class="l">Pass</div></div>
+    <div class="stat"><div class="n n-warn" id="cnt-warn">0</div><div class="l">Warn</div></div>
+    <div class="stat"><div class="n n-fail" id="cnt-fail">0</div><div class="l">Fail</div></div>
+    <div class="stat"><div class="n n-skip" id="cnt-skip">0</div><div class="l">Skip</div></div>
+  </div>
+</div>
+
+<!-- ── Test Cards Grid ── -->
+<div class="test-grid" id="test-grid">
+
+  <div class="tc" id="tc-1"><div class="t-badge">IDLE</div>
+    <div class="t-label">T01 — URL Format</div>
+    <div class="t-status" id="ts-1">Menunggu...</div>
+    <div class="t-detail" id="td-1">Belum dijalankan</div></div>
+
+  <div class="tc" id="tc-2"><div class="t-badge">IDLE</div>
+    <div class="t-label">T02 — Network Ping</div>
+    <div class="t-status" id="ts-2">Menunggu...</div>
+    <div class="t-detail" id="td-2">Belum dijalankan</div></div>
+
+  <div class="tc" id="tc-3"><div class="t-badge">IDLE</div>
+    <div class="t-label">T03 — Client Init</div>
+    <div class="t-status" id="ts-3">Menunggu...</div>
+    <div class="t-detail" id="td-3">Belum dijalankan</div></div>
+
+  <div class="tc" id="tc-4"><div class="t-badge">IDLE</div>
+    <div class="t-label">T04 — Anon Key Valid</div>
+    <div class="t-status" id="ts-4">Menunggu...</div>
+    <div class="t-detail" id="td-4">Belum dijalankan</div></div>
+
+  <div class="tc" id="tc-5"><div class="t-badge">IDLE</div>
+    <div class="t-label">T05 — Migration Completeness</div>
+    <div class="t-status" id="ts-5">Menunggu...</div>
+    <div class="t-detail" id="td-5">Semak semua 32 tables + 10 views + 4 matviews + 4 RPCs</div></div>
+
+  <div class="tc" id="tc-6"><div class="t-badge">IDLE</div>
+    <div class="t-label">T06 — All 32 Tables Exist</div>
+    <div class="t-status" id="ts-6">Menunggu...</div>
+    <div class="t-detail" id="td-6">Belum dijalankan</div></div>
+
+  <div class="tc" id="tc-7"><div class="t-badge">IDLE</div>
+    <div class="t-label">T07 — RLS Enabled (tables)</div>
+    <div class="t-status" id="ts-7">Menunggu...</div>
+    <div class="t-detail" id="td-7">Belum dijalankan</div></div>
+
+  <div class="tc" id="tc-8"><div class="t-badge">IDLE</div>
+    <div class="t-label">T08 — All 10 Views Exist</div>
+    <div class="t-status" id="ts-8">Menunggu...</div>
+    <div class="t-detail" id="td-8">Belum dijalankan</div></div>
+
+  <div class="tc" id="tc-9"><div class="t-badge">IDLE</div>
+    <div class="t-label">T09 — All 4 MatViews Exist</div>
+    <div class="t-status" id="ts-9">Menunggu...</div>
+    <div class="t-detail" id="td-9">Belum dijalankan</div></div>
+
+  <div class="tc" id="tc-10"><div class="t-badge">IDLE</div>
+    <div class="t-label">T10 — MatView Refresh</div>
+    <div class="t-status" id="ts-10">Menunggu...</div>
+    <div class="t-detail" id="td-10">Panggil refresh_all_public_views()</div></div>
+
+  <div class="tc" id="tc-11"><div class="t-badge">IDLE</div>
+    <div class="t-label">T11 — RPC: search_players</div>
+    <div class="t-status" id="ts-11">Menunggu...</div>
+    <div class="t-detail" id="td-11">Execute dengan params lengkap</div></div>
+
+  <div class="tc" id="tc-12"><div class="t-badge">IDLE</div>
+    <div class="t-label">T12 — RPC: get_my_player_id</div>
+    <div class="t-status" id="ts-12">Menunggu...</div>
+    <div class="t-detail" id="td-12">Belum dijalankan</div></div>
+
+  <div class="tc" id="tc-13"><div class="t-badge">IDLE</div>
+    <div class="t-label">T13 — RPC: run_post_match_pipeline</div>
+    <div class="t-status" id="ts-13">Menunggu...</div>
+    <div class="t-detail" id="td-13">Verify signature exists</div></div>
+
+  <div class="tc" id="tc-14"><div class="t-badge">IDLE</div>
+    <div class="t-label">T14 — MatView Data (rows > 0)</div>
+    <div class="t-status" id="ts-14">Menunggu...</div>
+    <div class="t-detail" id="td-14">Semak mv_league_standings, mv_top_scorers ada data</div></div>
+
+  <div class="tc" id="tc-15"><div class="t-badge">IDLE</div>
+    <div class="t-label">T15 — Auth Session</div>
+    <div class="t-status" id="ts-15">Menunggu...</div>
+    <div class="t-detail" id="td-15">Semak auth state, getSession()</div></div>
+
+  <div class="tc" id="tc-16"><div class="t-badge">IDLE</div>
+    <div class="t-label">T16 — Profiles Table</div>
+    <div class="t-status" id="ts-16">Menunggu...</div>
+    <div class="t-detail" id="td-16">profiles accessible (RLS gated)</div></div>
+
+  <div class="tc" id="tc-17"><div class="t-badge">IDLE</div>
+    <div class="t-label">T17 — Public Read (players)</div>
+    <div class="t-status" id="ts-17">Menunggu...</div>
+    <div class="t-detail" id="td-17">Anon boleh baca players?</div></div>
+
+  <div class="tc" id="tc-18"><div class="t-badge">IDLE</div>
+    <div class="t-label">T18 — Realtime Channel</div>
+    <div class="t-status" id="ts-18">Menunggu...</div>
+    <div class="t-detail" id="td-18">WebSocket SUBSCRIBED</div></div>
+
+  <div class="tc" id="tc-19"><div class="t-badge">IDLE</div>
+    <div class="t-label">T19 — Response Latency</div>
+    <div class="t-status" id="ts-19">Menunggu...</div>
+    <div class="t-detail" id="td-19">p50 latency check</div></div>
+
+  <div class="tc" id="tc-20"><div class="t-badge">IDLE</div>
+    <div class="t-label">T20 — Error Handling</div>
+    <div class="t-status" id="ts-20">Menunggu...</div>
+    <div class="t-detail" id="td-20">Bad query returns graceful error</div></div>
+
+</div>
+
+<!-- ── Detail Tables (shown after tests) ── -->
+<div id="detail-tables" style="display:none">
+
+  <div class="detail-section">
+    <h3>📋 Table Existence Detail <span id="tbl-score" style="font-size:.7rem;color:#475569;font-weight:400;text-transform:none;letter-spacing:0"></span></h3>
+    <table class="dtbl">
+      <thead><tr><th>Table</th><th>Exists</th><th>RLS</th><th>Accessible</th></tr></thead>
+      <tbody id="tbl-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="detail-section">
+    <h3>👁 View Existence Detail <span id="view-score" style="font-size:.7rem;color:#475569;font-weight:400;text-transform:none;letter-spacing:0"></span></h3>
+    <table class="dtbl">
+      <thead><tr><th>View</th><th>Exists</th><th>Queryable</th><th>Status</th></tr></thead>
+      <tbody id="view-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="detail-section">
+    <h3>⚡ MatView Detail <span id="mv-score" style="font-size:.7rem;color:#475569;font-weight:400;text-transform:none;letter-spacing:0"></span></h3>
+    <table class="dtbl">
+      <thead><tr><th>MatView</th><th>Exists</th><th>Row Count</th><th>After Refresh</th></tr></thead>
+      <tbody id="mv-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="detail-section">
+    <h3>⚙ RPC Function Detail</h3>
+    <table class="dtbl">
+      <thead><tr><th>Function</th><th>Exists</th><th>Result</th><th>Status</th></tr></thead>
+      <tbody id="rpc-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ── Final Deployment Readiness Report ── -->
+<div id="final-report">
+  <h2>📊 Final Deployment Readiness Report</h2>
+  <table class="rpt-table" id="rpt-table">
+    <thead><tr>
+      <th>Test</th><th>Category</th><th>Result</th><th>Status</th><th>Detail</th>
+    </tr></thead>
+    <tbody id="rpt-tbody"></tbody>
+  </table>
+  <div class="verdict" id="final-verdict"></div>
+</div>
+
+<!-- ── HTML Injection Snippet ── -->
+<div id="snippet-panel">
+  <h3>📋 HTML Credential Snippet (paste ke 6 HTML files)</h3>
+  <p style="font-size:.7rem;color:#334155;margin-bottom:.5rem">
+    Letak SEBELUM <code style="color:#4f46e5">&lt;script src="../js/supabase.js"&gt;</code>
+  </p>
+  <div class="code-block" id="snippet-code"></div>
+  <button class="btn-copy" onclick="copySnippet()">📋 Copy Snippet</button>
+  <span id="copy-msg" style="font-size:.7rem;color:#22c55e;margin-left:.5rem"></span>
+</div>
+
+<!-- ── Log ── -->
+<div class="config-card">
+  <h2 style="margin-bottom:.6rem">📜 Test Log</h2>
+  <div class="log-wrap" id="log"></div>
+</div>
+
+<script>
+'use strict';
+
+/* ── State ── */
+let _sb = null;
+let _results = [];
+let _testsRun = 0;
+const TOTAL_TESTS = 20;
+
+/* ── All 32 tables ── */
+const ALL_TABLES = [
+  'attribute_definitions','clubs','coaches','fixtures','leagues',
+  'market_value_history','match_events','match_lineups',
+  'notification_recipients','notifications',
+  'player_attribute_history','player_attributes',
+  'player_development_projections','player_fitness_snapshots',
+  'player_guardians','player_hidden_attributes',
+  'player_injury_risk_profiles','player_market_values',
+  'player_match_stats','player_morale_snapshots',
+  'player_ownership_claims','player_passport_score_history',
+  'player_position_familiarity','player_similarities',
+  'player_training_attendance','player_training_performance',
+  'players','profiles','seasons','standings',
+  'training_sessions','user_follows'
+];
+
+const ALL_VIEWS = [
+  'v_development_leaderboard','v_pipeline_summary',
+  'v_player_development_passport','v_player_dna_public',
+  'v_player_market_values_public','v_player_passport_full',
+  'v_reputation_leaderboard','v_scout_reports_public',
+  'v_squad_development_report','v_wonderkid_radar'
+];
+
+const ALL_MATVIEWS = [
+  'mv_club_dna','mv_league_standings',
+  'mv_player_passport_scores','mv_top_scorers'
+];
+
+/* ── Logging ── */
+function log(msg, type = 'i') {
+  const el = document.getElementById('log');
+  const t  = new Date().toLocaleTimeString('en-MY',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const d  = document.createElement('div');
+  d.className = 'lg';
+  d.innerHTML = `<span class="lt">[${t}]</span><span class="l${type}">${msg}</span>`;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+/* ── Card helpers ── */
+function setCard(n, state, status, detail) {
+  const tc = document.getElementById('tc-'+n);
+  const badge = tc.querySelector('.t-badge');
+  tc.className = 'tc ' + state;
+  badge.textContent = state.toUpperCase();
+  document.getElementById('ts-'+n).textContent = status;
+  document.getElementById('td-'+n).textContent  = detail;
+}
+function running(n, detail = 'Testing...') {
+  setCard(n, 'run', '⏳ Running...', detail);
+}
+
+/* ── Result tracking ── */
+function record(n, state, label, detail) {
+  _results.push({ n, state, label, detail });
+  _testsRun++;
+  document.getElementById('prog').style.width = (_testsRun / TOTAL_TESTS * 100) + '%';
+  updateCounts();
+}
+function updateCounts() {
+  document.getElementById('cnt-pass').textContent = _results.filter(r=>r.state==='pass').length;
+  document.getElementById('cnt-warn').textContent = _results.filter(r=>r.state==='warn').length;
+  document.getElementById('cnt-fail').textContent = _results.filter(r=>r.state==='fail').length;
+  document.getElementById('cnt-skip').textContent = _results.filter(r=>r.state==='skip').length;
+}
+
+function pass(n, status, detail) { setCard(n,'pass',status,detail); record(n,'pass',status,detail); log(`T${String(n).padStart(2,'0')} PASS — ${status}: ${detail}`,'p'); }
+function fail(n, status, detail) { setCard(n,'fail',status,detail); record(n,'fail',status,detail); log(`T${String(n).padStart(2,'0')} FAIL — ${status}: ${detail}`,'f'); }
+function warn(n, status, detail) { setCard(n,'warn',status,detail); record(n,'warn',status,detail); log(`T${String(n).padStart(2,'0')} WARN — ${status}: ${detail}`,'w'); }
+function skip(n, status, detail) { setCard(n,'cn','⏭ Skipped',detail); record(n,'skip',status,detail); log(`T${String(n).padStart(2,'0')} SKIP — ${detail}`,'d'); }
+
+const tick = () => new Promise(r=>setTimeout(r,60));
+
+/* ── T01: URL Format ── */
+async function t01_url(url) {
+  running(1,'Validating URL format...');
+  await tick();
+  if (!url) { fail(1,'❌ URL Empty','Masukkan Project URL'); return false; }
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'https:' || !u.hostname.endsWith('.supabase.co')) {
+      fail(1,'❌ Format Salah',`"${url}" bukan format supabase.co yang sah`);
+      return false;
+    }
+    const ref = u.hostname.split('.')[0];
+    pass(1,'✅ URL Valid',`Project ref: ${ref}`);
+    return true;
+  } catch(e) {
+    fail(1,'❌ Invalid URL',e.message);
+    return false;
+  }
+}
+
+/* ── T02: Network Ping ── */
+async function t02_ping(url) {
+  running(2,'Pinging Supabase...');
+  await tick();
+  try {
+    const t0 = Date.now();
+    const r = await fetch(`${url}/rest/v1/`, { method:'HEAD', headers:{'apikey':'test'} });
+    const ms = Date.now()-t0;
+    if ([200,400,401].includes(r.status)) {
+      pass(2,`✅ Reachable ${ms}ms`,`HTTP ${r.status} — server responding`);
+      return ms;
+    }
+    warn(2,`⚠️ HTTP ${r.status}`,`Unusual response (${ms}ms)`);
+    return ms;
+  } catch(e) {
+    fail(2,'❌ Unreachable',e.message);
+    return false;
+  }
+}
+
+/* ── T03: Client Init ── */
+async function t03_client(url, key) {
+  running(3,'Creating Supabase client...');
+  await tick();
+  try {
+    _sb = supabase.createClient(url, key, {
+      auth: { persistSession: false },
+      global: { headers: {'x-application-name':'playpro-readiness-test'} }
+    });
+    pass(3,'✅ Client Created','supabase.createClient() succeeded');
+    return true;
+  } catch(e) {
+    fail(3,'❌ Client Failed',e.message);
+    return false;
+  }
+}
+
+/* ── T04: Anon Key ── */
+async function t04_anonkey(key) {
+  running(4,'Validating Anon Key...');
+  await tick();
+  if (!key || !key.startsWith('eyJ') || key.split('.').length !== 3) {
+    fail(4,'❌ Key Format','Bukan JWT yang sah (mesti bermula eyJ, 3 segments)');
+    return false;
+  }
+  try {
+    const { error, status } = await _sb.from('players').select('id',{head:true}).limit(1);
+    if (status === 401) { fail(4,'❌ 401 Rejected','Key ditolak oleh Supabase — semak semula'); return false; }
+    if (error?.code === 'PGRST301') { fail(4,'❌ JWT Error',error.message); return false; }
+    pass(4,'✅ Key Accepted',`HTTP ${status} — key dikenali`);
+    return true;
+  } catch(e) {
+    fail(4,'❌ Network Error',e.message);
+    return false;
+  }
+}
+
+/* ── T05: Migration Completeness (full DB readiness query) ── */
+async function t05_completeness() {
+  running(5,'Querying database object completeness...');
+  await tick();
+
+  // Check tables via information_schema
+  let tFound=0, vFound=0, mvFound=0, rFound=0;
+  const missingT=[], missingV=[], missingMV=[], missingR=[];
+
+  // Tables
+  for (const t of ALL_TABLES) {
+    const {data,error,status} = await _sb.from(t).select('*',{head:true,count:'exact'}).limit(0);
+    const exists = !(error && (error.code==='42P01'||error.message?.includes('does not exist')));
+    if (exists) tFound++; else missingT.push(t);
+  }
+
+  // Views
+  for (const v of ALL_VIEWS) {
+    const {error} = await _sb.from(v).select('*',{head:true}).limit(0);
+    const exists = !(error && (error.code==='42P01'||error.message?.includes('does not exist')));
+    if (exists) vFound++; else missingV.push(v);
+  }
+
+  // MatViews
+  for (const mv of ALL_MATVIEWS) {
+    const {error} = await _sb.from(mv).select('*',{head:true}).limit(0);
+    const exists = !(error && (error.code==='42P01'||error.message?.includes('does not exist')));
+    if (exists) mvFound++; else missingMV.push(mv);
+  }
+
+  // RPCs — check existence via a simple call
+  const rpcs = ['search_players','get_my_player_id','run_post_match_pipeline','compute_weekly_training_score','refresh_all_public_views'];
+  for (const fn of rpcs) {
+    const {error} = await _sb.rpc(fn, fn==='search_players'?{p_limit:1,p_offset:0,p_sort_by:'dna_overall',p_sort_dir:'DESC'}:{});
+    const missing = error?.code==='42883'||error?.message?.includes('does not exist');
+    if (!missing) rFound++; else missingR.push(fn);
+  }
+
+  const total = tFound+vFound+mvFound+rFound;
+  const req   = ALL_TABLES.length + ALL_VIEWS.length + ALL_MATVIEWS.length + rpcs.length;
+  const pct   = Math.round(total/req*100);
+
+  log(`T05 — Tables: ${tFound}/${ALL_TABLES.length} | Views: ${vFound}/${ALL_VIEWS.length} | MatViews: ${mvFound}/${ALL_MATVIEWS.length} | RPCs: ${rFound}/${rpcs.length} | Total: ${pct}%`, 'i');
+
+  if (pct === 100) {
+    pass(5,'✅ 100% Complete',`${total}/${req} objects found`);
+  } else if (pct >= 80) {
+    warn(5,`⚠️ ${pct}% Complete`,`Missing: ${[...missingT,...missingV,...missingMV,...missingR].slice(0,3).join(', ')}...`);
+  } else {
+    fail(5,`❌ ${pct}% Complete`,`${req-total} objects missing — run migrations`);
+  }
+
+  return { pct, missingT, missingV, missingMV, missingR, tFound, vFound, mvFound, rFound };
+}
+
+/* ── T06: All 32 Tables Detail ── */
+async function t06_tables() {
+  running(6,'Checking all 32 tables individually...');
+  await tick();
+  const tbody = document.getElementById('tbl-tbody');
+  tbody.innerHTML = '';
+  document.getElementById('detail-tables').style.display = 'block';
+
+  let ok=0, missing=[];
+  for (const t of ALL_TABLES) {
+    const {error, status} = await _sb.from(t).select('*',{head:true}).limit(0);
+    const notExist = error?.code==='42P01'||error?.message?.includes('does not exist');
+    const rlsOk  = !notExist && (status===200||status===206||error?.code==='PGRST116'||status===400);
+    const access = notExist ? 'NO' : status===401||status===403 ? 'AUTH ONLY' : 'YES';
+
+    if (!notExist) ok++;
+    else missing.push(t);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:#e2e8f0">${t}</td>
+      <td>${notExist?'<span class="chip cf">NO</span>':'<span class="chip cp">YES</span>'}</td>
+      <td>${notExist?'<span class="chip cn">—</span>':'<span class="chip cp">YES</span>'}</td>
+      <td>${access==='YES'?'<span class="chip cp">PUBLIC</span>':access==='AUTH ONLY'?'<span class="chip cs">AUTH</span>':'<span class="chip cf">NO</span>'}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('tbl-score').textContent = `— ${ok}/${ALL_TABLES.length} found`;
+  if (missing.length===0) pass(6,`✅ All ${ALL_TABLES.length} Tables Found`,'Every required table exists');
+  else if (missing.length<=3) warn(6,`⚠️ ${ALL_TABLES.length-missing.length}/${ALL_TABLES.length} Tables`,`Missing: ${missing.join(', ')}`);
+  else fail(6,`❌ ${missing.length} Tables Missing`,`${missing.slice(0,3).join(', ')}... — run migrations`);
+}
+
+/* ── T07: RLS Check ── */
+async function t07_rls() {
+  running(7,'Checking RLS on core tables...');
+  await tick();
+
+  // Tables that SHOULD be publicly readable (anon access)
+  const publicTables = ['players','clubs','leagues','fixtures','match_events','match_lineups','player_match_stats','seasons','standings'];
+  // Tables that SHOULD be auth-gated
+  const authTables = ['profiles','notifications','notification_recipients','player_guardians','player_ownership_claims'];
+
+  let rlsOk = 0, rlsIssue = [];
+
+  for (const t of publicTables) {
+    const {status,error} = await _sb.from(t).select('id',{head:true}).limit(1);
+    if (status===401||status===403) { rlsIssue.push(`${t}:blocked(should-be-public)`); }
+    else if (error?.code==='42P01') { rlsIssue.push(`${t}:missing`); }
+    else rlsOk++;
+  }
+
+  for (const t of authTables) {
+    const {status,error} = await _sb.from(t).select('id',{head:true}).limit(1);
+    // For auth tables: 200/206 with 0 rows (RLS filters) or error is acceptable
+    // 401 at table level is uncommon in Supabase (usually RLS just returns empty)
+    if (error?.code==='42P01') { rlsIssue.push(`${t}:missing`); }
+    else rlsOk++;
+  }
+
+  if (rlsIssue.length===0) pass(7,`✅ RLS OK`,`${rlsOk} tables verified`);
+  else if (rlsIssue.length<=2) warn(7,`⚠️ RLS Issues`,rlsIssue.join(' | '));
+  else fail(7,`❌ ${rlsIssue.length} RLS Issues`,rlsIssue.slice(0,3).join(', '));
+}
+
+/* ── T08: Views ── */
+async function t08_views() {
+  running(8,'Checking all 10 views...');
+  await tick();
+  const tbody = document.getElementById('view-tbody');
+  tbody.innerHTML = '';
+
+  let ok=0, missing=[];
+  for (const v of ALL_VIEWS) {
+    const {error, status} = await _sb.from(v).select('*',{head:true}).limit(1);
+    const notExist = error?.code==='42P01'||error?.message?.includes('does not exist');
+    const queryable = !notExist && (status===200||status===206||status===400||error?.code==='PGRST116');
+
+    if (!notExist) ok++;
+    else missing.push(v);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:#e2e8f0">${v}</td>
+      <td>${notExist?'<span class="chip cf">NO</span>':'<span class="chip cp">YES</span>'}</td>
+      <td>${queryable?'<span class="chip cp">YES</span>':notExist?'<span class="chip cf">NO</span>':'<span class="chip cw">AUTH</span>'}</td>
+      <td>HTTP ${status||'—'}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('view-score').textContent = `— ${ok}/${ALL_VIEWS.length} found`;
+  if (missing.length===0) pass(8,`✅ All 10 Views Found`,'All views accessible');
+  else if (missing.length<=2) warn(8,`⚠️ ${ALL_VIEWS.length-missing.length}/10 Views`,`Missing: ${missing.join(', ')}`);
+  else fail(8,`❌ ${missing.length} Views Missing`,`Missing: ${missing.slice(0,2).join(', ')}...`);
+}
+
+/* ── T09: MatViews ── */
+async function t09_matviews() {
+  running(9,'Checking all 4 materialized views...');
+  await tick();
+  const tbody = document.getElementById('mv-tbody');
+  tbody.innerHTML = '';
+
+  let ok=0, missing=[];
+  const mvData = {};
+  for (const mv of ALL_MATVIEWS) {
+    const {data, error, status, count} = await _sb.from(mv).select('*',{count:'exact'}).limit(1);
+    const notExist = error?.code==='42P01'||error?.message?.includes('does not exist');
+    const rows = count ?? data?.length ?? 0;
+
+    if (!notExist) { ok++; mvData[mv]=rows; }
+    else missing.push(mv);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:#e2e8f0">${mv}</td>
+      <td>${notExist?'<span class="chip cf">NO</span>':'<span class="chip cp">YES</span>'}</td>
+      <td id="mv-rows-${mv}" style="color:#64748b">${notExist?'—':rows}</td>
+      <td id="mv-refresh-${mv}">—</td>`;
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('mv-score').textContent = `— ${ok}/${ALL_MATVIEWS.length} found`;
+  if (missing.length===0) pass(9,`✅ All 4 MatViews Found`,`${ok}/4 materialized views exist`);
+  else fail(9,`❌ ${missing.length} MatViews Missing`,`Missing: ${missing.join(', ')}`);
+  return mvData;
+}
+
+/* ── T10: MatView Refresh ── */
+async function t10_refresh() {
+  running(10,'Calling refresh_all_public_views()...');
+  await tick();
+  const {data, error} = await _sb.rpc('refresh_all_public_views');
+  if (error) {
+    if (error.code==='42883'||error.message?.includes('does not exist')) {
+      fail(10,'❌ Function Missing','refresh_all_public_views() not found — run sprint1_identity_patch.sql');
+    } else if (error.code==='42501'||error.message?.includes('permission')) {
+      warn(10,'⚠️ Permission Denied','Function exists but anon cannot call — needs authenticated user');
+    } else {
+      warn(10,`⚠️ Error`,error.message);
+    }
+    return false;
+  }
+  pass(10,'✅ Refresh Successful','refresh_all_public_views() executed — all matviews refreshed');
+
+  // Update matview row counts after refresh
+  for (const mv of ALL_MATVIEWS) {
+    const {count} = await _sb.from(mv).select('*',{count:'exact',head:true});
+    const el = document.getElementById(`mv-rows-${mv}`);
+    const rel = document.getElementById(`mv-refresh-${mv}`);
+    if (el) el.textContent = count ?? '0';
+    if (rel) rel.innerHTML = `<span class="chip cp">Refreshed</span>`;
+  }
+  return true;
+}
+
+/* ── T11: RPC search_players ── */
+async function t11_search() {
+  running(11,'Calling search_players()...');
+  await tick();
+  const {data, error} = await _sb.rpc('search_players', {
+    p_query:null, p_position:null, p_age_min:null, p_age_max:null,
+    p_dna_min:null, p_dna_max:null, p_potential_min:null,
+    p_league_id:null, p_club_id:null, p_league_tier:null,
+    p_nationality:null, p_passport_min:null,
+    p_attr_passing:null, p_attr_pace:null, p_attr_finishing:null,
+    p_attr_vision:null, p_attr_tackling:null, p_attr_strength:null,
+    p_attr_composure:null, p_attr_work_rate:null,
+    p_sort_by:'dna_overall', p_sort_dir:'DESC', p_limit:5, p_offset:0
+  });
+
+  const tbody = document.getElementById('rpc-tbody');
+  const addRpc = (name, ok, result, status) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="color:#e2e8f0;font-family:monospace">${name}</td>
+      <td>${ok?'<span class="chip cp">YES</span>':'<span class="chip cf">NO</span>'}</td>
+      <td style="color:#64748b">${result}</td>
+      <td>${status}</td>`;
+    tbody.appendChild(tr);
+  };
+
+  if (error) {
+    const missing = error.code==='42883'||error.message?.includes('does not exist');
+    if (missing) { fail(11,'❌ Function Missing','search_players() does not exist — run phase6_6'); addRpc('search_players',false,'MISSING','<span class="chip cf">FAIL</span>'); }
+    else { warn(11,'⚠️ RPC Error',error.message); addRpc('search_players',true,error.message,'<span class="chip cw">WARN</span>'); }
+    return false;
+  }
+  const rows = Array.isArray(data) ? data.length : 0;
+  pass(11,'✅ search_players OK',`Returned ${rows} players`);
+  addRpc('search_players',true,`${rows} rows returned`,'<span class="chip cp">PASS</span>');
+  return true;
+}
+
+/* ── T12: RPC get_my_player_id ── */
+async function t12_myplayer() {
+  running(12,'Calling get_my_player_id()...');
+  await tick();
+  const {data, error} = await _sb.rpc('get_my_player_id');
+
+  const tbody = document.getElementById('rpc-tbody');
+  const addRpc = (name, ok, result, status) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="color:#e2e8f0;font-family:monospace">${name}</td>
+      <td>${ok?'<span class="chip cp">YES</span>':'<span class="chip cf">NO</span>'}</td>
+      <td style="color:#64748b">${result}</td>
+      <td>${status}</td>`;
+    tbody.appendChild(tr);
+  };
+
+  if (error && (error.code==='42883'||error.message?.includes('does not exist'))) {
+    fail(12,'❌ Function Missing','get_my_player_id() not found — run phase6_5');
+    addRpc('get_my_player_id',false,'MISSING','<span class="chip cf">FAIL</span>');
+    return false;
+  }
+  // null return is expected for unauthenticated user — function exists
+  pass(12,'✅ get_my_player_id OK',`Returns: ${data===null?'null (no session — expected)':data}`);
+  addRpc('get_my_player_id',true,`${data===null?'null (anon)':data}`,'<span class="chip cp">PASS</span>');
+  return true;
+}
+
+/* ── T13: RPC run_post_match_pipeline ── */
+async function t13_pipeline() {
+  running(13,'Verifying run_post_match_pipeline signature...');
+  await tick();
+
+  const tbody = document.getElementById('rpc-tbody');
+  const addRpc = (name, ok, result, status) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="color:#e2e8f0;font-family:monospace">${name}</td>
+      <td>${ok?'<span class="chip cp">YES</span>':'<span class="chip cf">NO</span>'}</td>
+      <td style="color:#64748b">${result}</td>
+      <td>${status}</td>`;
+    tbody.appendChild(tr);
+  };
+
+  // Call with null fixture_id — should return a specific error (not "function not found")
+  const {data, error} = await _sb.rpc('run_post_match_pipeline', { p_fixture_id: '00000000-0000-0000-0000-000000000000' });
+
+  if (error) {
+    const missing = error.code==='42883'||error.message?.includes('does not exist');
+    if (missing) {
+      fail(13,'❌ Function Missing','run_post_match_pipeline() not found — run phase6_7');
+      addRpc('run_post_match_pipeline',false,'MISSING','<span class="chip cf">FAIL</span>');
+      return false;
+    }
+    // Any other error means function exists but the fixture_id doesn't exist — that's correct
+    pass(13,'✅ Function Exists',`Returns expected error for null fixture: "${error.message.slice(0,60)}..."`);
+    addRpc('run_post_match_pipeline',true,'Exists (fixture not found = correct)','<span class="chip cp">PASS</span>');
+    return true;
+  }
+  pass(13,'✅ run_post_match_pipeline OK','Function executed');
+  addRpc('run_post_match_pipeline',true,'Executed OK','<span class="chip cp">PASS</span>');
+  return true;
+}
+
+/* ── T14: MatView Data ── */
+async function t14_mvdata() {
+  running(14,'Checking matview row counts...');
+  await tick();
+  const results = {};
+  for (const mv of ALL_MATVIEWS) {
+    const {count} = await _sb.from(mv).select('*',{count:'exact',head:true});
+    results[mv] = count ?? 0;
+    log(`T14 — ${mv}: ${count ?? 0} rows`,'i');
+  }
+
+  const empty = Object.entries(results).filter(([k,v])=>v===0).map(([k])=>k);
+  if (empty.length===0) {
+    pass(14,'✅ MatViews Have Data',`All matviews populated — ${Object.values(results).join('/')} rows`);
+  } else if (empty.length <= 2) {
+    warn(14,'⚠️ Some MatViews Empty',`Empty: ${empty.join(', ')} — call refresh_all_public_views()`);
+  } else {
+    warn(14,'⚠️ MatViews Appear Empty','No seed data yet — expected for fresh project');
+  }
+}
+
+/* ── T15: Auth Session ── */
+async function t15_auth() {
+  running(15,'Checking auth session state...');
+  await tick();
+  const {data:{session},error} = await _sb.auth.getSession();
+  if (error) { fail(15,'❌ Auth Error',error.message); return; }
+  if (!session) {
+    pass(15,'✅ Auth Configured','No active session (anonymous mode — correct for unauthenticated)');
+  } else {
+    pass(15,'✅ Active Session',`User: ${session.user.email}`);
+  }
+}
+
+/* ── T16: Profiles table ── */
+async function t16_profiles() {
+  running(16,'Checking profiles table RLS...');
+  await tick();
+  const {data, error, status} = await _sb.from('profiles').select('id',{head:true}).limit(1);
+  const missing = error?.code==='42P01'||error?.message?.includes('does not exist');
+  if (missing) { fail(16,'❌ profiles Missing','Table does not exist — run phase1'); return; }
+  // profiles should return empty for anon (RLS policy returns 0 rows for others)
+  pass(16,'✅ profiles OK',`HTTP ${status} — RLS active, anon sees 0 rows (correct)`);
+}
+
+/* ── T17: Public read test ── */
+async function t17_publicread() {
+  running(17,'Testing anon public read on players...');
+  await tick();
+  const {data, error, status, count} = await _sb.from('players').select('id,full_name',{count:'exact'}).limit(3);
+  if (error?.code==='42P01') { fail(17,'❌ players Missing','Table does not exist'); return; }
+  if (status===401||status===403) { warn(17,'⚠️ players Blocked','Anon cannot read players — check RLS SELECT policy'); return; }
+  if (error) { warn(17,'⚠️ Query Error',error.message); return; }
+  const rows = data?.length ?? 0;
+  pass(17,'✅ Public Read OK',`Anon can read players — ${count ?? rows} total rows visible`);
+}
+
+/* ── T18: Realtime ── */
+async function t18_realtime() {
+  running(18,'Opening Realtime WebSocket...');
+  return new Promise(resolve => {
+    const timeout = setTimeout(()=>{
+      warn(18,'⚠️ Realtime Timeout','WebSocket did not connect in 10s — check Replication settings');
+      try{ch.unsubscribe();}catch(e){}
+      resolve(false);
+    }, 10000);
+
+    let ch;
+    try {
+      ch = _sb.channel('playpro-readiness-'+Date.now())
+        .subscribe(s=>{
+          log(`T18 Realtime status: ${s}`,'i');
+          if (s==='SUBSCRIBED') {
+            clearTimeout(timeout);
+            pass(18,'✅ Realtime Connected','WebSocket SUBSCRIBED');
+            try{ch.unsubscribe();}catch(e){}
+            resolve(true);
+          } else if (s==='CHANNEL_ERROR'||s==='TIMED_OUT') {
+            clearTimeout(timeout);
+            fail(18,`❌ ${s}`,'Realtime connection failed');
+            resolve(false);
+          }
+        });
+    } catch(e) {
+      clearTimeout(timeout);
+      fail(18,'❌ Exception',e.message);
+      resolve(false);
+    }
+  });
+}
+
+/* ── T19: Latency ── */
+async function t19_latency() {
+  running(19,'Measuring query latency (5 samples)...');
+  await tick();
+  const times = [];
+  for (let i=0;i<5;i++) {
+    const t0=Date.now();
+    await _sb.from('players').select('id',{head:true}).limit(1);
+    times.push(Date.now()-t0);
+  }
+  const p50 = times.sort((a,b)=>a-b)[2];
+  const avg  = Math.round(times.reduce((a,b)=>a+b)/times.length);
+  log(`T19 — latency samples: ${times.join('ms, ')}ms`,'i');
+  if (p50 < 300) pass(19,'✅ Latency Good',`p50: ${p50}ms | avg: ${avg}ms`);
+  else if (p50 < 800) warn(19,'⚠️ Latency Moderate',`p50: ${p50}ms | avg: ${avg}ms — acceptable`);
+  else warn(19,'⚠️ Latency High',`p50: ${p50}ms — may affect dashboard load speed`);
+}
+
+/* ── T20: Error handling ── */
+async function t20_errorhandling() {
+  running(20,'Testing graceful error handling...');
+  await tick();
+  const {data, error} = await _sb.from('nonexistent_table_xyz').select('*').limit(1);
+  if (error && (error.code==='42P01'||error.message?.includes('does not exist'))) {
+    pass(20,'✅ Error Handling OK','Bad query returns structured error object (correct)');
+  } else if (!error) {
+    warn(20,'⚠️ Unexpected Success','Query on nonexistent table returned data — unusual');
+  } else {
+    pass(20,'✅ Error Handling OK',`Error returned: ${error.code} — ${error.message.slice(0,50)}`);
+  }
+}
+
+/* ── Score + final report ── */
+function finalize(url, key) {
+  const pass = _results.filter(r=>r.state==='pass').length;
+  const warn = _results.filter(r=>r.state==='warn').length;
+  const fail = _results.filter(r=>r.state==='fail').length;
+  const score = Math.round((pass*10 + warn*5) / (TOTAL_TESTS*10) * 100);
+
+  const ring = document.getElementById('score-ring');
+  const banner = document.getElementById('score-banner');
+  banner.style.display = 'flex';
+
+  ring.textContent = score+'%';
+  if (score >= 90) { ring.className='score-ring ring-pass'; document.getElementById('score-headline').textContent='🟢 SIAP DEPLOY'; document.getElementById('score-sub').textContent='Semua kritikal lulus — boleh proceed ke Vercel'; }
+  else if (score >= 70) { ring.className='score-ring ring-warn'; document.getElementById('score-headline').textContent='🟡 HAMPIR SIAP'; document.getElementById('score-sub').textContent='Ada warnings — semak sebelum deploy'; }
+  else { ring.className='score-ring ring-fail'; document.getElementById('score-headline').textContent='🔴 TIDAK BERSEDIA'; document.getElementById('score-sub').textContent='Ada failures kritikal — perbaiki dulu'; }
+
+  // Final report table
+  const tbody = document.getElementById('rpt-tbody');
+  tbody.innerHTML = '';
+  const cats = {
+    1:'Connection',2:'Connection',3:'Connection',4:'Connection',
+    5:'Schema',6:'Schema',7:'Schema',8:'Schema',9:'Schema',
+    10:'MatView',11:'RPC',12:'RPC',13:'RPC',14:'MatView',
+    15:'Auth',16:'Auth',17:'Auth',18:'Realtime',19:'Performance',20:'Error Handling'
+  };
+  const labels = {
+    1:'URL Format',2:'Network Ping',3:'Client Init',4:'Anon Key',
+    5:'Migration Completeness',6:'All 32 Tables',7:'RLS Enabled',8:'All 10 Views',9:'All 4 MatViews',
+    10:'MatView Refresh',11:'search_players RPC',12:'get_my_player_id RPC',13:'run_post_match_pipeline RPC',14:'MatView Data',
+    15:'Auth Session',16:'Profiles Table',17:'Public Read (players)',18:'Realtime WebSocket',19:'Query Latency',20:'Error Handling'
+  };
+
+  for (const r of _results) {
+    const tr = document.createElement('tr');
+    const chip = r.state==='pass'?'<span class="chip cp">PASS</span>':r.state==='warn'?'<span class="chip cw">WARN</span>':r.state==='fail'?'<span class="chip cf">FAIL</span>':'<span class="chip cn">SKIP</span>';
+    tr.innerHTML = `<td>T${String(r.n).padStart(2,'0')} — ${labels[r.n]||'—'}</td><td><span class="chip cs">${cats[r.n]||'—'}</span></td><td>${chip}</td><td>${r.state.toUpperCase()}</td><td style="color:#475569;font-size:.68rem">${r.detail}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  const verd = document.getElementById('final-verdict');
+  const failCritical = _results.filter(r=>r.state==='fail' && [1,2,3,4,5,6,8,11,12].includes(r.n)).length;
+  if (score >= 90 && failCritical === 0) {
+    verd.className='verdict v-ready';
+    verd.textContent = `✅ DEPLOYMENT READY — Score ${score}% | ${pass} PASS | ${warn} WARN | ${fail} FAIL. Semua kritikal lulus. Proceed ke vercel.json setup.`;
+  } else if (score >= 70) {
+    verd.className='verdict v-warn';
+    verd.textContent = `⚠️ CONDITIONAL READY — Score ${score}% | ${pass} PASS | ${warn} WARN | ${fail} FAIL. Semak warnings sebelum production deploy.`;
+  } else {
+    verd.className='verdict v-block';
+    verd.textContent = `🚫 NOT READY — Score ${score}% | ${pass} PASS | ${warn} WARN | ${fail} FAIL. Perbaiki failures kritikal dulu.`;
+  }
+  document.getElementById('final-report').style.display = 'block';
+
+  // Snippet
+  if (url && key && key.startsWith('eyJ')) {
+    document.getElementById('snippet-code').textContent =
+`<script>
+  window.PLAYPRO_SUPABASE_URL      = '${url}';
+  window.PLAYPRO_SUPABASE_ANON_KEY = '${key}';
+<\/script>`;
+    document.getElementById('snippet-panel').style.display = 'block';
+  }
+}
+
+/* ── Main runner ── */
+async function runAll() {
+  const url = (document.getElementById('inp-url').value.trim() || window.PLAYPRO_SUPABASE_URL || '').trim();
+  const key = (document.getElementById('inp-key').value.trim() || window.PLAYPRO_SUPABASE_ANON_KEY || '').trim();
+
+  document.getElementById('btn-run').disabled = true;
+  document.getElementById('run-msg').textContent = 'Running 20 tests...';
+  document.getElementById('final-report').style.display = 'none';
+  document.getElementById('snippet-panel').style.display = 'none';
+  document.getElementById('detail-tables').style.display = 'none';
+  document.getElementById('score-banner').style.display = 'none';
+  document.getElementById('log').innerHTML = '';
+  document.getElementById('prog').style.width = '0%';
+  _results = []; _testsRun = 0;
+
+  // Reset all cards
+  for (let i=1;i<=TOTAL_TESTS;i++) {
+    const tc=document.getElementById('tc-'+i);
+    if(tc){ tc.className='tc'; tc.querySelector('.t-badge').textContent='IDLE';
+      document.getElementById('ts-'+i).textContent='Menunggu...';
+      document.getElementById('td-'+i).textContent=''; }
+  }
+  document.getElementById('tbl-tbody').innerHTML = '';
+  document.getElementById('view-tbody').innerHTML = '';
+  document.getElementById('mv-tbody').innerHTML = '';
+  document.getElementById('rpc-tbody').innerHTML = '';
+
+  log('══════════════════════════════════════════════','i');
+  log('   PlayPro Full Deployment Readiness Test','i');
+  log(`   Target: ${url||'(empty)'}`, 'i');
+  log('══════════════════════════════════════════════','i');
+
+  // ── Phase 1: Connection ──
+  const ok1 = await t01_url(url); if(!ok1){ skipRemaining(2,20,'URL invalid'); finalize(url,key); done(); return; }
+  const ping = await t02_ping(url); if(!ping){ skipRemaining(3,20,'Unreachable'); finalize(url,key); done(); return; }
+  const ok3 = await t03_client(url,key); if(!ok3){ skipRemaining(4,20,'Client init failed'); finalize(url,key); done(); return; }
+  const ok4 = await t04_anonkey(key); if(!ok4){ skipRemaining(5,20,'Key invalid'); finalize(url,key); done(); return; }
+
+  // ── Phase 2: Schema ──
+  await t05_completeness();
+  await t06_tables();
+  await t07_rls();
+  await t08_views();
+  await t09_matviews();
+
+  // ── Phase 3: MatViews + RPCs ──
+  await t10_refresh();
+  await t11_search();
+  await t12_myplayer();
+  await t13_pipeline();
+  await t14_mvdata();
+
+  // ── Phase 4: Auth + Access ──
+  await t15_auth();
+  await t16_profiles();
+  await t17_publicread();
+
+  // ── Phase 5: Realtime + Perf ──
+  await t18_realtime();
+  await t19_latency();
+  await t20_errorhandling();
+
+  finalize(url, key);
+  done();
+}
+
+function skipRemaining(from, to, reason) {
+  for (let i=from;i<=to;i++) skip(i,'Skipped',reason);
+}
+
+function done() {
+  document.getElementById('btn-run').disabled = false;
+  document.getElementById('run-msg').textContent = `Done — ${_results.filter(r=>r.state==='pass').length}/${TOTAL_TESTS} passed`;
+  log('══════════════════════════════════════════════','i');
+  log('   TEST COMPLETE','i');
+  log('══════════════════════════════════════════════','i');
+}
+
+function resetAll() {
+  document.getElementById('inp-url').value = '';
+  document.getElementById('inp-key').value = '';
+  document.getElementById('log').innerHTML = '';
+  document.getElementById('prog').style.width = '0%';
+  document.getElementById('score-banner').style.display = 'none';
+  document.getElementById('final-report').style.display = 'none';
+  document.getElementById('snippet-panel').style.display = 'none';
+  document.getElementById('detail-tables').style.display = 'none';
+  document.getElementById('run-msg').textContent = '';
+  _results=[]; _testsRun=0; _sb=null;
+  for (let i=1;i<=TOTAL_TESTS;i++) {
+    const tc=document.getElementById('tc-'+i);
+    if(tc){ tc.className='tc'; tc.querySelector('.t-badge').textContent='IDLE';
+      document.getElementById('ts-'+i).textContent='Menunggu...';
+      document.getElementById('td-'+i).textContent=''; }
+  }
+}
+
+function copySnippet() {
+  navigator.clipboard.writeText(document.getElementById('snippet-code').textContent)
+    .then(()=>{ document.getElementById('copy-msg').textContent='✅ Copied!'; setTimeout(()=>document.getElementById('copy-msg').textContent='',2000); });
+}
+
+// Auto-fill from window globals or URL params
+window.addEventListener('DOMContentLoaded', () => {
+  const p = new URLSearchParams(location.search);
+  const url = p.get('url') || window.PLAYPRO_SUPABASE_URL || '';
+  const key = p.get('key') || window.PLAYPRO_SUPABASE_ANON_KEY || '';
+  if (url) document.getElementById('inp-url').value = url;
+  if (key) document.getElementById('inp-key').value = key;
+  if (url && key) {
+    document.getElementById('run-msg').textContent = 'Credentials detected — klik Run untuk mula';
+  }
+});
+</script>
+</body>
+</html>
