@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#00b341">
 <title>PlayPro — Coach Command Center</title>
-<link rel="stylesheet" href="../css/shared_dashboard_styles.css">
+<link rel="stylesheet" href="/css/shared_dashboard_styles.css">
 <style>
 .coach-hero{background:linear-gradient(135deg,#0a2e16 0%,#1a5c32 100%)}
 .player-card-mini{background:white;border-radius:var(--r);border:1px solid var(--grey-200);padding:14px;flex-shrink:0;width:150px;cursor:pointer;transition:box-shadow .15s}
@@ -241,7 +241,7 @@
 
 </div><!-- app-shell -->
 
-<script src="../js/shared_dashboard_components.js"></script>
+<script src="/js/shared_dashboard_components.js"></script>
 <script>
   /* ── PlayPro Supabase Config ─────────────────────────────────────
      Replace these values with your real Supabase project credentials.
@@ -252,10 +252,10 @@
   window.PLAYPRO_SUPABASE_URL      = 'https://wxalcnpsbijxfmnzswxd.supabase.co';
   window.PLAYPRO_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4YWxjbnBzYmlqeGZtbnpzd3hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzI1NzksImV4cCI6MjA5NjcwODU3OX0.wLDtBus_rM_Yk0wXlb-Gqbv_nBWnwcxTAFZAwwcIxH8';
 </script>
-<script src="../js/supabase.js"></script>
-<script src="../js/repositories.js"></script>
-<script src="../js/dashboard_integration.js"></script>
-<script src="../js/playpro_audit_fixes.js"></script>
+<script src="/js/supabase.js"></script>
+<script src="/js/repositories.js"></script>
+<script src="/js/dashboard_integration.js"></script>
+<script src="/js/playpro_audit_fixes.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
   await DI.boot("coach");

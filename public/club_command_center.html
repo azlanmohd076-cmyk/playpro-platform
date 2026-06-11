@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#1a56db">
 <title>PlayPro — Club Command Center</title>
-<link rel="stylesheet" href="../css/shared_dashboard_styles.css">
+<link rel="stylesheet" href="/css/shared_dashboard_styles.css">
 <style>
 .club-hero{background:linear-gradient(135deg,#1e3a8a 0%,#1a56db 100%)}
 .standing-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--grey-100)}
@@ -227,7 +227,7 @@
 </nav>
 </div>
 
-<script src="../js/shared_dashboard_components.js"></script>
+<script src="/js/shared_dashboard_components.js"></script>
 <script>
   /* ── PlayPro Supabase Config ─────────────────────────────────────
      Replace these values with your real Supabase project credentials.
@@ -238,10 +238,10 @@
   window.PLAYPRO_SUPABASE_URL      = 'https://wxalcnpsbijxfmnzswxd.supabase.co';
   window.PLAYPRO_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4YWxjbnBzYmlqeGZtbnpzd3hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzI1NzksImV4cCI6MjA5NjcwODU3OX0.wLDtBus_rM_Yk0wXlb-Gqbv_nBWnwcxTAFZAwwcIxH8';
 </script>
-<script src="../js/supabase.js"></script>
-<script src="../js/repositories.js"></script>
-<script src="../js/dashboard_integration.js"></script>
-<script src="../js/playpro_audit_fixes.js"></script>
+<script src="/js/supabase.js"></script>
+<script src="/js/repositories.js"></script>
+<script src="/js/dashboard_integration.js"></script>
+<script src="/js/playpro_audit_fixes.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
   await DI.boot("club");
