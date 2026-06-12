@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="ms" id="html-root">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>PlayPro — Football Intelligence Platform</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  window.PLAYPRO_SUPABASE_URL      = 'https://wxalcnpsbijxfmnzswxd.supabase.co';
+  window.PLAYPRO_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4YWxjbnBzYmlqeGZtbnpzd3hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzI1NzksImV4cCI6MjA5NjcwODU3OX0.wLDtBus_rM_Yk0wXlb-Gqbv_nBWnwcxTAFZAwwcIxH8';
+</script>
+<style>
+/* ══════════════════════════════════════════════════
+   PLAYPRO — SINGLE PAGE APP
+   UI Minimalis | Functions Maximise
+   Theme: Dark + Teal + Gold
+══════════════════════════════════════════════════ */
+:root{
+  --teal:     #00d4aa;
+  --teal-dim: #00a880;
+  --gold:     #f0c040;
+  --green:    #00b341;
+  --dark:     #0a0f0d;
+  --dark2:    #111815;
+  --dark3:    #1a2420;
+  --dark4:    #222e29;
+  --border:   rgba(255,255,255,.08);
+  --text:     #e8f0ec;
+  --text-dim: rgba(232,240,236,.5);
+  --text-mute:rgba(232,240,236,.3);
+  --nav-h:    60px;
+  --top-h:    52px;
+  --radius:   14px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--dark)}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);font-size:14px}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,212,170,.3);border-radius:2px}
+
+/* ══════════════════════════════════════════════════
+   SPLASH SCREEN
+══════════════════════════════════════════════════ */
+#splash{
+  position:fixed;inset:0;z-index:999;
+  background:linear-gradient(160deg,#0a1f15,#040d08);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  transition:opacity .5s,transform .5s;
+}
+#splash.hide{opacity:0;transform:scale(1.05);pointer-events:none}
+.splash-logo{
+  font-size:2.8rem;font-weight:900;letter-spacing:.04em;
+  background:linear-gradient(90deg,var(--teal),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  margin-bottom:.3rem;
+}
+.splash-tag{
+  font-size:.8rem;color:var(--text-dim);letter-spacing:.2em;
+  text-transform:uppercase;
+}
+.splash-ball{
+  font-size:3.5rem;margin-bottom:1.5rem;
+  animation:bounce 1s ease-in-out infinite alternate;
+}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+.splash-loader{
+  position:absolute;bottom:3rem;
+  display:flex;gap:6px;
+}
+.splash-loader span{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--teal);opacity:.3;
+  animation:dot .8s ease-in-out infinite alternate;
+}
+.splash-loader span:nth-child(2){animation-delay:.2s}
+.splash-loader span:nth-child(3){animation-delay:.4s}
+@keyframes dot{to{opacity:1;transform:scale(1.3)}}
+
+/* ══════════════════════════════════════════════════
+   TOP BAR
+══════════════════════════════════════════════════ */
+#topbar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  height:var(--top-h);
+  background:rgba(10,15,13,.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 1rem;gap:.75rem;
+}
+.tb-menu{
+  width:36px;height:36px;border-radius:10px;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;transition:.15s;
+}
+.tb-menu:hover{background:rgba(0,212,170,.12)}
+.tb-logo{
+  font-size:1.15rem;font-weight:800;
+  background:linear-gradient(90deg,var(--teal),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  flex:1;
+}
+.tb-actions{display:flex;gap:.4rem;align-items:center}
+.tb-btn{
+  width:34px;height:34px;border-radius:10px;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:1rem;transition:.15s;position:relative;
+}
+.tb-btn:hover{background:rgba(0,212,170,.12)}
+.notif-dot{
+  position:absolute;top:4px;right:4px;
+  width:7px;height:7px;border-radius:50%;
+  background:var(--gold);border:1.5px solid var(--dark);
+}
+.tb-lang{
+  font-size:.62rem;font-weight:700;color:var(--teal);
+  letter-spacing:.05em;cursor:pointer;padding:.3rem .5rem;
+  border:1px solid rgba(0,212,170,.3);border-radius:6px;
+  transition:.15s;
+}
+.tb-lang:hover{background:rgba(0,212,170,.1)}
+
+/* ══════════════════════════════════════════════════
+   SIDE DRAWER
+══════════════════════════════════════════════════ */
+#drawer-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.6);opacity:0;pointer-events:none;
+  transition:opacity .25s;
+}
+#drawer-overlay.show{opacity:1;pointer-events:all}
+#drawer{
+  position:fixed;top:0;left:0;bottom:0;z-index:201;
+  width:280px;
+  background:linear-gradient(160deg,#0f1f18,#080f0b);
+  border-right:1px solid var(--border);
+  transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+}
+#drawer.open{transform:translateX(0)}
+
+.drawer-header{
+  padding:3rem 1.25rem 1.25rem;
+  border-bottom:1px solid var(--border);
+}
+.drawer-logo{
+  font-size:1.5rem;font-weight:900;
+  background:linear-gradient(90deg,var(--teal),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.drawer-tagline{font-size:.7rem;color:var(--text-mute);letter-spacing:.1em;margin-top:2px}
+
+.drawer-user{
+  padding:1rem 1.25rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:.75rem;
+}
+.drawer-avatar{
+  width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,var(--teal),var(--green));
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0;
+}
+.drawer-name{font-size:.85rem;font-weight:700;color:var(--text)}
+.drawer-role{font-size:.68rem;color:var(--teal);margin-top:1px}
+
+.drawer-nav{flex:1;overflow-y:auto;padding:.75rem 0}
+.drawer-section{
+  font-size:.6rem;font-weight:700;color:var(--text-mute);
+  letter-spacing:.12em;text-transform:uppercase;
+  padding:.5rem 1.25rem .25rem;
+}
+.drawer-item{
+  display:flex;align-items:center;gap:.85rem;
+  padding:.75rem 1.25rem;cursor:pointer;transition:.15s;
+  border-radius:0;
+}
+.drawer-item:hover{background:rgba(0,212,170,.08)}
+.drawer-item.active{
+  background:rgba(0,212,170,.12);
+  border-left:3px solid var(--teal);
+}
+.drawer-icon{font-size:1.1rem;width:22px;text-align:center;flex-shrink:0}
+.drawer-label{font-size:.85rem;color:var(--text)}
+.drawer-badge{
+  margin-left:auto;background:var(--teal);color:#000;
+  font-size:.6rem;font-weight:800;padding:.1rem .4rem;
+  border-radius:999px;
+}
+
+.drawer-footer{
+  padding:1rem 1.25rem;border-top:1px solid var(--border);
+}
+.drawer-logout{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.6rem .75rem;border-radius:10px;cursor:pointer;
+  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);
+  transition:.15s;
+}
+.drawer-logout:hover{background:rgba(239,68,68,.15)}
+.drawer-logout-text{font-size:.82rem;color:#fca5a5}
+
+/* ══════════════════════════════════════════════════
+   MAIN CONTENT AREA
+══════════════════════════════════════════════════ */
+#main{
+  position:fixed;
+  top:var(--top-h);
+  left:0;right:0;
+  bottom:var(--nav-h);
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+/* ══════════════════════════════════════════════════
+   BOTTOM NAVIGATION
+══════════════════════════════════════════════════ */
+#bottomnav{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  height:var(--nav-h);
+  background:rgba(10,15,13,.95);
+  backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);
+  display:grid;grid-template-columns:repeat(4,1fr);
+}
+.nav-item{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:2px;cursor:pointer;
+  transition:.15s;position:relative;
+}
+.nav-item:hover .nav-icon{transform:scale(1.1)}
+.nav-icon{font-size:1.4rem;transition:transform .15s}
+.nav-label{font-size:.58rem;font-weight:600;color:var(--text-mute);letter-spacing:.03em;transition:.15s}
+.nav-item.active .nav-label{color:var(--teal)}
+.nav-item.active .nav-icon{filter:drop-shadow(0 0 6px var(--teal))}
+.nav-indicator{
+  position:absolute;top:4px;left:50%;transform:translateX(-50%);
+  width:24px;height:3px;border-radius:2px;
+  background:var(--teal);opacity:0;transition:.2s;
+}
+.nav-item.active .nav-indicator{opacity:1}
+
+/* ══════════════════════════════════════════════════
+   HOME TAB — NEWSFEED
+══════════════════════════════════════════════════ */
+#tab-home{display:block}
+#tab-explore,#tab-team,#tab-profile{display:none}
+
+.feed-header{
+  padding:.75rem 1rem .5rem;
+  display:flex;align-items:center;gap:.5rem;
+  border-bottom:1px solid var(--border);
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.feed-header::-webkit-scrollbar{display:none}
+.feed-filter{
+  flex-shrink:0;
+  padding:.35rem .8rem;border-radius:999px;
+  font-size:.72rem;font-weight:600;
+  border:1px solid var(--border);color:var(--text-dim);
+  cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.feed-filter.active{
+  background:var(--teal);color:#000;border-color:var(--teal);
+}
+.feed-filter:hover:not(.active){border-color:var(--teal);color:var(--teal)}
+
+/* Live banner */
+.live-banner{
+  margin:.75rem 1rem;
+  background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(239,68,68,.05));
+  border:1px solid rgba(239,68,68,.3);
+  border-radius:var(--radius);padding:.75rem 1rem;
+  display:flex;align-items:center;gap:.75rem;
+  cursor:pointer;transition:.15s;
+}
+.live-banner:hover{border-color:rgba(239,68,68,.6)}
+.live-dot{
+  width:8px;height:8px;border-radius:50%;background:#ef4444;
+  animation:live-pulse 1.2s ease-in-out infinite;flex-shrink:0;
+}
+@keyframes live-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}
+  50%{box-shadow:0 0 0 6px rgba(239,68,68,0)}
+}
+.live-text{flex:1}
+.live-title{font-size:.78rem;font-weight:700;color:#fca5a5}
+.live-sub{font-size:.65rem;color:var(--text-mute);margin-top:1px}
+.live-arrow{font-size:.8rem;color:var(--text-mute)}
+
+/* Feed cards */
+.feed{padding:0 1rem 1rem}
+.feed-card{
+  background:var(--dark2);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:.75rem;
+  overflow:hidden;
+  transition:.15s;
+}
+.feed-card:hover{border-color:rgba(0,212,170,.2)}
+
+.fc-header{
+  display:flex;align-items:center;gap:.65rem;
+  padding:.75rem .85rem .5rem;
+}
+.fc-avatar{
+  width:38px;height:38px;border-radius:11px;
+  background:linear-gradient(135deg,var(--teal),var(--green));
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;font-weight:700;color:#fff;flex-shrink:0;
+  border:1.5px solid rgba(0,212,170,.3);
+}
+.fc-avatar img{width:100%;height:100%;object-fit:cover;border-radius:9px}
+.fc-info{flex:1}
+.fc-name{font-size:.82rem;font-weight:700;color:var(--text)}
+.fc-meta{font-size:.65rem;color:var(--text-mute);margin-top:1px}
+.fc-type{
+  font-size:.58rem;font-weight:700;padding:.15rem .45rem;
+  border-radius:999px;letter-spacing:.05em;
+}
+.fc-type.liga{background:rgba(0,212,170,.15);color:var(--teal)}
+.fc-type.kelab{background:rgba(240,192,64,.15);color:var(--gold)}
+.fc-type.pemain{background:rgba(99,102,241,.15);color:#a5b4fc}
+.fc-type.live{background:rgba(239,68,68,.15);color:#fca5a5}
+
+.fc-body{padding:.25rem .85rem .65rem;font-size:.82rem;color:var(--text-dim);line-height:1.55}
+.fc-body strong{color:var(--text)}
+
+.fc-image{
+  width:100%;max-height:200px;object-fit:cover;
+  border-top:1px solid var(--border);
+}
+
+.fc-stats{
+  display:flex;padding:.5rem .85rem;
+  border-top:1px solid var(--border);
+  gap:1rem;
+}
+.fc-stat{
+  display:flex;align-items:center;gap:.3rem;
+  font-size:.7rem;color:var(--text-mute);cursor:pointer;
+  transition:.15s;
+}
+.fc-stat:hover{color:var(--teal)}
+.fc-stat span{font-size:.95rem}
+
+.fc-actions{
+  display:flex;border-top:1px solid var(--border);
+}
+.fc-action{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  gap:.4rem;padding:.55rem;cursor:pointer;
+  font-size:.72rem;font-weight:600;color:var(--text-mute);
+  transition:.15s;border-right:1px solid var(--border);
+}
+.fc-action:last-child{border-right:none}
+.fc-action:hover{background:rgba(0,212,170,.06);color:var(--teal)}
+.fc-action span{font-size:.95rem}
+
+/* Match card */
+.match-card{
+  background:var(--dark2);border:1px solid var(--border);
+  border-radius:var(--radius);margin-bottom:.75rem;
+  overflow:hidden;cursor:pointer;transition:.15s;
+}
+.match-card:hover{border-color:rgba(0,212,170,.2)}
+.match-card-header{
+  padding:.5rem .85rem;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  font-size:.65rem;color:var(--text-mute);
+}
+.match-card-header .live-badge{
+  display:flex;align-items:center;gap:.3rem;
+  color:#ef4444;font-weight:700;font-size:.65rem;
+}
+.match-body{
+  padding:.85rem;
+  display:flex;align-items:center;justify-content:space-between;gap:.75rem;
+}
+.match-team{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem;
+}
+.match-team-logo{
+  width:44px;height:44px;border-radius:10px;
+  background:rgba(255,255,255,.06);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;
+}
+.match-team-name{font-size:.72rem;font-weight:700;color:var(--text);text-align:center}
+.match-score{
+  display:flex;align-items:center;gap:.4rem;
+}
+.score-num{
+  font-size:2rem;font-weight:900;color:var(--text);
+  min-width:28px;text-align:center;
+}
+.score-sep{font-size:1.2rem;color:var(--text-mute)}
+.match-minute{
+  text-align:center;font-size:.65rem;color:var(--text-mute);
+  padding:.3rem .5rem;background:rgba(239,68,68,.1);
+  border-radius:6px;color:#fca5a5;font-weight:600;
+}
+
+/* ── Coming soon tabs ── */
+.coming-soon{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:4rem 2rem;text-align:center;
+}
+.cs-icon{font-size:3rem;margin-bottom:1rem;opacity:.4}
+.cs-title{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.4rem}
+.cs-sub{font-size:.8rem;color:var(--text-mute);line-height:1.5}
+
+/* ══════════════════════════════════════════════════
+   LOGIN SHEET (bottom sheet)
+══════════════════════════════════════════════════ */
+#login-overlay{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,0);pointer-events:none;
+  transition:background .25s;
+}
+#login-overlay.show{background:rgba(0,0,0,.65);pointer-events:all}
+#login-sheet{
+  position:absolute;bottom:0;left:0;right:0;
+  background:var(--dark2);border-radius:20px 20px 0 0;
+  border-top:1px solid var(--border);
+  padding:1.25rem 1.25rem 2rem;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+  max-height:90vh;overflow-y:auto;
+}
+#login-sheet.show{transform:translateY(0)}
+.sheet-handle{
+  width:36px;height:4px;border-radius:2px;
+  background:rgba(255,255,255,.15);
+  margin:0 auto 1.25rem;
+}
+.sheet-title{
+  font-size:1.15rem;font-weight:800;
+  background:linear-gradient(90deg,var(--teal),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;margin-bottom:.2rem;
+}
+.sheet-sub{font-size:.78rem;color:var(--text-mute);margin-bottom:1.25rem}
+
+.sheet-tabs{display:flex;gap:.5rem;margin-bottom:1.25rem;
+  background:rgba(255,255,255,.04);border-radius:10px;padding:.3rem}
+.sheet-tab{
+  flex:1;padding:.5rem;border-radius:7px;border:none;
+  font-size:.8rem;font-weight:600;cursor:pointer;
+  background:transparent;color:var(--text-mute);transition:.15s;
+}
+.sheet-tab.active{background:var(--teal);color:#000}
+
+.form-group{margin-bottom:.85rem}
+.form-label{
+  display:block;font-size:.68rem;font-weight:700;
+  color:var(--teal);margin-bottom:.3rem;letter-spacing:.06em;text-transform:uppercase;
+}
+.form-input{
+  width:100%;padding:.7rem .9rem;
+  background:rgba(255,255,255,.05);
+  border:1.5px solid rgba(255,255,255,.08);
+  border-radius:10px;color:var(--text);font-size:.88rem;
+  outline:none;transition:.15s;
+}
+.form-input:focus{border-color:var(--teal);background:rgba(0,212,170,.05)}
+.form-input::placeholder{color:var(--text-mute)}
+
+.form-btn{
+  width:100%;padding:.82rem;border:none;border-radius:12px;
+  background:linear-gradient(90deg,var(--teal),var(--green));
+  color:#000;font-size:.9rem;font-weight:800;cursor:pointer;
+  transition:.15s;margin-top:.25rem;letter-spacing:.03em;
+}
+.form-btn:hover{opacity:.88;transform:translateY(-1px)}
+.form-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+.form-msg{
+  text-align:center;padding:.6rem;border-radius:8px;
+  font-size:.75rem;font-weight:600;margin-top:.6rem;display:none;
+}
+.form-msg.error{background:rgba(239,68,68,.12);color:#fca5a5;display:block}
+.form-msg.success{background:rgba(0,212,170,.1);color:var(--teal);display:block}
+
+.sheet-guest{
+  text-align:center;margin-top:1rem;
+  font-size:.75rem;color:var(--text-mute);
+}
+.sheet-guest a{color:var(--teal);font-weight:600;cursor:pointer;text-decoration:none}
+
+/* ══════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════ */
+#toast{
+  position:fixed;top:calc(var(--top-h) + .75rem);left:50%;
+  transform:translateX(-50%) translateY(-10px);
+  background:var(--dark3);border:1px solid var(--border);
+  border-radius:10px;padding:.55rem 1.1rem;
+  font-size:.78rem;color:var(--text);
+  opacity:0;transition:.25s;pointer-events:none;
+  white-space:nowrap;z-index:500;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ══════════════════════════════════════════════════
+   UTILITIES
+══════════════════════════════════════════════════ */
+.spinner{
+  display:inline-block;width:14px;height:14px;
+  border:2px solid rgba(0,0,0,.2);border-top-color:#000;
+  border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:.3rem;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.skeleton{
+  background:linear-gradient(90deg,var(--dark3) 25%,var(--dark4) 50%,var(--dark3) 75%);
+  background-size:200%;animation:skel 1.4s ease-in-out infinite;
+  border-radius:8px;
+}
+@keyframes skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body>
+
+<!-- ── SPLASH ── -->
+<div id="splash">
+  <div class="splash-ball">⚽</div>
+  <div class="splash-logo">PlayPro</div>
+  <div class="splash-tag">Football Intelligence Platform</div>
+  <div class="splash-loader">
+    <span></span><span></span><span></span>
+  </div>
+</div>
+
+<!-- ── DRAWER OVERLAY ── -->
+<div id="drawer-overlay" onclick="closeDrawer()"></div>
+
+<!-- ── SIDE DRAWER ── -->
+<div id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-logo">PlayPro</div>
+    <div class="drawer-tagline">Football Intelligence Platform</div>
+  </div>
+  <div class="drawer-user" id="drawer-user">
+    <div class="drawer-avatar" id="drawer-avatar">?</div>
+    <div>
+      <div class="drawer-name" id="drawer-name">Tetamu</div>
+      <div class="drawer-role" id="drawer-role">Log masuk untuk akses penuh</div>
+    </div>
+  </div>
+  <div class="drawer-nav">
+    <div class="drawer-section" data-en="MAIN" data-ms="UTAMA">UTAMA</div>
+    <div class="drawer-item active" onclick="showTab('home');closeDrawer()">
+      <span class="drawer-icon">🏠</span>
+      <span class="drawer-label" data-en="Home" data-ms="Laman Utama">Laman Utama</span>
+    </div>
+    <div class="drawer-item" onclick="showTab('explore');closeDrawer()">
+      <span class="drawer-icon">🗺️</span>
+      <span class="drawer-label" data-en="Explore" data-ms="Terokai">Terokai</span>
+    </div>
+    <div class="drawer-item" onclick="showTab('team');closeDrawer()">
+      <span class="drawer-icon">⚽</span>
+      <span class="drawer-label" data-en="My Team" data-ms="Pasukan Saya">Pasukan Saya</span>
+    </div>
+    <div class="drawer-item" onclick="showTab('profile');closeDrawer()">
+      <span class="drawer-icon">👤</span>
+      <span class="drawer-label" data-en="Profile" data-ms="Profil">Profil</span>
+    </div>
+
+    <div class="drawer-section" data-en="CREATE" data-ms="CIPTA">CIPTA</div>
+    <div class="drawer-item" onclick="requireAuth()">
+      <span class="drawer-icon">🛡️</span>
+      <span class="drawer-label" data-en="Create Club" data-ms="Tubuh Kelab">Tubuh Kelab</span>
+    </div>
+    <div class="drawer-item" onclick="requireAuth()">
+      <span class="drawer-icon">🏆</span>
+      <span class="drawer-label" data-en="Create Tournament" data-ms="Anjur Pertandingan">Anjur Pertandingan</span>
+    </div>
+    <div class="drawer-item" onclick="requireAuth()">
+      <span class="drawer-icon">🟡</span>
+      <span class="drawer-label" data-en="Find Referee" data-ms="Cari Pengadil">Cari Pengadil</span>
+    </div>
+
+    <div class="drawer-section" data-en="MORE" data-ms="LAIN-LAIN">LAIN-LAIN</div>
+    <div class="drawer-item" onclick="requireAuth()">
+      <span class="drawer-icon">🛒</span>
+      <span class="drawer-label" data-en="Marketplace" data-ms="Kedai">Kedai</span>
+      <span class="drawer-badge">Akan Datang</span>
+    </div>
+    <div class="drawer-item" onclick="requireAuth()">
+      <span class="drawer-icon">💳</span>
+      <span class="drawer-label" data-en="E-Wallet" data-ms="E-Dompet">E-Dompet</span>
+      <span class="drawer-badge">Akan Datang</span>
+    </div>
+    <div class="drawer-item" onclick="requireAuth()">
+      <span class="drawer-icon">⚙️</span>
+      <span class="drawer-label" data-en="Settings" data-ms="Tetapan">Tetapan</span>
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <div class="drawer-logout" id="drawer-logout-btn" onclick="handleLogout()" style="display:none">
+      <span>🚪</span>
+      <span class="drawer-logout-text" data-en="Log Out" data-ms="Log Keluar">Log Keluar</span>
+    </div>
+    <div class="drawer-logout" id="drawer-login-btn" onclick="showLogin()">
+      <span>🔑</span>
+      <span class="drawer-logout-text" style="color:var(--teal)" data-en="Log In" data-ms="Log Masuk">Log Masuk</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOP BAR ── -->
+<div id="topbar">
+  <div class="tb-menu" onclick="toggleDrawer()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <rect y="2" width="16" height="2" rx="1" fill="currentColor"/>
+      <rect y="7" width="12" height="2" rx="1" fill="currentColor"/>
+      <rect y="12" width="16" height="2" rx="1" fill="currentColor"/>
+    </svg>
+  </div>
+  <div class="tb-logo">PlayPro</div>
+  <div class="tb-actions">
+    <div class="tb-btn" onclick="showLogin()" id="notif-btn">
+      🔔<div class="notif-dot" id="notif-dot" style="display:none"></div>
+    </div>
+    <div class="tb-btn" onclick="toggleSearch()">🔍</div>
+    <div class="tb-lang" onclick="toggleLang()" id="lang-btn">MS</div>
+  </div>
+</div>
+
+<!-- ── MAIN CONTENT ── -->
+<div id="main">
+
+  <!-- HOME TAB -->
+  <div id="tab-home">
+    <!-- Feed filters -->
+    <div class="feed-header">
+      <div class="feed-filter active" onclick="setFilter(this,'semua')" data-en="All" data-ms="Semua">Semua</div>
+      <div class="feed-filter" onclick="setFilter(this,'liga')" data-en="Leagues" data-ms="Liga">Liga</div>
+      <div class="feed-filter" onclick="setFilter(this,'kelab')" data-en="Clubs" data-ms="Kelab">Kelab</div>
+      <div class="feed-filter" onclick="setFilter(this,'pemain')" data-en="Players" data-ms="Pemain">Pemain</div>
+      <div class="feed-filter" onclick="setFilter(this,'live')">🔴 Live</div>
+    </div>
+
+    <!-- Live banner -->
+    <div class="live-banner" onclick="showToast('🔴 Live match viewer akan datang!')">
+      <div class="live-dot"></div>
+      <div class="live-text">
+        <div class="live-title" data-en="2 matches LIVE now" data-ms="2 perlawanan LIVE sekarang">2 perlawanan LIVE sekarang</div>
+        <div class="live-sub" data-en="Tap to watch" data-ms="Ketik untuk tonton">Ketik untuk tonton</div>
+      </div>
+      <div class="live-arrow">›</div>
+    </div>
+
+    <!-- Live match card -->
+    <div style="padding:0 1rem .25rem">
+      <div class="match-card" onclick="showToast('Match Observer akan diintegrasikan!')">
+        <div class="match-card-header">
+          <span>Liga Grassroot Selangor U12</span>
+          <span class="live-badge"><span class="live-dot" style="width:6px;height:6px"></span> LIVE</span>
+        </div>
+        <div class="match-body">
+          <div class="match-team">
+            <div class="match-team-logo">🦁</div>
+            <div class="match-team-name">Kelab Muda Nilai</div>
+          </div>
+          <div class="match-score">
+            <div class="score-num">2</div>
+            <div class="score-sep">—</div>
+            <div class="score-num">1</div>
+          </div>
+          <div class="match-team">
+            <div class="match-team-logo">🦅</div>
+            <div class="match-team-name">SS United FC</div>
+          </div>
+        </div>
+        <div style="text-align:center;padding:.4rem;border-top:1px solid var(--border)">
+          <div class="match-minute">67'</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feed -->
+    <div class="feed" id="feed-container">
+      <!-- Cards loaded by JS -->
+    </div>
+  </div>
+
+  <!-- EXPLORE TAB -->
+  <div id="tab-explore" style="display:none">
+    <div class="coming-soon">
+      <div class="cs-icon">🗺️</div>
+      <div class="cs-title" data-en="Explore — Coming Soon" data-ms="Terokai — Akan Datang">Terokai — Akan Datang</div>
+      <div class="cs-sub" data-en="Find clubs, fields, matches and referees near you" data-ms="Cari kelab, padang, pertandingan dan pengadil berhampiran kau">Cari kelab, padang, pertandingan dan pengadil berhampiran kau</div>
+    </div>
+  </div>
+
+  <!-- MY TEAM TAB -->
+  <div id="tab-team" style="display:none">
+    <div class="coming-soon">
+      <div class="cs-icon">⚽</div>
+      <div class="cs-title" data-en="My Team — Coming Soon" data-ms="Pasukan Saya — Akan Datang">Pasukan Saya — Akan Datang</div>
+      <div class="cs-sub" data-en="Manage your squad, fixtures and standings" data-ms="Urus pasukan, jadual dan kedudukan liga">Urus pasukan, jadual dan kedudukan liga</div>
+    </div>
+  </div>
+
+  <!-- PROFILE TAB -->
+  <div id="tab-profile" style="display:none">
+    <div class="coming-soon">
+      <div class="cs-icon">🪪</div>
+      <div class="cs-title" data-en="Profile — Coming Soon" data-ms="Profil — Akan Datang">Profil — Akan Datang</div>
+      <div class="cs-sub" data-en="Your Football Passport, DNA rating and career history" data-ms="Football Passport, rating DNA dan sejarah kerjaya kau">Football Passport, rating DNA dan sejarah kerjaya kau</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── BOTTOM NAV ── -->
+<div id="bottomnav">
+  <div class="nav-item active" id="nav-home" onclick="showTab('home')">
+    <div class="nav-indicator"></div>
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label" data-en="Home" data-ms="Utama">Utama</div>
+  </div>
+  <div class="nav-item" id="nav-explore" onclick="showTab('explore')">
+    <div class="nav-indicator"></div>
+    <div class="nav-icon">🔍</div>
+    <div class="nav-label" data-en="Explore" data-ms="Terokai">Terokai</div>
+  </div>
+  <div class="nav-item" id="nav-team" onclick="showTab('team')">
+    <div class="nav-indicator"></div>
+    <div class="nav-icon">⚽</div>
+    <div class="nav-label" data-en="My Team" data-ms="Pasukan">Pasukan</div>
+  </div>
+  <div class="nav-item" id="nav-profile" onclick="showTab('profile')">
+    <div class="nav-indicator"></div>
+    <div class="nav-icon">👤</div>
+    <div class="nav-label" data-en="Profile" data-ms="Profil">Profil</div>
+  </div>
+</div>
+
+<!-- ── LOGIN SHEET ── -->
+<div id="login-overlay">
+  <div id="login-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">PlayPro</div>
+    <div class="sheet-sub" data-en="Log in to access all features" data-ms="Log masuk untuk akses semua fungsi">Log masuk untuk akses semua fungsi</div>
+    <div class="sheet-tabs">
+      <button class="sheet-tab active" onclick="switchSheet('login')" data-en="Log In" data-ms="Log Masuk">Log Masuk</button>
+      <button class="sheet-tab" onclick="switchSheet('register')" data-en="Register" data-ms="Daftar">Daftar</button>
+    </div>
+    <div id="sheet-login">
+      <div class="form-group">
+        <label class="form-label" data-en="EMAIL" data-ms="EMEL">EMEL</label>
+        <input class="form-input" id="login-email" type="email" placeholder="email@anda.com" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-en="PASSWORD" data-ms="KATA LALUAN">KATA LALUAN</label>
+        <input class="form-input" id="login-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <button class="form-btn" id="btn-login" onclick="doLogin()" data-en="Log In →" data-ms="Log Masuk →">Log Masuk →</button>
+      <div class="form-msg" id="msg-login"></div>
+    </div>
+    <div id="sheet-register" style="display:none">
+      <div class="form-group">
+        <label class="form-label" data-en="FULL NAME" data-ms="NAMA PENUH">NAMA PENUH</label>
+        <input class="form-input" id="reg-name" type="text" placeholder="Nama penuh kau"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-en="EMAIL" data-ms="EMEL">EMEL</label>
+        <input class="form-input" id="reg-email" type="email" placeholder="email@anda.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-en="ROLE" data-ms="PERANAN">PERANAN</label>
+        <select class="form-input" id="reg-role">
+          <option value="coach">👨‍🏫 Jurulatih</option>
+          <option value="club_admin">🛡️ Pengurus Kelab</option>
+          <option value="technical_assessor">📋 Pegawai Teknikal</option>
+          <option value="referee">🟨 Pengadil</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-en="PASSWORD" data-ms="KATA LALUAN">KATA LALUAN</label>
+        <input class="form-input" id="reg-pw" type="password" placeholder="Minimum 8 aksara"/>
+      </div>
+      <button class="form-btn" id="btn-register" onclick="doRegister()" data-en="Create Account →" data-ms="Buat Akaun →">Buat Akaun →</button>
+      <div class="form-msg" id="msg-register"></div>
+    </div>
+    <div class="sheet-guest">
+      <span data-en="Just browsing? " data-ms="Sekadar melayari? ">Sekadar melayari? </span>
+      <a onclick="closeLogin()" data-en="Continue as guest" data-ms="Teruskan sebagai tetamu">Teruskan sebagai tetamu</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ── Supabase ──────────────────────────────────────────────────
+const _SB = supabase.createClient(
+  window.PLAYPRO_SUPABASE_URL,
+  window.PLAYPRO_SUPABASE_ANON_KEY,
+  { auth: { persistSession: true, autoRefreshToken: true } }
+);
+
+// ── State ─────────────────────────────────────────────────────
+let _user = null;
+let _lang = localStorage.getItem('pp_lang') || 'ms';
+let _currentTab = 'home';
+
+// ── Splash ────────────────────────────────────────────────────
+async function init() {
+  // Check session
+  const { data: { session } } = await _SB.auth.getSession();
+  if (session) {
+    _user = session.user;
+    updateUserUI();
+  }
+
+  // Load feed
+  renderFeed();
+
+  // Hide splash after 1.8s
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(() => document.getElementById('splash').style.display = 'none', 500);
+  }, 1800);
+
+  // Apply language
+  applyLang();
+}
+
+// ── Language ──────────────────────────────────────────────────
+function toggleLang() {
+  _lang = _lang === 'ms' ? 'en' : 'ms';
+  localStorage.setItem('pp_lang', _lang);
+  document.getElementById('lang-btn').textContent = _lang.toUpperCase();
+  applyLang();
+}
+
+function applyLang() {
+  document.getElementById('lang-btn').textContent = _lang.toUpperCase();
+  document.querySelectorAll('[data-' + _lang + ']').forEach(el => {
+    el.textContent = el.getAttribute('data-' + _lang);
+  });
+}
+
+// ── Tab navigation ────────────────────────────────────────────
+function showTab(tab) {
+  ['home','explore','team','profile'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
+    document.getElementById('nav-' + t)?.classList.toggle('active', t === tab);
+  });
+  _currentTab = tab;
+}
+
+// ── Drawer ────────────────────────────────────────────────────
+function toggleDrawer() {
+  document.getElementById('drawer').classList.toggle('open');
+  document.getElementById('drawer-overlay').classList.toggle('show');
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('show');
+}
+
+// ── Login sheet ───────────────────────────────────────────────
+function showLogin() {
+  closeDrawer();
+  document.getElementById('login-overlay').classList.add('show');
+  document.getElementById('login-sheet').classList.add('show');
+}
+function closeLogin() {
+  document.getElementById('login-overlay').classList.remove('show');
+  document.getElementById('login-sheet').classList.remove('show');
+}
+document.getElementById('login-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeLogin();
+});
+
+function switchSheet(mode) {
+  document.getElementById('sheet-login').style.display    = mode === 'login'    ? 'block' : 'none';
+  document.getElementById('sheet-register').style.display = mode === 'register' ? 'block' : 'none';
+  document.querySelectorAll('.sheet-tab').forEach((t,i) => {
+    t.classList.toggle('active', (mode==='login'&&i===0)||(mode==='register'&&i===1));
+  });
+}
+
+function requireAuth() {
+  if (!_user) {
+    closeDrawer();
+    showLogin();
+    showToast(_lang === 'ms' ? '🔑 Log masuk diperlukan' : '🔑 Login required');
+  }
+}
+
+// ── Auth ──────────────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw    = document.getElementById('login-pw').value;
+  const btn   = document.getElementById('btn-login');
+  if (!email || !pw) { showMsg('msg-login', '⚠️ ' + ((_lang==='ms')?'Isi email dan kata laluan':'Fill email and password'), 'error'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>' + ((_lang==='ms')?'Sedang masuk...':'Logging in...');
+  const { data, error } = await _SB.auth.signInWithPassword({ email, password: pw });
+  btn.disabled = false;
+  btn.textContent = (_lang==='ms') ? 'Log Masuk →' : 'Log In →';
+  if (error) { showMsg('msg-login', '❌ ' + (error.message.includes('Invalid') ? ((_lang==='ms')?'Email atau kata laluan salah':'Wrong email or password') : error.message), 'error'); return; }
+  _user = data.user;
+  updateUserUI();
+  closeLogin();
+  showToast('✅ ' + ((_lang==='ms')?'Selamat datang kembali!':'Welcome back!'));
+  renderFeed();
+}
+
+async function doRegister() {
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const role  = document.getElementById('reg-role').value;
+  const pw    = document.getElementById('reg-pw').value;
+  const btn   = document.getElementById('btn-register');
+  if (!name||!email||!pw) { showMsg('msg-register','⚠️ '+(_lang==='ms'?'Isi semua maklumat':'Fill all fields'),'error'); return; }
+  if (pw.length < 8) { showMsg('msg-register','⚠️ '+(_lang==='ms'?'Kata laluan mesti 8 aksara ke atas':'Password must be at least 8 characters'),'error'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>' + (_lang==='ms'?'Menghantar...':'Submitting...');
+  const { error } = await _SB.auth.signUp({ email, password: pw, options: { data: { full_name: name, role } } });
+  btn.disabled = false;
+  btn.textContent = (_lang==='ms') ? 'Buat Akaun →' : 'Create Account →';
+  if (error) { showMsg('msg-register','❌ '+error.message,'error'); return; }
+  showMsg('msg-register','✅ '+(_lang==='ms'?'Akaun dibuat! Semak email untuk pengesahan.':'Account created! Check email to verify.'),'success');
+}
+
+async function handleLogout() {
+  await _SB.auth.signOut();
+  _user = null;
+  updateUserUI();
+  closeDrawer();
+  showToast(_lang==='ms'?'👋 Jumpa lagi!':'👋 See you!');
+  renderFeed();
+}
+
+function updateUserUI() {
+  const name  = _user?.user_metadata?.full_name || _user?.email?.split('@')[0] || 'Tetamu';
+  const role  = _user?.user_metadata?.role || '';
+  const initl = name.charAt(0).toUpperCase();
+
+  document.getElementById('drawer-name').textContent  = _user ? name : (_lang==='ms'?'Tetamu':'Guest');
+  document.getElementById('drawer-role').textContent  = _user ? (role || 'Pengguna PlayPro') : (_lang==='ms'?'Log masuk untuk akses penuh':'Login for full access');
+  document.getElementById('drawer-avatar').textContent = _user ? initl : '?';
+  document.getElementById('drawer-logout-btn').style.display = _user ? 'flex' : 'none';
+  document.getElementById('drawer-login-btn').style.display  = _user ? 'none' : 'flex';
+  document.getElementById('notif-dot').style.display = _user ? 'block' : 'none';
+}
+
+// ── Feed ──────────────────────────────────────────────────────
+const DEMO_FEED = [
+  {
+    type:'liga', avatar:'🏆', name:'Liga Grassroot Selangor',
+    time:'5 min', verified:true,
+    content:'📢 Pendaftaran pasukan untuk musim 2026/27 kini <strong>dibuka</strong>! Tarikh akhir: 30 Jun 2026. Hubungi penganjur untuk maklumat lanjut.',
+    likes:24, comments:8, shares:12
+  },
+  {
+    type:'pemain', avatar:'⚽', name:'Ahmad Hafizi',
+    time:'12 min', verified:true,
+    content:'⚽ Alhamdulillah! Gol pertama musim ini vs Nilai United. DNA saya naik ke <strong>67</strong>. Terima kasih coach dan pasukan! 🙏',
+    likes:156, comments:34, shares:7
+  },
+  {
+    type:'kelab', avatar:'🛡️', name:'Kelab Muda Nilai FC',
+    time:'1 jam',
+    content:'🏋️ Sesi latihan SABTU ini telah ditawarkan kepada semua pemain U12. Hadir di Padang Nilai Sports Centre jam <strong>8:00 pagi</strong>. Jangan lewat!',
+    likes:45, comments:12, shares:3
+  },
+  {
+    type:'liga', avatar:'🏅', name:'Persatuan Bola Sepak N.Sembilan',
+    time:'2 jam',
+    content:'📊 Keputusan perlawanan semalam:\n🏆 Nilai United <strong>3</strong> – <strong>1</strong> Port Dickson FC\n⚽ MOM: Razif Azri (Nilai United)',
+    likes:89, comments:23, shares:18
+  },
+  {
+    type:'pemain', avatar:'👨‍🏫', name:'Coach Farid Hassan',
+    time:'3 jam', verified:true,
+    content:'💪 Tahniah kepada semua pemain U9 yang berjaya lulus ujian teknikal minggu ini! Teruskan usaha. <strong>DNA akan naik</strong> bila kita berusaha! 🌟',
+    likes:203, comments:67, shares:31
+  },
+];
+
+function renderFeed() {
+  const container = document.getElementById('feed-container');
+  container.innerHTML = DEMO_FEED.map(card => `
+    <div class="feed-card">
+      <div class="fc-header">
+        <div class="fc-avatar">${card.avatar}</div>
+        <div class="fc-info">
+          <div class="fc-name">${card.name} ${card.verified?'✅':''}</div>
+          <div class="fc-meta">${card.time} ${_lang==='ms'?'yang lalu':'ago'}</div>
+        </div>
+        <span class="fc-type ${card.type}">${card.type.toUpperCase()}</span>
+      </div>
+      <div class="fc-body">${card.content.replace(/\n/g,'<br>')}</div>
+      <div class="fc-stats">
+        <div class="fc-stat"><span>❤️</span> ${card.likes}</div>
+        <div class="fc-stat"><span>💬</span> ${card.comments}</div>
+        <div class="fc-stat"><span>↗️</span> ${card.shares}</div>
+      </div>
+      <div class="fc-actions">
+        <div class="fc-action" onclick="handleLike(this)"><span>❤️</span> ${_lang==='ms'?'Suka':'Like'}</div>
+        <div class="fc-action" onclick="requireAuth()"><span>💬</span> ${_lang==='ms'?'Komen':'Comment'}</div>
+        <div class="fc-action" onclick="handleShare()"><span>↗️</span> ${_lang==='ms'?'Kongsi':'Share'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function handleLike(el) {
+  if (!_user) { showLogin(); return; }
+  el.style.color = 'var(--teal)';
+  showToast(_lang==='ms'?'❤️ Disukai!':'❤️ Liked!');
+}
+
+function handleShare() {
+  if (navigator.share) {
+    navigator.share({ title:'PlayPro', text:_lang==='ms'?'Lihat ini di PlayPro!':'Check this out on PlayPro!', url: location.href });
+  } else {
+    navigator.clipboard.writeText(location.href);
+    showToast(_lang==='ms'?'📋 Link disalin!':'📋 Link copied!');
+  }
+}
+
+// ── Filter ────────────────────────────────────────────────────
+function setFilter(el, filter) {
+  document.querySelectorAll('.feed-filter').forEach(f => f.classList.remove('active'));
+  el.classList.add('active');
+  showToast((_lang==='ms'?'Filter: ':'Filter: ') + el.textContent);
+}
+
+// ── Search ────────────────────────────────────────────────────
+function toggleSearch() {
+  showToast(_lang==='ms'?'🔍 Fungsi carian akan datang!':'🔍 Search coming soon!');
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+let _toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Msg ───────────────────────────────────────────────────────
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'form-msg ' + type;
+}
+
+// ── Auth state change ─────────────────────────────────────────
+_SB.auth.onAuthStateChange((event, session) => {
+  _user = session?.user || null;
+  updateUserUI();
+});
+
+// ── Boot ──────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
