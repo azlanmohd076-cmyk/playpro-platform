@@ -817,6 +817,11 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
       <div class="section-title">📰 Berita Terkini</div>
     </div>
     <div class="feed-wrap" id="feed"></div>
+    <!-- Top Scorers from DB -->
+    <div style="padding:0 1rem .5rem">
+      <div class="section-title">🥇 Penjaring Teratas</div>
+      <div id="top-scorers-home"></div>
+    </div>
   </div>
 
   <!-- EXPLORE -->
@@ -1037,6 +1042,7 @@ async function init(){
   if(session){_u=session.user;updateUI();}
   buildFeed();
   loadStats_strip();
+  loadTopScorers();
   setTimeout(()=>{
     const s=document.getElementById('splash');
     s.classList.add('fade');
@@ -1154,6 +1160,35 @@ function updateUI(){
 }
 
 /* ── STATS STRIP ── */
+async function loadTopScorers(){
+  const el=document.getElementById('top-scorers-home');
+  if(!el)return;
+  try{
+    const{data}=await SB.from('players')
+      .select('full_name,preferred_name,position,passport_score,dna_overall,clubs(name)')
+      .not('passport_score','is',null)
+      .eq('is_active',true)
+      .order('passport_score',{ascending:false})
+      .limit(5);
+    if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--mute);font-size:.78rem">Tiada data lagi</div>';return;}
+    const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
+    el.innerHTML=data.map((p,i)=>`
+      <div style="display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.45rem;box-shadow:var(--sh)">
+        <span style="font-size:1.1rem;width:28px;text-align:center">${medals[i]}</span>
+        <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.88rem;flex-shrink:0">${(p.preferred_name||p.full_name||'?')[0]}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.81rem;font-weight:700;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.preferred_name||p.full_name||'—'}</div>
+          <div style="font-size:.62rem;color:var(--mute);margin-top:1px">${posLbl(p.position)} · ${p.clubs?.name||'—'}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:1.2rem;font-weight:900;color:var(--g);line-height:1;letter-spacing:-.03em">${p.passport_score||p.dna_overall||'—'}</div>
+          <div style="font-size:.55rem;color:var(--mute);font-weight:600;letter-spacing:.04em">SKOR</div>
+        </div>
+      </div>
+    `).join('');
+  }catch(e){el.innerHTML='';}
+}
+
 async function loadStats_strip(){
   try{
     const[{count:l},{count:c},{count:p},{count:m}]=await Promise.all([
@@ -1197,7 +1232,8 @@ async function loadProfile(){
   el.loading.style.display='block';
 
   try{
-    const{data:prof}=await SB.from('profiles').select('id').eq('user_id',_u.id).single();
+    // profiles.id = auth.users.id (same UUID — no user_id column)
+    const prof = { id: _u.id };
     let p=null;
     if(prof){
       const{data}=await SB.from('players')
@@ -1353,31 +1389,121 @@ function posLbl(p){
 }
 
 /* ── FEED ── */
+/* ── FEED DATA ── */
 const FEED=[
-  {t:'liga',ic:'🏆',nm:'Liga Grassroot Selangor',age:'5 min',vfy:true,body:'📢 Pendaftaran pasukan untuk musim 2026/27 kini <strong>dibuka</strong>! Tarikh akhir: 30 Jun 2026.',l:24,c:8,s:12},
-  {t:'pemain',ic:'⚽',nm:'Ahmad Hafizi',age:'12 min',vfy:true,body:'⚽ Alhamdulillah! Gol pertama musim ini. DNA saya naik ke <strong>67</strong>. Terima kasih coach! 🙏',l:156,c:34,s:7},
-  {t:'kelab',ic:'🛡️',nm:'Kelab Muda Nilai FC',age:'1 jam',vfy:false,body:'🏋️ Latihan SABTU di Padang Nilai Sports Centre jam <strong>8:00 pagi</strong>. Semua pemain U12 hadir!',l:45,c:12,s:3},
-  {t:'liga',ic:'🏅',nm:'Persatuan Bola Sepak N.Sembilan',age:'2 jam',vfy:true,body:'📊 Keputusan:<br>🏆 Nilai United <strong>3</strong> – <strong>1</strong> Port Dickson FC · MOM: Razif Azri',l:89,c:23,s:18},
+  {
+    t:'keputusan', color:'#1a2744', accent:'#00c97a',
+    tag:'⚽ KEPUTUSAN AKHIR',
+    home:'Kelab Muda Nilai', homeIc:'🦁', homeScore:3,
+    away:'SS United FC',    awayIc:'🦅', awayScore:1,
+    sub:'Liga Grassroot Selangor — 7 Jun 2026',
+    mom:'Razif Azri · MOM', l:89, c:23, s:18,
+  },
+  {
+    t:'pemain', color:'#0d2d1e', accent:'#00875a',
+    tag:'👤 PEMAIN', nm:'Ahmad Hafizi ✓', pos:'ST · Kelab Muda Nilai',
+    score:84, band:'ELITE',
+    body:'⚽ <b>Gol pertama musim ini!</b> DNA naik ke 84 selepas penilaian teknikal. Terima kasih coach Razman! 🙏',
+    l:156, c:34, s:7, age:'12 min',
+  },
+  {
+    t:'liga', color:'#1c1c2e', accent:'#3b82f6',
+    tag:'🏆 LIGA', nm:'Liga Grassroot Selangor',
+    body:'📢 <b>Pendaftaran musim 2026/27 kini DIBUKA!</b> Tarikh akhir: <b>30 Jun 2026</b>. Minimum 12 pemain. Yuran: RM150 semusim.',
+    l:245, c:67, s:43, age:'1 jam',
+  },
+  {
+    t:'latihan', color:'#1a1a2e', accent:'#f59e0b',
+    tag:'🏋️ LATIHAN', nm:'Kelab Muda Nilai FC',
+    body:'Sesi latihan <b>Sabtu 14 Jun 2026</b><br>📍 Padang Nilai Sports Centre<br>⏰ 8:00 pagi – 10:30 pagi<br>👕 Bawa jersi merah. Semua pemain U12 wajib hadir.',
+    l:45, c:12, s:8, age:'3 jam',
+  },
+  {
+    t:'pemain', color:'#0d2d1e', accent:'#00875a',
+    tag:'👤 PEMAIN', nm:'Luqman Hakim ✓', pos:'CDM · Port Dickson FC',
+    score:72, band:'ESTABLISHED',
+    body:'🎯 2 assist dalam perlawanan semalam. Passport score naik ke <b>70</b>. Terima kasih kepada semua penyokong! 💚',
+    l:78, c:19, s:5, age:'5 jam',
+  },
 ];
+
 function buildFeed(){
-  document.getElementById('feed').innerHTML=FEED.map(c=>`
-    <div class="feed-card">
-      <div class="fc-top">
-        <div class="fc-av">${c.ic}</div>
-        <div class="fc-meta">
-          <div class="fc-name">${c.nm}${c.vfy?' <span style="color:var(--g);font-size:.68rem;font-weight:700">✓</span>':''}</div>
-          <div class="fc-time">${c.age} yang lalu</div>
+  document.getElementById('feed').innerHTML = FEED.map(c => {
+    if(c.t === 'keputusan') return `
+      <div class="feed-card" style="overflow:hidden">
+        <div style="background:${c.color};padding:.6rem .9rem;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:.62rem;font-weight:700;color:${c.accent};letter-spacing:.08em">${c.tag}</span>
+          <span style="font-size:.6rem;color:rgba(255,255,255,.4)">${c.sub}</span>
         </div>
-        <span class="fc-badge b-${c.t}">${c.t.toUpperCase()}</span>
-      </div>
-      <div class="fc-body">${c.body}</div>
-      <div class="fc-foot">
-        <div class="fc-act" onclick="doLike(this)">❤️ ${c.l}</div>
-        <div class="fc-act" onclick="mustLogin()">💬 ${c.c}</div>
-        <div class="fc-act" onclick="doShare()">↗️ ${c.s}</div>
-      </div>
-    </div>
-  `).join('');
+        <div style="padding:.9rem;display:flex;align-items:center;gap:.5rem;background:var(--card)">
+          <div style="flex:1;text-align:center">
+            <div style="font-size:1.6rem;margin-bottom:.25rem">${c.homeIc}</div>
+            <div style="font-size:.72rem;font-weight:700;color:var(--txt);line-height:1.3">${c.home}</div>
+          </div>
+          <div style="text-align:center;flex-shrink:0">
+            <div style="display:flex;align-items:center;gap:.4rem">
+              <span style="font-size:2.2rem;font-weight:900;color:var(--txt);letter-spacing:-.04em">${c.homeScore}</span>
+              <span style="font-size:1rem;color:var(--mute)">—</span>
+              <span style="font-size:2.2rem;font-weight:900;color:var(--txt);letter-spacing:-.04em">${c.awayScore}</span>
+            </div>
+            <div style="font-size:.62rem;color:${c.accent};font-weight:700;margin-top:.2rem">⭐ ${c.mom}</div>
+          </div>
+          <div style="flex:1;text-align:center">
+            <div style="font-size:1.6rem;margin-bottom:.25rem">${c.awayIc}</div>
+            <div style="font-size:.72rem;font-weight:700;color:var(--txt);line-height:1.3">${c.away}</div>
+          </div>
+        </div>
+        <div class="fc-foot">
+          <div class="fc-act" onclick="doLike(this)">❤️ ${c.l}</div>
+          <div class="fc-act" onclick="mustLogin()">💬 ${c.c}</div>
+          <div class="fc-act" onclick="doShare()">↗️ ${c.s}</div>
+        </div>
+      </div>`;
+
+    if(c.t === 'pemain') return `
+      <div class="feed-card" style="overflow:hidden">
+        <div style="background:${c.color};padding:.55rem .9rem .5rem;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:.62rem;font-weight:700;color:${c.accent};letter-spacing:.08em">${c.tag}</span>
+          <span style="font-size:.6rem;color:rgba(255,255,255,.4)">${c.age} yang lalu</span>
+        </div>
+        <div style="padding:.75rem .9rem .5rem;display:flex;align-items:center;gap:.75rem;border-bottom:1px solid var(--bdr)">
+          <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,${c.accent},var(--g3));display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;color:#fff;flex-shrink:0">${c.nm[0]}</div>
+          <div style="flex:1">
+            <div style="font-size:.85rem;font-weight:800;color:var(--txt)">${c.nm}</div>
+            <div style="font-size:.64rem;color:var(--mute);margin-top:2px">${c.pos}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:1.6rem;font-weight:900;color:${c.accent};line-height:1;letter-spacing:-.04em">${c.score}</div>
+            <div style="font-size:.52rem;font-weight:700;color:var(--mute);letter-spacing:.05em">${c.band}</div>
+          </div>
+        </div>
+        <div class="fc-body" style="padding:.65rem .9rem .6rem">${c.body}</div>
+        <div class="fc-foot">
+          <div class="fc-act" onclick="doLike(this)">❤️ ${c.l}</div>
+          <div class="fc-act" onclick="mustLogin()">💬 ${c.c}</div>
+          <div class="fc-act" onclick="doShare()">↗️ ${c.s}</div>
+        </div>
+      </div>`;
+
+    /* liga / latihan */
+    return `
+      <div class="feed-card" style="overflow:hidden">
+        <div style="background:${c.color};padding:.55rem .9rem;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:.62rem;font-weight:700;color:${c.accent};letter-spacing:.08em">${c.tag}</span>
+          <span style="font-size:.6rem;color:rgba(255,255,255,.4)">${c.age} yang lalu</span>
+        </div>
+        <div style="padding:.55rem .9rem .1rem;display:flex;align-items:center;gap:.6rem">
+          <div style="width:32px;height:32px;border-radius:8px;background:${c.accent}22;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0">${c.tag.split(' ')[0]}</div>
+          <div style="font-size:.82rem;font-weight:700;color:var(--txt)">${c.nm}</div>
+        </div>
+        <div class="fc-body" style="padding:.5rem .9rem .65rem">${c.body}</div>
+        <div class="fc-foot">
+          <div class="fc-act" onclick="doLike(this)">❤️ ${c.l}</div>
+          <div class="fc-act" onclick="mustLogin()">💬 ${c.c}</div>
+          <div class="fc-act" onclick="doShare()">↗️ ${c.s}</div>
+        </div>
+      </div>`;
+  }).join('');
 }
 function doLike(el){if(!_u){showLogin();return}el.style.color='var(--g)';el.style.fontWeight='700'}
 function doShare(){navigator.clipboard?.writeText(location.href);toast('📋 Link disalin!')}
