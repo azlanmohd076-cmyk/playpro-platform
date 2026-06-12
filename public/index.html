@@ -23,6 +23,13 @@
   --teal-dim: #00a880;
   --gold:     #f0c040;
   --green:    #00b341;
+  --nav-h:    60px;
+  --top-h:    52px;
+  --radius:   14px;
+}
+
+/* ── DARK MODE (default) ── */
+:root, html.dark {
   --dark:     #0a0f0d;
   --dark2:    #111815;
   --dark3:    #1a2420;
@@ -31,9 +38,32 @@
   --text:     #e8f0ec;
   --text-dim: rgba(232,240,236,.5);
   --text-mute:rgba(232,240,236,.3);
-  --nav-h:    60px;
-  --top-h:    52px;
-  --radius:   14px;
+  --topbar-bg: rgba(10,15,13,.92);
+  --nav-bg:    rgba(10,15,13,.95);
+  --drawer-bg: linear-gradient(160deg,#0f1f18,#080f0b);
+  --sheet-bg:  #111815;
+  --card-bg:   #111815;
+  --input-bg:  rgba(255,255,255,.05);
+  --input-border: rgba(255,255,255,.08);
+}
+
+/* ── LIGHT MODE ── */
+html.light {
+  --dark:     #f0f4f2;
+  --dark2:    #ffffff;
+  --dark3:    #e8f0ec;
+  --dark4:    #dce8e0;
+  --border:   rgba(0,0,0,.08);
+  --text:     #0f2018;
+  --text-dim: rgba(15,32,24,.6);
+  --text-mute:rgba(15,32,24,.35);
+  --topbar-bg: rgba(240,244,242,.95);
+  --nav-bg:    rgba(240,244,242,.97);
+  --drawer-bg: linear-gradient(160deg,#e8f5ee,#f5faf7);
+  --sheet-bg:  #ffffff;
+  --card-bg:   #ffffff;
+  --input-bg:  rgba(0,0,0,.04);
+  --input-border: rgba(0,0,0,.1);
 }
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -91,7 +121,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);font-size:14p
 #topbar{
   position:fixed;top:0;left:0;right:0;z-index:100;
   height:var(--top-h);
-  background:rgba(10,15,13,.92);
+  background:var(--topbar-bg);
   backdrop-filter:blur(12px);
   border-bottom:1px solid var(--border);
   display:flex;align-items:center;padding:0 1rem;gap:.75rem;
@@ -143,7 +173,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);font-size:14p
 #drawer{
   position:fixed;top:0;left:0;bottom:0;z-index:201;
   width:280px;
-  background:linear-gradient(160deg,#0f1f18,#080f0b);
+  background:var(--drawer-bg);
   border-right:1px solid var(--border);
   transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
   display:flex;flex-direction:column;
@@ -230,7 +260,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);font-size:14p
 #bottomnav{
   position:fixed;bottom:0;left:0;right:0;z-index:100;
   height:var(--nav-h);
-  background:rgba(10,15,13,.95);
+  background:var(--nav-bg);
   backdrop-filter:blur(12px);
   border-top:1px solid var(--border);
   display:grid;grid-template-columns:repeat(4,1fr);
@@ -304,7 +334,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);font-size:14p
 /* Feed cards */
 .feed{padding:0 1rem 1rem}
 .feed-card{
-  background:var(--dark2);
+  background:var(--card-bg);
   border:1px solid var(--border);
   border-radius:var(--radius);
   margin-bottom:.75rem;
@@ -436,7 +466,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);font-size:14p
 #login-overlay.show{background:rgba(0,0,0,.65);pointer-events:all}
 #login-sheet{
   position:absolute;bottom:0;left:0;right:0;
-  background:var(--dark2);border-radius:20px 20px 0 0;
+  background:var(--sheet-bg);border-radius:20px 20px 0 0;
   border-top:1px solid var(--border);
   padding:1.25rem 1.25rem 2rem;
   transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
@@ -472,8 +502,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);font-size:14p
 }
 .form-input{
   width:100%;padding:.7rem .9rem;
-  background:rgba(255,255,255,.05);
-  border:1.5px solid rgba(255,255,255,.08);
+  background:var(--input-bg);
+  border:1.5px solid var(--input-border);
   border-radius:10px;color:var(--text);font-size:.88rem;
   outline:none;transition:.15s;
 }
@@ -643,6 +673,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);font-size:14p
     <div class="tb-btn" onclick="showLogin()" id="notif-btn">
       🔔<div class="notif-dot" id="notif-dot" style="display:none"></div>
     </div>
+    <div class="tb-btn" onclick="toggleMode()" id="mode-btn" title="Dark/Light">🌙</div>
     <div class="tb-btn" onclick="toggleSearch()">🔍</div>
     <div class="tb-lang" onclick="toggleLang()" id="lang-btn">MS</div>
   </div>
@@ -851,6 +882,7 @@ async function init() {
 
   // Apply language
   applyLang();
+  applyMode();
 }
 
 // ── Language ──────────────────────────────────────────────────
@@ -1089,5 +1121,5 @@ _SB.auth.onAuthStateChange((event, session) => {
 // ── Boot ──────────────────────────────────────────────────────
 init();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0a61640588c52ea',t:'MTc4MTIzODI3Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
