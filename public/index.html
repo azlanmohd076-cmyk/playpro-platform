@@ -502,13 +502,18 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);font-size:14p
 }
 .form-input{
   width:100%;padding:.7rem .9rem;
-  background:var(--input-bg);
-  border:1.5px solid var(--input-border);
+  background:var(--dark3);
+  border:1.5px solid var(--border);
   border-radius:10px;color:var(--text);font-size:.88rem;
   outline:none;transition:.15s;
 }
-.form-input:focus{border-color:var(--teal);background:rgba(0,212,170,.05)}
+.form-input:focus{border-color:var(--teal)}
 .form-input::placeholder{color:var(--text-mute)}
+select.form-input{cursor:pointer}
+select.form-input option{background:var(--dark2);color:var(--text)}
+/* Light mode fixes */
+html.light select.form-input option{background:#fff;color:#0f2018}
+html.light .form-input{background:#f0f4f2}
 
 .form-btn{
   width:100%;padding:.82rem;border:none;border-radius:12px;
@@ -828,6 +833,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);font-size:14p
           <option value="club_admin">🛡️ Pengurus Kelab</option>
           <option value="technical_assessor">📋 Pegawai Teknikal</option>
           <option value="referee">🟨 Pengadil</option>
+          <option value="player">⚽ Pemain</option>
+          <option value="parent">👨‍👧 Ibu Bapa</option>
         </select>
       </div>
       <div class="form-group">
@@ -982,7 +989,11 @@ async function doRegister() {
   btn.disabled = false;
   btn.textContent = (_lang==='ms') ? 'Buat Akaun →' : 'Create Account →';
   if (error) { showMsg('msg-register','❌ '+error.message,'error'); return; }
-  showMsg('msg-register','✅ '+(_lang==='ms'?'Akaun dibuat! Semak email untuk pengesahan.':'Account created! Check email to verify.'),'success');
+  showMsg('msg-register',
+    '✅ ' + (_lang==='ms'
+      ? 'Akaun dibuat! Sila semak email ' + email + ' untuk link pengesahan. Klik link tu kemudian log masuk.'
+      : 'Account created! Check ' + email + ' for a confirmation link. Click it then log in.'),
+    'success');
 }
 
 async function handleLogout() {
@@ -1149,5 +1160,5 @@ function applyMode() {
 applyMode();
 init();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0a633966e729ccb',t:'MTc4MTIzOTQ3OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0a69ed4fdf5fd98',t:'MTc4MTI0Mzg3MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
