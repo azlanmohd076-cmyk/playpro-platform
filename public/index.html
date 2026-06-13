@@ -1346,17 +1346,24 @@ async function loadAttributes(pid){
     const GK_CODES = ['gk_handling','gk_contribution','gk_throwing','gk_dirtiness'];
     const gkAttrs = [];
 
+    // Auto-detect scale: if max value <= 20, it's 1-20 (FM style), else 0-100
+    const maxVal = Math.max(...data.map(r => r.current_value || 0));
+    const scale  = maxVal <= 20 ? 20 : 100; // convert to 0-100 for display
+
     data.forEach(r => {
       const code  = r.attribute_code;
       const cat   = r.attribute_definitions?.category || 'technical';
       const label = r.attribute_definitions?.label || code;
       const ord   = r.attribute_definitions?.display_order || 99;
-      const val   = r.current_value || 0;
+      const rawVal = r.current_value || 0;
+      // Convert to 0-100 for display
+      const val   = scale === 20 ? Math.round(rawVal / 20 * 100) : rawVal;
+      const raw20 = scale === 20 ? rawVal : null; // show raw if FM scale
 
       if(GK_CODES.includes(code)){
-        gkAttrs.push({label, val, code, isDirtiness: code==='gk_dirtiness'});
+        gkAttrs.push({label, val, raw20, code, isDirtiness: code==='gk_dirtiness'});
       } else if(CAT_CFG[cat]){
-        CAT_CFG[cat].attrs.push({label, val, code, ord});
+        CAT_CFG[cat].attrs.push({label, val, raw20, code, ord});
       }
     });
 
@@ -1406,7 +1413,10 @@ async function loadAttributes(pid){
             <div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.42rem">
               <div style="width:88px;font-size:.69rem;font-weight:600;color:var(--dim);flex-shrink:0;line-height:1.2">${a.label}</div>
               ${bar(a.val, cat.color)}
-              ${scoreBadge(a.val)}
+              <div style="width:38px;text-align:right;flex-shrink:0">
+                <span style="font-size:.8rem;font-weight:900;color:${a.val>=75?cat.color:a.val>=55?'#f59e0b':'#ef4444'}">${a.raw20!==null?a.raw20:a.val}</span>
+                ${a.raw20!==null?`<span style="font-size:.55rem;color:var(--mute)">/20</span>`:''}
+              </div>
             </div>
           `).join('')}
         </div>`;
@@ -1423,10 +1433,13 @@ async function loadAttributes(pid){
           ${gkAttrs.map(a=>`
             <div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.42rem">
               <div style="width:88px;font-size:.69rem;font-weight:600;color:var(--dim);flex-shrink:0;line-height:1.2">
-                ${a.label}${a.isDirtiness?' <span style="font-size:.55rem;color:#ef4444;font-weight:700">(rendah=bagus)</span>':''}
+                ${a.label}${a.isDirtiness?' <span style="font-size:.55rem;color:#ef4444;font-weight:700">↓ rendah bagus</span>':''}
               </div>
               ${bar(a.val, '#f59e0b', a.isDirtiness)}
-              ${scoreBadge(a.val, a.isDirtiness)}
+              <div style="width:38px;text-align:right;flex-shrink:0">
+                <span style="font-size:.8rem;font-weight:900;color:${a.isDirtiness?(a.val<=25?'#00875a':a.val<=50?'#f59e0b':'#ef4444'):(a.val>=75?'#f59e0b':a.val>=55?'#f59e0b':'#ef4444')}">${a.raw20!==null?a.raw20:a.val}</span>
+                ${a.raw20!==null?`<span style="font-size:.55rem;color:var(--mute)">/20</span>`:''}
+              </div>
             </div>
           `).join('')}
         </div>`;
@@ -1659,5 +1672,5 @@ SB.auth.onAuthStateChange((ev,session)=>{
 });
 init();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0ada439ce0b6cc1',t:'MTc4MTMxNzQ5Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
