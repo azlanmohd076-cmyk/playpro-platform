@@ -909,6 +909,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
         <div id="ppt-dna" class="dna-wrap">
           <div id="dna-loading"><div class="sk" style="height:120px;border-radius:12px;margin-bottom:.5rem"></div><div class="sk" style="height:90px;border-radius:10px"></div></div>
           <div id="dna-data" style="display:none">
+            <!-- Overall + Ring -->
             <div class="dna-big">
               <div class="dna-big-left">
                 <div class="dl-lbl">DNA Keseluruhan</div>
@@ -920,12 +921,15 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
                 <span class="dna-pct" id="dr-pct">0%</span>
               </div>
             </div>
+            <!-- 4 Category cards -->
             <div class="dna-grid">
-              <div class="dna-item"><div class="di-lbl">Teknikal</div><div class="di-val" id="dct">—</div><div class="di-bar"><div class="di-fill" id="dbt" style="width:0%"></div></div></div>
-              <div class="dna-item"><div class="di-lbl">Fizikal</div><div class="di-val" id="dcp">—</div><div class="di-bar"><div class="di-fill" id="dbp" style="width:0%"></div></div></div>
-              <div class="dna-item"><div class="di-lbl">Mental</div><div class="di-val" id="dcm">—</div><div class="di-bar"><div class="di-fill" id="dbm" style="width:0%"></div></div></div>
-              <div class="dna-item"><div class="di-lbl">Taktikal</div><div class="di-val" id="dcta">—</div><div class="di-bar"><div class="di-fill" id="dbta" style="width:0%"></div></div></div>
+              <div class="dna-item"><div class="di-lbl">⚙️ Teknikal</div><div class="di-val" id="dct">—</div><div class="di-bar"><div class="di-fill" id="dbt" style="width:0%"></div></div></div>
+              <div class="dna-item"><div class="di-lbl">💪 Fizikal</div><div class="di-val" id="dcp">—</div><div class="di-bar"><div class="di-fill" id="dbp" style="width:0%"></div></div></div>
+              <div class="dna-item"><div class="di-lbl">🧠 Mental</div><div class="di-val" id="dcm">—</div><div class="di-bar"><div class="di-fill" id="dbm" style="width:0%"></div></div></div>
+              <div class="dna-item"><div class="di-lbl">🎯 Taktikal</div><div class="di-val" id="dcta">—</div><div class="di-bar"><div class="di-fill" id="dbta" style="width:0%"></div></div></div>
             </div>
+            <!-- 18 Individual Attributes -->
+            <div id="attr-detail" style="margin-top:.65rem"></div>
             <div class="dna-empty" id="dna-empty" style="display:none">🧬 DNA belum dikira.<br>Penilaian diperlukan dari coach atau pegawai teknikal.</div>
           </div>
         </div>
@@ -1268,7 +1272,7 @@ async function loadProfile(){
     document.getElementById('pp-fill').style.width=sc+'%';
     document.getElementById('pp-band').textContent=p.passport_band||'Tiada skor';
     el.data.style.display='block';
-    renderDNA(p);renderKYC(p.kyc_status);loadPlayerStats(p.id);
+    renderDNA(p);renderKYC(p.kyc_status);loadPlayerStats(p.id);loadAttributes(p.id);
   }catch(e){
     console.error(e);
     el.loading.style.display='none';
@@ -1317,6 +1321,120 @@ function renderKYC(status){
   }else{
     row.classList.add('kr-none');row.innerHTML='<span>❌</span><span>Belum Disahkan</span>';
   }
+}
+
+async function loadAttributes(pid){
+  const el = document.getElementById('attr-detail');
+  if(!el) return;
+  try{
+    const {data} = await SB.from('player_attributes')
+      .select('attribute_code, current_value, attribute_definitions(label,category,display_order)')
+      .eq('player_id', pid)
+      .eq('is_public', true);
+
+    if(!data || !data.length){ el.innerHTML=''; return; }
+
+    // Category config — outfield + GK specific
+    const CAT_CFG = {
+      technical: { label:'⚙️ Teknikal',  color:'#00875a', icon:'⚙️', order:1, attrs:[] },
+      physical:  { label:'💪 Fizikal',   color:'#3b82f6', icon:'💪', order:2, attrs:[] },
+      mental:    { label:'🧠 Mental',    color:'#8b5cf6', icon:'🧠', order:3, attrs:[] },
+      tactical:  { label:'🎯 Taktikal',  color:'#f59e0b', icon:'🎯', order:4, attrs:[] },
+    };
+
+    // GK codes — show in separate section
+    const GK_CODES = ['gk_handling','gk_contribution','gk_throwing','gk_dirtiness'];
+    const gkAttrs = [];
+
+    data.forEach(r => {
+      const code  = r.attribute_code;
+      const cat   = r.attribute_definitions?.category || 'technical';
+      const label = r.attribute_definitions?.label || code;
+      const ord   = r.attribute_definitions?.display_order || 99;
+      const val   = r.current_value || 0;
+
+      if(GK_CODES.includes(code)){
+        gkAttrs.push({label, val, code, isDirtiness: code==='gk_dirtiness'});
+      } else if(CAT_CFG[cat]){
+        CAT_CFG[cat].attrs.push({label, val, code, ord});
+      }
+    });
+
+    // Sort attrs within each category
+    Object.values(CAT_CFG).forEach(c =>
+      c.attrs.sort((a,b) => a.ord - b.ord)
+    );
+
+    // Bar renderer — Dirtiness is inverted (low = good)
+    const bar = (val, color, inverted=false) => {
+      const pct = Math.min(100, val);
+      let hue;
+      if(inverted){
+        hue = val <= 25 ? '#00875a' : val <= 50 ? '#f59e0b' : '#ef4444';
+      } else {
+        hue = val >= 75 ? color : val >= 55 ? '#f59e0b' : '#ef4444';
+      }
+      return `<div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${hue};border-radius:3px;transition:width .9s ease"></div>
+      </div>`;
+    };
+
+    // Score badge colour
+    const scoreBadge = (val, inverted=false) => {
+      let col;
+      if(inverted) col = val<=25?'#00875a':val<=50?'#f59e0b':'#ef4444';
+      else col = val>=75?'#00875a':val>=55?'#f59e0b':'#ef4444';
+      return `<div style="width:30px;text-align:right;font-size:.82rem;font-weight:900;color:${col};flex-shrink:0">${val}</div>`;
+    };
+
+    // Render outfield categories
+    const catHTML = Object.values(CAT_CFG)
+      .sort((a,b)=>a.order-b.order)
+      .map(cat => {
+        if(!cat.attrs.length) return '';
+        const avg = Math.round(cat.attrs.reduce((s,a)=>s+a.val,0)/cat.attrs.length);
+        const avgCol = avg>=75?cat.color:avg>=55?'#f59e0b':'#ef4444';
+        return `
+        <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:.85rem .95rem;margin-bottom:.5rem;box-shadow:var(--sh)">
+          <div style="display:flex;align-items:center;margin-bottom:.65rem">
+            <div style="font-size:.65rem;font-weight:700;color:${cat.color};text-transform:uppercase;letter-spacing:.1em">${cat.label}</div>
+            <div style="margin-left:auto;background:${avgCol}18;border:1px solid ${avgCol}40;border-radius:7px;padding:.1rem .5rem">
+              <span style="font-size:.78rem;font-weight:900;color:${avgCol}">${avg}</span>
+            </div>
+          </div>
+          ${cat.attrs.map(a=>`
+            <div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.42rem">
+              <div style="width:88px;font-size:.69rem;font-weight:600;color:var(--dim);flex-shrink:0;line-height:1.2">${a.label}</div>
+              ${bar(a.val, cat.color)}
+              ${scoreBadge(a.val)}
+            </div>
+          `).join('')}
+        </div>`;
+      }).join('');
+
+    // Render GK section
+    let gkHTML = '';
+    if(gkAttrs.length){
+      gkHTML = `
+        <div style="background:var(--card);border:1.5px solid rgba(245,158,11,.25);border-radius:12px;padding:.85rem .95rem;margin-bottom:.5rem;box-shadow:var(--sh)">
+          <div style="display:flex;align-items:center;margin-bottom:.65rem">
+            <div style="font-size:.65rem;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:.1em">🥅 Penjaga Gol (GK)</div>
+          </div>
+          ${gkAttrs.map(a=>`
+            <div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.42rem">
+              <div style="width:88px;font-size:.69rem;font-weight:600;color:var(--dim);flex-shrink:0;line-height:1.2">
+                ${a.label}${a.isDirtiness?' <span style="font-size:.55rem;color:#ef4444;font-weight:700">(rendah=bagus)</span>':''}
+              </div>
+              ${bar(a.val, '#f59e0b', a.isDirtiness)}
+              ${scoreBadge(a.val, a.isDirtiness)}
+            </div>
+          `).join('')}
+        </div>`;
+    }
+
+    el.innerHTML = catHTML + gkHTML;
+
+  } catch(e){ console.error('attrs:', e); el.innerHTML=''; }
 }
 
 async function loadPlayerStats(pid){
