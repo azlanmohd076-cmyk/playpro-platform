@@ -1966,9 +1966,10 @@ function showPlayerModal(p){
   const tc = {'ELITE':'#f9a825','ADVANCED':'#c4b5fd','DEVELOPED':'#93c5fd','DEVELOPING':'#6ee7b7','FOUNDATION':'#fbbf24','STARTER':'#d1d5db'}[lv.title]||'#fff';
 
   panel.innerHTML = `
-    <div style="background:${frameImg};min-height:220px;position:relative;padding:1rem">
-      <button onclick="closePlayerModal()" style="position:absolute;top:.75rem;left:.75rem;background:rgba(0,0,0,.4);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;z-index:10">←</button>
-      <div style="display:flex;align-items:center;gap:.85rem;padding-top:2.5rem">
+    <div style="background:${frameImg};min-height:200px;position:relative;padding:1rem;background-size:cover">
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.3),rgba(0,0,0,.6));border-radius:0"></div>
+      <button onclick="closePlayerModal()" style="position:absolute;top:.75rem;left:.75rem;background:rgba(0,0,0,.5);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;z-index:10">←</button>
+      <div style="position:relative;z-index:1;display:flex;align-items:center;gap:.85rem;padding-top:2.5rem">
         <div style="width:70px;height:70px;border-radius:50%;background:${lv.color}33;border:3px solid ${lv.color};box-shadow:0 0 20px ${lv.color}66;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#fff;flex-shrink:0">${dn[0].toUpperCase()}</div>
         <div style="flex:1">
           <div style="font-size:1.05rem;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.06em">${dn}</div>
@@ -1984,7 +1985,7 @@ function showPlayerModal(p){
           <div style="font-size:.48rem;font-weight:800;color:${lv.color};margin-top:.2rem">${lv.title}</div>
         </div>
       </div>
-      <div style="margin-top:.65rem;padding:.4rem .65rem;background:rgba(0,0,0,.3);border-radius:8px;display:flex;align-items:center;gap:.5rem">
+      <div style="position:relative;z-index:1;margin-top:.65rem;padding:.4rem .65rem;background:rgba(0,0,0,.4);border-radius:8px;display:flex;align-items:center;gap:.5rem">
         <span style="font-size:.58rem;color:rgba(255,255,255,.4)">📋</span>
         <span style="font-size:.62rem;font-family:monospace;color:${tc};font-weight:700">${p.passport_number||'—'}</span>
         <span style="margin-left:auto;font-size:.6rem;color:${p.kyc_status==='verified'?'#4ade80':'rgba(255,255,255,.3)'}">${p.kyc_status==='verified'?'✅ Verified':'—'}</span>
