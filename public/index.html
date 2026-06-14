@@ -1170,25 +1170,6 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
                 <div class="bio2-row"><div class="bio2-label">Status Kontrak</div><div class="bio2-val" id="bio2-contract" style="color:#f59e0b">Tiada Kontrak</div></div>
               </div>
             </div>
-            <!-- Football Passport Info -->
-            <div style="background:linear-gradient(135deg,#0d1f2d,#122218);border-radius:13px;padding:1rem;border:1px solid rgba(0,200,120,.15)">
-              <div style="font-size:.62rem;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.65rem">🪪 Football Passport</div>
-              <div style="display:flex;align-items:center;gap:.85rem">
-                <div id="bio2-fp-avatar" style="width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;color:#fff;background:linear-gradient(135deg,#00875a,#00c97a);border:2px solid #9ca3af;flex-shrink:0">A</div>
-                <div style="flex:1">
-                  <div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.15rem" id="bio2-fp-name">—</div>
-                  <div style="font-size:.72rem;font-family:monospace;color:#00c97a;font-weight:700;letter-spacing:.1em;margin-bottom:.3rem" id="bio2-fp-no">Belum ada nombor</div>
-                  <div style="font-size:.6rem;color:rgba(255,255,255,.4);line-height:1.7" id="bio2-fp-meta">—</div>
-                  <div id="bio2-kyc" style="margin-top:.35rem;font-size:.6rem;font-weight:700"><span class="kyc2-none">❌ Identiti belum disahkan</span></div>
-                </div>
-                <div style="text-align:center;flex-shrink:0">
-                  <div style="width:42px;height:42px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:.25rem">
-                    <span style="font-size:1.2rem">▦</span>
-                  </div>
-                  <div style="font-size:.5rem;color:rgba(255,255,255,.25);text-align:center">QR<br>Tetapan</div>
-                </div>
-              </div>
-            </div>
           </div>
 
         </div><!-- /bio -->
@@ -1915,24 +1896,136 @@ async function loadLB(){
   const el=document.getElementById('pp-lb');if(!el)return;
   try{
     const{data}=await SB.from('players')
-      .select('full_name,preferred_name,position,dna_overall,passport_score,clubs(name)')
+      .select('id,full_name,preferred_name,position,dna_overall,passport_score,dna_band,passport_frame,clubs(name)')
       .not('dna_overall','is',null).eq('is_active',true)
-      .order('passport_score',{ascending:false,nullsFirst:false}).limit(8);
+      .order('dna_overall',{ascending:false,nullsFirst:false}).limit(8);
     if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Tiada data pemain lagi</div>';return;}
-    el.innerHTML=data.map((p,i)=>`
-      <div style="display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.42rem;box-shadow:var(--sh)">
+    el.innerHTML=data.map((p,i)=>{
+      const lv=dnaLevel2(p.dna_overall||0);
+      return `<div onclick="viewPlayerProfile('${p.id}')" style="display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.42rem;box-shadow:var(--sh);cursor:pointer;transition:.15s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--card)'">
         <span style="font-size:.95rem;width:26px;text-align:center">${['🥇','🥈','🥉'][i]||i+1}</span>
-        <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.85rem">${(p.preferred_name||p.full_name||'?')[0]}</div>
+        <div style="width:34px;height:34px;border-radius:9px;border:2px solid ${lv.color};background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.85rem">${(p.preferred_name||p.full_name||'?')[0]}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:.78rem;font-weight:700;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.preferred_name||p.full_name||'—'}</div>
           <div style="font-size:.6rem;color:var(--mute)">${posCode2(p.position)} · ${p.clubs?.name||'—'}</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:1rem;font-weight:900;color:var(--g)">${p.passport_score||p.dna_overall||'—'}</div>
-          <div style="font-size:.52rem;color:var(--mute);font-weight:600">SKOR</div>
+          <div style="font-size:1rem;font-weight:900;color:${lv.color}">${p.dna_overall||'—'}</div>
+          <div style="font-size:.52rem;font-weight:700;color:${lv.color}">${p.dna_band||'—'}</div>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }catch(e){el.innerHTML='';}
+}
+
+// Tengok profile pemain lain
+async function viewPlayerProfile(playerId){
+  try{
+    const{data:p}=await SB.from('players')
+      .select('id,full_name,preferred_name,nickname,position,best_position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,nationality,phone,clubs(name)')
+      .eq('id',playerId).eq('is_passport_public',true).single();
+    if(!p){toast('❌ Profil tidak dijumpai atau tidak awam');return;}
+
+    // Simpan player yang ditengok
+    _viewingPlayer = p;
+
+    // Tunjuk modal profile
+    showPlayerModal(p);
+  }catch(e){toast('❌ Gagal muatkan profil');console.error(e);}
+}
+
+let _viewingPlayer = null;
+
+function showPlayerModal(p){
+  // Cipta modal jika belum ada
+  let modal = document.getElementById('player-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'player-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);display:flex;align-items:flex-end;justify-content:center';
+    modal.onclick = function(e){if(e.target===this)closePlayerModal();};
+    document.body.appendChild(modal);
+  }
+
+  const dn = p.preferred_name||p.full_name||'Pemain';
+  const dna = p.dna_overall||0;
+  const lv = dnaLevel2(dna);
+  const posVal = p.best_position||p.position||'';
+
+  modal.innerHTML = `
+    <div style="background:var(--bg);border-radius:18px 18px 0 0;width:100%;max-width:430px;max-height:90vh;overflow-y:auto">
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#0d1f2d,#1a2f3d,#0f2318);padding:1rem;position:relative">
+        <button onclick="closePlayerModal()" style="position:absolute;top:.75rem;right:.85rem;background:rgba(255,255,255,.1);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:.9rem">✕</button>
+        <div style="display:flex;align-items:center;gap:.85rem">
+          <div style="position:relative">
+            <div style="width:56px;height:56px;border-radius:14px;border:${lv.border||'2px solid '+lv.color};box-shadow:${lv.shadow||'none'};background:linear-gradient(135deg,#00875a,#00c97a);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;color:#fff">${dn[0]}</div>
+            <div style="position:absolute;top:-5px;right:-5px;background:#1a2f3d;border:1.5px solid rgba(255,255,255,.2);border-radius:5px;font-size:.52rem;font-weight:800;color:rgba(255,255,255,.85);padding:.08rem .25rem">#${p.jersey_number||'—'}</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:1rem;font-weight:800;color:#fff">${dn}</div>
+            ${p.nickname&&p.nickname!==dn?`<div style="font-size:.63rem;color:rgba(255,255,255,.45);font-style:italic">Dikenali sebagai: ${p.nickname}</div>`:''}
+            <div style="font-size:.7rem;margin:.15rem 0"><span style="background:rgba(0,200,120,.15);border:1px solid rgba(0,200,120,.25);padding:.1rem .4rem;border-radius:5px;color:rgba(255,255,255,.9)">${posCode2(posVal)}</span> <span style="color:rgba(255,255,255,.4);font-size:.63rem">— ${posFull2(posVal)}</span></div>
+            <div style="font-size:.6rem;color:rgba(255,255,255,.5)">🛡️ ${p.clubs?.name||'—'} · 🇲🇾 Malaysian</div>
+          </div>
+          <div style="text-align:center">
+            <div style="width:50px;height:50px;border-radius:50%;border:3px solid ${lv.color};background:rgba(0,0,0,.3);display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <div style="font-size:1.1rem;font-weight:900;color:${lv.color};line-height:1">${dna}</div>
+              <div style="font-size:.4rem;color:rgba(255,255,255,.4);letter-spacing:.06em">DNA</div>
+            </div>
+            <div style="font-size:.48rem;font-weight:800;color:${lv.color};margin-top:.2rem;letter-spacing:.05em">${lv.title}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DNA Bars -->
+      <div style="padding:.75rem 1rem;background:var(--bg2);border-bottom:1px solid var(--bdr)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          ${[
+            {lbl:'⚙️ Teknikal',val:p.dna_technical,col:'#3b82f6'},
+            {lbl:'💪 Fizikal',val:p.dna_physical,col:'#00875a'},
+            {lbl:'🧠 Mental',val:p.dna_mental,col:'#8b5cf6'},
+            {lbl:'🎯 Taktikal',val:p.dna_tactical,col:'#f59e0b'}
+          ].map(c=>`<div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:.2rem">
+              <span style="font-size:.6rem;color:var(--dim)">${c.lbl}</span>
+              <span style="font-size:.65rem;font-weight:800;color:var(--txt)">${c.val||'—'}</span>
+            </div>
+            <div style="height:4px;background:var(--bg3);border-radius:3px"><div style="width:${c.val||0}%;height:100%;background:${c.col};border-radius:3px"></div></div>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div style="padding:.75rem 1rem 1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+        <div style="background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:.75rem">
+          <div style="font-size:.6rem;font-weight:700;color:var(--g);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">👤 Maklumat</div>
+          ${p.date_of_birth?`<div style="margin-bottom:.35rem"><div style="font-size:.55rem;color:var(--mute);font-weight:700;text-transform:uppercase">Umur</div><div style="font-size:.75rem;font-weight:600;color:var(--txt)">${Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000))} tahun</div></div>`:''}
+          <div style="margin-bottom:.35rem"><div style="font-size:.55rem;color:var(--mute);font-weight:700;text-transform:uppercase">Kaki</div><div style="font-size:.75rem;font-weight:600;color:var(--txt)">${p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—'}</div></div>
+          ${p.height_cm?`<div style="margin-bottom:.35rem"><div style="font-size:.55rem;color:var(--mute);font-weight:700;text-transform:uppercase">Tinggi</div><div style="font-size:.75rem;font-weight:600;color:var(--txt)">${p.height_cm}cm</div></div>`:''}
+          <div><div style="font-size:.55rem;color:var(--mute);font-weight:700;text-transform:uppercase">FP No.</div><div style="font-size:.65rem;font-weight:700;color:var(--g);font-family:monospace">${p.passport_number||'—'}</div></div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:.75rem">
+          <div style="font-size:.6rem;font-weight:700;color:var(--g);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">📊 Stats</div>
+          <div style="margin-bottom:.35rem"><div style="font-size:.55rem;color:var(--mute);font-weight:700;text-transform:uppercase">KYC</div><div style="font-size:.72rem;font-weight:700;color:${p.kyc_status==='verified'?'var(--g)':'var(--mute)'}">${p.kyc_status==='verified'?'✅ Disahkan':'⏳ Belum Sahkan'}</div></div>
+          <div style="margin-bottom:.35rem"><div style="font-size:.55rem;color:var(--mute);font-weight:700;text-transform:uppercase">Frame</div><div style="font-size:.72rem;font-weight:700;color:var(--txt);text-transform:uppercase">${p.passport_frame||'—'}</div></div>
+          ${_u?`<div style="margin-top:.65rem"><button onclick="startConvoWith('${p.id}','${dn}')" style="width:100%;padding:.5rem;background:var(--g);color:#fff;border:none;border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">💬 Hantar Mesej</button></div>`:''}
+        </div>
+      </div>
+    </div>`;
+
+  modal.style.display = 'flex';
+}
+
+function closePlayerModal(){
+  const modal = document.getElementById('player-modal');
+  if(modal) modal.style.display = 'none';
+}
+
+function startConvoWith(playerId, playerName){
+  closePlayerModal();
+  go('inbox');
+  toast('💬 Mesej kepada '+playerName+' — akan datang!');
 }
 
 function sharePassport(){
@@ -2245,5 +2338,5 @@ SB.auth.onAuthStateChange((ev,session)=>{
 });
 init();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0b9789d8de8da4a',t:'MTc4MTQ0MTUzNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0baa6318b7f6008',t:'MTc4MTQ1Mzg4OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
