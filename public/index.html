@@ -1150,6 +1150,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
               <div class="bio2-row"><div class="bio2-label">Umur</div><div class="bio2-val" id="bio2-age">—</div></div>
               <div class="bio2-row"><div class="bio2-label">Kebangsaan</div><div class="bio2-val">Malaysian</div></div>
               <div class="bio2-row"><div class="bio2-label">Football Passport No.</div><div class="bio2-val bio2-ppno" id="bio2-ppno">—</div></div>
+              <div class="bio2-row"><div class="bio2-label">No. Telefon</div><div class="bio2-val" id="bio2-phone" style="letter-spacing:.05em">—</div></div>
             </div>
             <div class="bio2-card">
               <div class="bio2-title">⚽ Fizikal & Posisi</div>
@@ -1580,7 +1581,7 @@ async function loadProfile(){
   el.loading.style.display='block';
   try{
     const{data:p}=await SB.from('players')
-      .select('id,full_name,preferred_name,nickname,position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,best_position,secondary_position,nationality,clubs(name)')
+      .select('id,full_name,preferred_name,nickname,position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,best_position,secondary_position,nationality,phone,clubs(name)')
       .eq('profile_id',_u.id).single();
     el.loading.style.display='none';
     if(!p){el.main.style.display='none';el.norec.style.display='block';document.getElementById('pp-norec-sub').textContent='Akaun '+_u.email+' belum dikaitkan dengan rekod pemain.';return;}
@@ -1797,6 +1798,16 @@ function renderBio2(p){
     ageEl.textContent=age+' tahun';
   }
   document.getElementById('bio2-ppno').textContent=p.passport_number||'Belum ada nombor';
+  // No. telefon — separuh disembunyikan untuk orang lain
+  const phoneEl=document.getElementById('bio2-phone');
+  if(phoneEl&&p.phone){
+    // Papar 6 digit pertama, sorok bakinya: 012-345****
+    const ph=p.phone.replace(/\D/g,'');
+    const masked=ph.length>=7 ? ph.substring(0,3)+'-'+ph.substring(3,6)+'****' : ph;
+    phoneEl.textContent=masked;
+  } else if(phoneEl){
+    phoneEl.textContent='—';
+  }
   document.getElementById('bio2-height').textContent=p.height_cm?p.height_cm+' cm':'—';
   document.getElementById('bio2-weight').textContent=p.weight_kg?p.weight_kg+' kg':'—';
   document.getElementById('bio2-foot').textContent=p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—';
@@ -2234,5 +2245,5 @@ SB.auth.onAuthStateChange((ev,session)=>{
 });
 init();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0b9731d8fa9fdfd',t:'MTc4MTQ0MTMxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0b9789d8de8da4a',t:'MTc4MTQ0MTUzNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
