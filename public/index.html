@@ -770,7 +770,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
     <div class="dr-row on" id="dr-home" onclick="go('home');closeDr()"><span class="dr-ic">🏠</span><span class="dr-tx">Laman Utama</span></div>
     <div class="dr-row" id="dr-explore" onclick="go('explore');closeDr()"><span class="dr-ic">🔍</span><span class="dr-tx">Terokai</span></div>
     <div class="dr-row" id="dr-team" onclick="go('team');closeDr()"><span class="dr-ic">⚽</span><span class="dr-tx">Pasukan Saya</span></div>
-    <div class="dr-row" id="dr-profile" onclick="go('profile');closeDr()"><span class="dr-ic">🪪</span><span class="dr-tx">Profil & Passport</span></div>
+    <div class="dr-row" id="dr-profile" onclick="go('profile');closeDr()"><span class="dr-ic">🪪</span><span class="dr-tx">Football Passport</span></div>
     <div class="dr-grp">CIPTA</div>
     <div class="dr-row" onclick="mustLogin()"><span class="dr-ic">🛡️</span><span class="dr-tx">Tubuh Kelab</span></div>
     <div class="dr-row" onclick="mustLogin()"><span class="dr-ic">🏆</span><span class="dr-tx">Anjur Liga</span></div>
@@ -827,7 +827,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
   <div class="hn-item on" id="hn-home" onclick="go('home')">UTAMA</div>
   <div class="hn-item" id="hn-explore" onclick="go('explore')">TEROKAI</div>
   <div class="hn-item" id="hn-team" onclick="go('team')">PASUKAN</div>
-  <div class="hn-item" id="hn-profile" onclick="go('profile')">PROFIL</div>
+  <div class="hn-item" id="hn-profile" onclick="go('profile')">PASSPORT</div>
   <div class="hn-item" onclick="mustLogin()">LIGA</div>
   <div class="hn-item" onclick="mustLogin()">KEDAI</div>
   <div class="hn-right">
@@ -897,6 +897,43 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
   <!-- TEAM -->
   <div id="tab-team" style="display:none">
     <div class="ph"><div class="ph-ic">⚽</div><div class="ph-title">Pasukan Saya — Akan Datang</div><div class="ph-sub">Urus pasukan, jadual dan kedudukan liga kau</div></div>
+  </div>
+
+  <!-- INBOX -->
+  <div id="tab-inbox" style="display:none">
+    <div style="background:var(--bg2);border-bottom:1px solid var(--bdr);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10">
+      <div style="font-size:.95rem;font-weight:800;color:var(--txt)">📥 Inbox</div>
+      <div id="inbox-unread-count" style="font-size:.65rem;color:var(--mute)"></div>
+    </div>
+    <div id="inbox-guest" style="display:none">
+      <div style="text-align:center;padding:3rem 1.5rem">
+        <div style="font-size:2.5rem;margin-bottom:.75rem">📥</div>
+        <div style="font-size:.95rem;font-weight:700;color:var(--txt);margin-bottom:.35rem">Log Masuk untuk Inbox</div>
+        <div style="font-size:.75rem;color:var(--mute);margin-bottom:1.2rem;line-height:1.6">Terima mesej dari coach, kelab dan rakan pemain</div>
+        <button onclick="showLogin()" style="padding:.72rem 1.8rem;background:var(--g);color:#fff;border:none;border-radius:10px;font-size:.83rem;font-weight:700;cursor:pointer;font-family:inherit">🔑 Log Masuk</button>
+      </div>
+    </div>
+    <div id="inbox-main" style="display:none">
+      <div id="inbox-list"></div>
+      <!-- Conversation view -->
+      <div id="inbox-convo" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:100;display:none;flex-direction:column">
+        <div style="background:var(--bg2);border-bottom:1px solid var(--bdr);padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem">
+          <button onclick="closeConvo()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--txt)">←</button>
+          <div id="convo-name" style="font-size:.88rem;font-weight:700;color:var(--txt);flex:1"></div>
+          <div id="convo-badge" style="font-size:.58rem;font-weight:700;padding:.1rem .4rem;border-radius:5px;background:rgba(0,135,90,.1);color:var(--g)">VERIFIED</div>
+        </div>
+        <div id="convo-messages" style="flex:1;overflow-y:auto;padding:.75rem 1rem;display:flex;flex-direction:column;gap:.5rem;min-height:0"></div>
+        <div id="convo-input-wrap" style="padding:.65rem 1rem;background:var(--bg2);border-top:1px solid var(--bdr);display:flex;gap:.5rem">
+          <input id="convo-input" type="text" placeholder="Taip mesej..." style="flex:1;padding:.65rem .85rem;border:1.5px solid var(--bdr);border-radius:22px;font-size:.82rem;font-family:inherit;background:var(--bg3);color:var(--txt);outline:none" onkeydown="if(event.key==='Enter')sendMsg()"/>
+          <button onclick="sendMsg()" style="padding:.65rem 1rem;background:var(--g);color:#fff;border:none;border-radius:22px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit">Hantar</button>
+        </div>
+        <div id="convo-kyc-block" style="display:none;padding:.75rem 1rem;background:rgba(245,158,11,.08);border-top:1px solid rgba(245,158,11,.2)">
+          <div style="font-size:.75rem;color:#f59e0b;font-weight:600;margin-bottom:.45rem">⚠️ Sahkan identiti untuk hantar mesej</div>
+          <div style="font-size:.68rem;color:var(--dim);margin-bottom:.55rem;line-height:1.55">Hanya pengguna yang telah disahkan boleh menghantar mesej. Ini memastikan keselamatan semua pengguna PlayPro.</div>
+          <button onclick="toast('KYC — akan datang!')" style="padding:.5rem 1rem;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit">Sahkan Identiti Sekarang →</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- PROFILE -->
@@ -1160,25 +1197,75 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
   <div class="bn on" id="bn-home" onclick="go('home')"><div class="bn-ic">🏠</div><div class="bn-lb">Utama</div></div>
   <div class="bn" id="bn-explore" onclick="go('explore')"><div class="bn-ic">🔍</div><div class="bn-lb">Terokai</div></div>
   <div class="bn" id="bn-team" onclick="go('team')"><div class="bn-ic">⚽</div><div class="bn-lb">Pasukan</div></div>
-  <div class="bn" id="bn-profile" onclick="go('profile')"><div class="bn-ic">🪪</div><div class="bn-lb">Profil</div></div>
+  <div class="bn" id="bn-inbox" onclick="go('inbox')" style="position:relative">
+    <div class="bn-ic">📥</div>
+    <div class="bn-lb">Inbox</div>
+    <div id="inbox-badge" style="display:none;position:absolute;top:4px;right:12px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:1.5px solid var(--bg2)"></div>
+  </div>
+  <div class="bn" id="bn-profile" onclick="go('profile')"><div class="bn-ic">🪪</div><div class="bn-lb">Passport</div></div>
 </div>
 
 <!-- LOGIN SHEET -->
 <div id="lmask" onclick="if(event.target===this)closeLogin()">
   <div id="lsheet">
     <div class="ls-bar"></div>
-    <div class="ls-hd"><div class="ls-title">PlayPro</div><div class="ls-sub">Log masuk atau buat akaun baru</div></div>
+    <div class="ls-hd">
+      <div class="ls-title">PlayPro</div>
+      <div class="ls-sub">Log masuk atau buat akaun baru</div>
+    </div>
     <div class="ls-tabs">
       <button class="ls-tab on" onclick="lsSwitch('login')">Log Masuk</button>
       <button class="ls-tab" onclick="lsSwitch('daftar')">Daftar</button>
     </div>
+
+    <!-- ── PANE: LOG MASUK ── -->
     <div id="pane-login">
+
+      <!-- Social Login Buttons -->
+      <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.85rem">
+        <button onclick="doGoogleLogin()" style="display:flex;align-items:center;justify-content:center;gap:.6rem;width:100%;padding:.72rem;border:1.5px solid var(--bdr);border-radius:10px;background:var(--bg2);font-size:.82rem;font-weight:600;color:var(--txt);cursor:pointer;font-family:inherit;transition:.15s" onmouseover="this.style.borderColor='#4285f4'" onmouseout="this.style.borderColor='var(--bdr)'">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-21 0-1.3-.2-2.7-.5-4z"/><path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.1 2 9.3 7.4 6.3 14.7z"/><path fill="#FBBC05" d="M24 46c5.6 0 10.6-1.9 14.5-5.1l-6.7-5.5C29.8 37 27 38 24 38c-5.7 0-10.6-3.1-11.8-7.5l-7 5.4C8.1 42 15.5 46 24 46z"/><path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-.6 2.3-2 4.3-3.8 5.8l6.7 5.5C42.7 36.3 46 30.6 46 24c0-1.3-.2-2.7-.5-4z"/></svg>
+          Teruskan dengan Google
+        </button>
+        <button onclick="doFacebookLogin()" style="display:flex;align-items:center;justify-content:center;gap:.6rem;width:100%;padding:.72rem;border:1.5px solid var(--bdr);border-radius:10px;background:var(--bg2);font-size:.82rem;font-weight:600;color:var(--txt);cursor:pointer;font-family:inherit;transition:.15s" onmouseover="this.style.borderColor='#1877f2'" onmouseout="this.style.borderColor='var(--bdr)'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877f2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Teruskan dengan Facebook
+        </button>
+        <button onclick="doTwitterLogin()" style="display:flex;align-items:center;justify-content:center;gap:.6rem;width:100%;padding:.72rem;border:1.5px solid var(--bdr);border-radius:10px;background:var(--bg2);font-size:.82rem;font-weight:600;color:var(--txt);cursor:pointer;font-family:inherit;transition:.15s" onmouseover="this.style.borderColor='#000'" onmouseout="this.style.borderColor='var(--bdr)'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#000"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.736-8.858L1.254 2.25H8.08l4.259 5.631 5.905-5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          Teruskan dengan X (Twitter)
+        </button>
+      </div>
+
+      <!-- Divider -->
+      <div style="display:flex;align-items:center;gap:.65rem;margin-bottom:.75rem">
+        <div style="flex:1;height:1px;background:var(--bdr)"></div>
+        <span style="font-size:.68rem;color:var(--mute);font-weight:500">atau guna emel</span>
+        <div style="flex:1;height:1px;background:var(--bdr)"></div>
+      </div>
+
       <div class="fg"><label class="fl">Emel</label><input class="fi" id="l-em" type="email" placeholder="email@anda.com" onkeydown="if(event.key==='Enter')doLogin()"/></div>
       <div class="fg"><label class="fl">Kata Laluan</label><input class="fi" id="l-pw" type="password" placeholder="Kata laluan kau" onkeydown="if(event.key==='Enter')doLogin()"/><div class="ls-forgot" onclick="doForgot()">Lupa kata laluan?</div></div>
       <button class="fb" id="l-btn" onclick="doLogin()">Log Masuk →</button>
       <div class="fm" id="l-msg"></div>
     </div>
+
+    <!-- ── PANE: DAFTAR ── -->
     <div id="pane-daftar" style="display:none">
+
+      <!-- Social signup same as login -->
+      <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.85rem">
+        <button onclick="doGoogleLogin()" style="display:flex;align-items:center;justify-content:center;gap:.6rem;width:100%;padding:.72rem;border:1.5px solid var(--bdr);border-radius:10px;background:var(--bg2);font-size:.82rem;font-weight:600;color:var(--txt);cursor:pointer;font-family:inherit">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-21 0-1.3-.2-2.7-.5-4z"/><path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.1 2 9.3 7.4 6.3 14.7z"/><path fill="#FBBC05" d="M24 46c5.6 0 10.6-1.9 14.5-5.1l-6.7-5.5C29.8 37 27 38 24 38c-5.7 0-10.6-3.1-11.8-7.5l-7 5.4C8.1 42 15.5 46 24 46z"/><path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-.6 2.3-2 4.3-3.8 5.8l6.7 5.5C42.7 36.3 46 30.6 46 24c0-1.3-.2-2.7-.5-4z"/></svg>
+          Daftar dengan Google
+        </button>
+      </div>
+      <div style="display:flex;align-items:center;gap:.65rem;margin-bottom:.75rem">
+        <div style="flex:1;height:1px;background:var(--bdr)"></div>
+        <span style="font-size:.68rem;color:var(--mute);font-weight:500">atau daftar dengan emel</span>
+        <div style="flex:1;height:1px;background:var(--bdr)"></div>
+      </div>
+
       <div id="d-s1">
         <p style="font-size:.74rem;color:var(--mute);margin-bottom:.7rem;font-weight:500">Pilih peranan kau dalam bola sepak Malaysia:</p>
         <div class="portal-grid">
@@ -1187,13 +1274,27 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
           <div class="portal-card" onclick="pickRole('club_admin','🛡️','Pengurus Kelab')"><span>🛡️</span><span>Pengurus Kelab</span></div>
           <div class="portal-card" onclick="pickRole('league_admin','🏆','Penganjur Liga')"><span>🏆</span><span>Penganjur Liga</span></div>
           <div class="portal-card" onclick="pickRole('referee','🟨','Pengadil')"><span>🟨</span><span>Pengadil</span></div>
-          <div class="portal-card" onclick="pickRole('technical_assessor','📋','Pegawai Teknikal')"><span>📋</span><span>Pegawai Teknikal</span></div>
         </div>
       </div>
       <div id="d-s2" style="display:none">
         <div class="role-chip"><span id="rc-ic" style="font-size:1.3rem"></span><span class="rc-txt" id="rc-nm"></span><button class="rc-chg" onclick="backRole()">← Tukar</button></div>
         <input type="hidden" id="d-role"/>
         <div class="fg"><label class="fl">Nama Penuh</label><input class="fi" id="d-name" type="text" placeholder="Nama penuh kau"/></div>
+        <div class="fg"><label class="fl">No. Telefon</label>
+          <div style="display:flex;gap:.4rem">
+            <select class="fi" id="d-phone-code" style="width:90px;flex-shrink:0;padding-left:.5rem">
+              <option value="+60">🇲🇾 +60</option>
+              <option value="+65">🇸🇬 +65</option>
+              <option value="+62">🇮🇩 +62</option>
+              <option value="+66">🇹🇭 +66</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="other">Lain</option>
+            </select>
+            <input class="fi" id="d-phone" type="tel" placeholder="123456789" style="flex:1"/>
+          </div>
+          <div style="font-size:.6rem;color:var(--mute);margin-top:.25rem">Nombor ini tidak akan dipaparkan sepenuhnya kepada orang lain</div>
+        </div>
         <div class="fg"><label class="fl">Emel</label><input class="fi" id="d-em" type="email" placeholder="email@anda.com"/></div>
         <div class="fg"><label class="fl">Kata Laluan</label><input class="fi" id="d-pw" type="password" placeholder="Minimum 8 aksara"/></div>
         <button class="fb" id="d-btn" onclick="doRegister()">Buat Akaun →</button>
@@ -1271,6 +1372,30 @@ function pickRole(r,ic,nm){
 }
 function backRole(){document.getElementById('d-s1').style.display='block';document.getElementById('d-s2').style.display='none'}
 
+async function doGoogleLogin(){
+  const{error}=await SB.auth.signInWithOAuth({
+    provider:'google',
+    options:{redirectTo:window.location.href}
+  });
+  if(error) toast('❌ Google login gagal: '+error.message);
+}
+
+async function doFacebookLogin(){
+  const{error}=await SB.auth.signInWithOAuth({
+    provider:'facebook',
+    options:{redirectTo:window.location.href}
+  });
+  if(error) toast('❌ Facebook login gagal: '+error.message);
+}
+
+async function doTwitterLogin(){
+  const{error}=await SB.auth.signInWithOAuth({
+    provider:'twitter',
+    options:{redirectTo:window.location.href}
+  });
+  if(error) toast('❌ X login gagal: '+error.message);
+}
+
 async function doLogin(){
   const em=document.getElementById('l-em').value.trim();
   const pw=document.getElementById('l-pw').value;
@@ -1304,13 +1429,19 @@ async function doRegister(){
   const role=document.getElementById('d-role').value||'player';
   const pw=document.getElementById('d-pw').value;
   const btn=document.getElementById('d-btn');
+  const phoneCode=document.getElementById('d-phone-code')?.value||'+60';
+  const phoneNum=(document.getElementById('d-phone')?.value||'').trim();
+  const fullPhone=phoneNum?(phoneCode+phoneNum):'';
   if(!name||!em||!pw){setMsg('d-msg','⚠️ Sila isi semua maklumat','err');return}
   if(pw.length<8){setMsg('d-msg','⚠️ Kata laluan mesti 8 aksara ke atas','err');return}
   btn.disabled=true;btn.innerHTML='<span class="spin"></span>Mendaftar...';
-  const{error}=await SB.auth.signUp({email:em,password:pw,options:{data:{full_name:name,role}}});
+  const{data,error}=await SB.auth.signUp({email:em,password:pw,options:{data:{full_name:name,role,phone:fullPhone}}});
   btn.disabled=false;btn.textContent='Buat Akaun →';
   if(error){setMsg('d-msg','❌ '+error.message,'err');return}
-  setMsg('d-msg','✅ Akaun berjaya dibuat! Semak emel '+em+' untuk pengesahan, kemudian log masuk.','ok');
+  if(data?.user&&fullPhone){
+    await SB.from('profiles').upsert({id:data.user.id,full_name:name,phone:fullPhone,role},{onConflict:'id'});
+  }
+  setMsg('d-msg','✅ Akaun dibuat! Semak emel '+em+' untuk pengesahan.','ok');
 }
 
 async function doLogout(){
@@ -1766,6 +1897,154 @@ function posLbl(p){
   return posFull2(p)||p||'—';
 }
 
+/* ── INBOX ── */
+let _currentConvo = null;
+let _inboxChannel = null;
+
+async function loadInbox(){
+  const guest = document.getElementById('inbox-guest');
+  const main  = document.getElementById('inbox-main');
+  if(!_u){
+    if(guest) guest.style.display='block';
+    if(main)  main.style.display='none';
+    return;
+  }
+  if(guest) guest.style.display='none';
+  if(main)  main.style.display='block';
+  await fetchConversations();
+}
+
+async function fetchConversations(){
+  const list = document.getElementById('inbox-list');
+  if(!list) return;
+
+  // Demo conversations (akan digantikan dengan Supabase realtime)
+  const demoConvos = [
+    {id:'c1', name:'Kelab Muda Nilai FC', avatar:'K', color:'#3b82f6', msg:'Kami berminat untuk menjemput anda ke sesi tryout kami minggu hadapan...', time:'2 min lalu', unread:true, verified:true},
+    {id:'c2', name:'Coach Rahman', avatar:'R', color:'#00875a', msg:'DNA kau memang power bro. Nak tanya pasal posisi midfielder kau...', time:'1 jam lalu', unread:true, verified:true},
+    {id:'c3', name:'PlayPro System', avatar:'▶', color:'#8b5cf6', msg:'Selamat datang ke PlayPro! Football Passport kau telah berjaya dibuat.', time:'semalam', unread:false, verified:true},
+    {id:'c4', name:'Hafizi Razak', avatar:'H', color:'#f59e0b', msg:'Bro, nak ajak main futsal sabtu ni. Kau free tak?', time:'3 hari lalu', unread:false, verified:true},
+  ];
+
+  const unreadCount = demoConvos.filter(c=>c.unread).length;
+  const badge = document.getElementById('inbox-badge');
+  const countEl = document.getElementById('inbox-unread-count');
+  if(badge) badge.style.display = unreadCount>0?'block':'none';
+  if(countEl) countEl.textContent = unreadCount>0?unreadCount+' mesej belum dibaca':'';
+
+  list.innerHTML = demoConvos.map(c=>`
+    <div onclick="openConvo('${c.id}','${c.name}','${c.avatar}','${c.color}',${c.verified})"
+      style="display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;border-bottom:1px solid var(--bdr);cursor:pointer;background:${c.unread?'rgba(0,135,90,.04)':'var(--bg2)'};transition:.15s"
+      onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='${c.unread?'rgba(0,135,90,.04)':'var(--bg2)'}'"
+    >
+      <div style="width:42px;height:42px;border-radius:12px;background:${c.color};display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:800;color:#fff;flex-shrink:0">${c.avatar}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.15rem">
+          <div style="font-size:.82rem;font-weight:${c.unread?'700':'600'};color:var(--txt)">${c.name}</div>
+          <div style="font-size:.6rem;color:var(--mute);flex-shrink:0;margin-left:.5rem">${c.time}</div>
+        </div>
+        <div style="font-size:.7rem;color:${c.unread?'var(--txt)':'var(--mute)'};font-weight:${c.unread?'500':'400'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.msg}</div>
+      </div>
+      ${c.unread?`<div style="width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0"></div>`:''}
+    </div>`).join('');
+}
+
+function openConvo(id, name, avatar, color, verified){
+  _currentConvo = id;
+  document.getElementById('convo-name').textContent = name;
+
+  // Demo messages
+  const demoMsgs = {
+    c1:[
+      {from:'other', text:'Assalamualaikum, saya dari Kelab Muda Nilai FC.', time:'10:20'},
+      {from:'other', text:'Kami berminat untuk menjemput anda ke sesi tryout kami minggu hadapan. DNA anda sangat impressive!', time:'10:21'},
+      {from:'me',    text:'Waalaikumsalam. Terima kasih atas jemputan.', time:'10:35'},
+      {from:'me',    text:'Boleh berikan details lanjut mengenai tryout tersebut?', time:'10:35'},
+      {from:'other', text:'Tryout pada Sabtu 21 Jun 2026, jam 9 pagi di Stadium Nilai. Kami akan cover transport. 😊', time:'10:40'},
+    ],
+    c2:[
+      {from:'other', text:'Bro, tengok DNA kau memang impressive untuk CM!', time:'kemarin'},
+      {from:'other', text:'Stamina 15 dan Leadership 16... rare bro untuk grassroot level.', time:'kemarin'},
+      {from:'me',    text:'Haha thanks coach. Baru mula training serius 2 tahun lepas.', time:'kemarin'},
+    ],
+    c3:[
+      {from:'system', text:'🎉 Selamat datang ke PlayPro! Football Passport kau telah berjaya dibuat.', time:'semalam'},
+      {from:'system', text:'FP No. kau: 27091976-05-AZLN', time:'semalam'},
+      {from:'system', text:'Lengkapkan profil kau untuk meningkatkan DNA score!', time:'semalam'},
+    ],
+    c4:[
+      {from:'other', text:'Bro kau free sabtu tak?', time:'3 hari lalu'},
+      {from:'other', text:'Nak kumpul main futsal. Ada slot 2 lagi.', time:'3 hari lalu'},
+    ],
+  };
+
+  const msgs = demoMsgs[id] || [];
+  const convoEl = document.getElementById('inbox-convo');
+  const msgsEl  = document.getElementById('convo-messages');
+  const inputWrap = document.getElementById('convo-input-wrap');
+  const kycBlock  = document.getElementById('convo-kyc-block');
+
+  // Semak KYC — untuk demo anggap user sudah verified
+  const isVerified = true; // dalam production: _pd?.kyc_status === 'verified'
+  if(inputWrap) inputWrap.style.display = isVerified?'flex':'none';
+  if(kycBlock)  kycBlock.style.display  = isVerified?'none':'block';
+
+  msgsEl.innerHTML = msgs.map(m=>{
+    if(m.from==='system') return `
+      <div style="text-align:center;margin:.35rem 0">
+        <div style="display:inline-block;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.15);color:#8b5cf6;font-size:.68rem;padding:.4rem .85rem;border-radius:12px;max-width:85%;text-align:left;line-height:1.5">${m.text}</div>
+        <div style="font-size:.55rem;color:var(--mute);margin-top:.2rem">${m.time}</div>
+      </div>`;
+    if(m.from==='me') return `
+      <div style="display:flex;justify-content:flex-end">
+        <div style="max-width:75%">
+          <div style="background:var(--g);color:#fff;font-size:.78rem;padding:.55rem .85rem;border-radius:14px 14px 4px 14px;line-height:1.5">${m.text}</div>
+          <div style="font-size:.55rem;color:var(--mute);text-align:right;margin-top:.2rem">${m.time} ✓✓</div>
+        </div>
+      </div>`;
+    return `
+      <div style="display:flex;justify-content:flex-start">
+        <div style="max-width:75%">
+          <div style="background:var(--card);border:1px solid var(--bdr);color:var(--txt);font-size:.78rem;padding:.55rem .85rem;border-radius:14px 14px 14px 4px;line-height:1.5">${m.text}</div>
+          <div style="font-size:.55rem;color:var(--mute);margin-top:.2rem">${m.time}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  convoEl.style.display = 'flex';
+  setTimeout(()=>{ msgsEl.scrollTop = msgsEl.scrollHeight; }, 100);
+
+  // Mark as read
+  const badge = document.getElementById('inbox-badge');
+  if(badge && document.querySelectorAll('[style*="background:#ef4444"]').length <= 1)
+    badge.style.display = 'none';
+}
+
+function closeConvo(){
+  const convoEl = document.getElementById('inbox-convo');
+  if(convoEl) convoEl.style.display = 'none';
+  _currentConvo = null;
+}
+
+function sendMsg(){
+  const input = document.getElementById('convo-input');
+  const msgsEl = document.getElementById('convo-messages');
+  if(!input||!msgsEl||!input.value.trim()) return;
+  const txt = input.value.trim();
+  input.value = '';
+  const now = new Date();
+  const time = now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes();
+  msgsEl.innerHTML += `
+    <div style="display:flex;justify-content:flex-end">
+      <div style="max-width:75%">
+        <div style="background:var(--g);color:#fff;font-size:.78rem;padding:.55rem .85rem;border-radius:14px 14px 4px 14px;line-height:1.5">${txt}</div>
+        <div style="font-size:.55rem;color:var(--mute);text-align:right;margin-top:.2rem">${time} ✓</div>
+      </div>
+    </div>`;
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+  // TODO: dalam production — SB.from('messages').insert(...)
+}
+
 /* ── FEED ── */
 /* ── FEED DATA ── */
 const FEED=[
@@ -1919,5 +2198,5 @@ SB.auth.onAuthStateChange((ev,session)=>{
 });
 init();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0b819610aeab65f',t:'MTc4MTQyNzE0OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0b8f4c2bbcdfdc1',t:'MTc4MTQzNjEzNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
