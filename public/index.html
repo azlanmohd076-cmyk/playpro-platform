@@ -2010,7 +2010,7 @@ function showPlayerModal(p){
     + '</div>'
     // Buttons
     + '<div style="display:flex;gap:.45rem">'
-    + (_u?'<button onclick="startConvoWith(this)" data-pid="'+p.id+'',''+dn+'" style="flex:1;padding:.58rem;background:'+lv.color+';color:#000;border:none;border-radius:8px;font-size:.72rem;font-weight:800;cursor:pointer;font-family:inherit">💬 Hantar Mesej</button>'
+    + (_u?'<button onclick="startConvoWith(this)" data-pid="'+p.id+'" data-pname="'+dn+'" style="flex:1;padding:.58rem;background:'+lv.color+';color:#000;border:none;border-radius:8px;font-size:.72rem;font-weight:800;cursor:pointer;font-family:inherit">💬 Hantar Mesej</button>'
         :'<button onclick="closePlayerModal();showLogin();" style="flex:1;padding:.58rem;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">🔑 Log Masuk</button>')
     + '<button onclick="closePlayerModal()" style="padding:.58rem .75rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:.72rem;cursor:pointer;font-family:inherit">✕</button>'
     + '</div>'
@@ -2342,5 +2342,5 @@ SB.auth.onAuthStateChange((ev,session)=>{
 });
 init();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0bb0a9a3fd59f98',t:'MTc4MTQ1ODAwMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0bb0f1fe84a294b',t:'MTc4MTQ1ODE4Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
