@@ -1966,29 +1966,37 @@ function showPlayerModal(p){
   const tc = {'ELITE':'#f9a825','ADVANCED':'#c4b5fd','DEVELOPED':'#93c5fd','DEVELOPING':'#6ee7b7','FOUNDATION':'#fbbf24','STARTER':'#d1d5db'}[lv.title]||'#fff';
 
   panel.innerHTML = `
-    <div style="background-image:url('${frameImg}');background-size:cover;background-position:center top;min-height:200px;position:relative;padding:1rem">
-      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.3),rgba(0,0,0,.6));border-radius:0"></div>
-      <button onclick="closePlayerModal()" style="position:absolute;top:.75rem;left:.75rem;background:rgba(0,0,0,.5);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;z-index:10">←</button>
-      <div style="position:relative;z-index:1;display:flex;align-items:center;gap:.85rem;padding-top:2.5rem">
-        <div style="width:70px;height:70px;border-radius:50%;background:${lv.color}33;border:3px solid ${lv.color};box-shadow:0 0 20px ${lv.color}66;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#fff;flex-shrink:0">${dn[0].toUpperCase()}</div>
-        <div style="flex:1">
-          <div style="font-size:1.05rem;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.06em">${dn}</div>
-          ${p.nickname&&p.nickname!==dn?`<div style="font-size:.62rem;color:${tc};font-style:italic">Dikenali: ${p.nickname}</div>`:''}
-          <div style="font-size:.7rem;margin:.15rem 0"><span style="background:rgba(255,255,255,.15);padding:.1rem .4rem;border-radius:5px;color:#fff">${posCode2(posVal)}</span> <span style="color:rgba(255,255,255,.45);font-size:.63rem">— ${posFull2(posVal)}</span></div>
-          <div style="font-size:.6rem;color:rgba(255,255,255,.5)">🛡️ ${p.clubs?.name||'—'} · 🇲🇾</div>
-        </div>
-        <div style="text-align:center">
-          <div style="width:52px;height:52px;border-radius:50%;border:3px solid ${lv.color};background:rgba(0,0,0,.3);display:flex;flex-direction:column;align-items:center;justify-content:center">
-            <div style="font-size:1.15rem;font-weight:900;color:${lv.color};line-height:1">${dna}</div>
-            <div style="font-size:.4rem;color:rgba(255,255,255,.4)">DNA</div>
+    <div style="position:relative;min-height:200px;overflow:hidden">
+      <!-- Frame image sebagai background -->
+      <img src="${frameImg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top" onerror="this.style.display='none'"/>
+      <!-- Dark overlay -->
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.4) 0%,rgba(0,0,0,.75) 100%)"></div>
+      <!-- Back button -->
+      <button onclick="closePlayerModal()" style="position:absolute;top:.75rem;left:.75rem;background:rgba(0,0,0,.5);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1.1rem;z-index:10;display:flex;align-items:center;justify-content:center">←</button>
+      <!-- Content -->
+      <div style="position:relative;z-index:2;padding:3rem 1rem 1rem">
+        <div style="display:flex;align-items:center;gap:.85rem">
+          <div style="width:68px;height:68px;border-radius:50%;background:${lv.color}44;border:3px solid ${lv.color};box-shadow:0 0 20px ${lv.color}88;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#fff;flex-shrink:0">${dn[0].toUpperCase()}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:1.1rem;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.06em">${dn}</div>
+            ${p.nickname&&p.nickname!==dn?`<div style="font-size:.62rem;color:${tc};font-style:italic;margin-bottom:.1rem">Dikenali: ${p.nickname}</div>`:''}
+            <div style="margin:.2rem 0"><span style="background:rgba(255,255,255,.15);padding:.1rem .45rem;border-radius:5px;color:#fff;font-size:.68rem;font-weight:700">${posCode2(posVal)}</span> <span style="color:rgba(255,255,255,.5);font-size:.62rem">— ${posFull2(posVal)}</span></div>
+            <div style="font-size:.6rem;color:rgba(255,255,255,.55)">🛡️ ${p.clubs?.name||'—'} · 🇲🇾 · ${age} thn</div>
           </div>
-          <div style="font-size:.48rem;font-weight:800;color:${lv.color};margin-top:.2rem">${lv.title}</div>
+          <div style="text-align:center;flex-shrink:0">
+            <div style="width:54px;height:54px;border-radius:50%;border:3px solid ${lv.color};background:rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 15px ${lv.color}66">
+              <div style="font-size:1.2rem;font-weight:900;color:${lv.color};line-height:1">${dna}</div>
+              <div style="font-size:.4rem;color:rgba(255,255,255,.4);letter-spacing:.05em">DNA</div>
+            </div>
+            <div style="font-size:.5rem;font-weight:800;color:${lv.color};margin-top:.2rem;letter-spacing:.05em">${lv.title}</div>
+          </div>
         </div>
-      </div>
-      <div style="position:relative;z-index:1;margin-top:.65rem;padding:.4rem .65rem;background:rgba(0,0,0,.4);border-radius:8px;display:flex;align-items:center;gap:.5rem">
-        <span style="font-size:.58rem;color:rgba(255,255,255,.4)">📋</span>
-        <span style="font-size:.62rem;font-family:monospace;color:${tc};font-weight:700">${p.passport_number||'—'}</span>
-        <span style="margin-left:auto;font-size:.6rem;color:${p.kyc_status==='verified'?'#4ade80':'rgba(255,255,255,.3)'}">${p.kyc_status==='verified'?'✅ Verified':'—'}</span>
+        <!-- Passport bar -->
+        <div style="margin-top:.65rem;padding:.35rem .65rem;background:rgba(0,0,0,.45);border-radius:8px;display:flex;align-items:center;gap:.5rem;border:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:.58rem;color:rgba(255,255,255,.4)">🪪</span>
+          <span style="font-size:.62rem;font-family:monospace;color:${tc};font-weight:700">${p.passport_number||'—'}</span>
+          <span style="margin-left:auto;font-size:.6rem;font-weight:700;color:${p.kyc_status==='verified'?'#4ade80':'rgba(255,255,255,.3)'}">${p.kyc_status==='verified'?'✅ Verified':'—'}</span>
+        </div>
       </div>
     </div>
 
