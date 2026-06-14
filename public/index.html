@@ -1492,6 +1492,20 @@ async function loadTopScorers(){
   }catch(e){el.innerHTML='';console.error('loadTS:',e);}
 }
 
+
+const POS_MAP2 = {
+  gk:'GK|Goalkeeper',cb:'CB|Center-Back',lb:'LB|Left-Back',rb:'RB|Right-Back',
+  lwb:'LWB|Left Wing-Back',rwb:'RWB|Right Wing-Back',
+  dm:'DM|Defensive Midfielder',cm:'CM|Central Midfielder',
+  am:'AM|Attacking Midfielder',lm:'LM|Left Midfielder',rm:'RM|Right Midfielder',
+  cf:'CF|Center-Forward',st:'ST|Striker',ss:'SS|Second Striker',
+  midfielder:'CM|Central Midfielder',forward:'ST|Striker',
+  defender:'CB|Center-Back',goalkeeper:'GK|Goalkeeper',
+};
+function posCode2(p){if(!p)return'—';const k=p.toLowerCase();const m=POS_MAP2[k];return m?m.split('|')[0]:p.toUpperCase();}
+function posFull2(p){if(!p)return'';const k=p.toLowerCase();const m=POS_MAP2[k];return m?m.split('|')[1]:'';}
+function posLbl(p){return posFull2(p)||p||'—';}
+
 function dnaLevel2(s){
   if(!s||s===0) return{title:'—',stars:0,color:'#9ca3af'};
   if(s>=90) return{title:'ELITE',      stars:5,color:'#f9a825',border:'3px solid #f9a825',shadow:'0 0 16px rgba(249,168,37,.7)'};
