@@ -1458,73 +1458,39 @@ function updateUI(){
 
 /* ── STATS STRIP ── */
 async function loadTopScorers(){
-  const el=document.getElementById('top-scorers-home');
-  if(!el)return;
+  const el=document.getElementById('top-scorers-home');if(!el)return;
   try{
     const{data}=await SB.from('players')
-      .select('full_name,preferred_name,position,passport_score,dna_overall,clubs(name)')
-      .not('passport_score','is',null)
-      .eq('is_active',true)
-      .order('passport_score',{ascending:false})
-      .limit(5);
-    if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--mute);font-size:.78rem">Tiada data lagi</div>';return;}
+      .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,clubs(name)')
+      .not('dna_overall','is',null).eq('is_active',true)
+      .order('dna_overall',{ascending:false}).limit(5);
+    if(!data||!data.length){el.innerHTML='';return;}
+    
+    el.innerHTML='';
     const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
-    el.innerHTML=data.map((p,i)=>`
-      <div style="display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.45rem;box-shadow:var(--sh)">
+    data.forEach((p,i)=>{
+      const lv=dnaLevel2(p.dna_overall||0);
+      const pos=p.best_position||p.position||'';
+      const div=document.createElement('div');
+      div.style.cssText='display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.45rem;box-shadow:var(--sh);cursor:pointer;transition:.15s';
+      div.innerHTML=`
         <span style="font-size:1.1rem;width:28px;text-align:center">${medals[i]}</span>
-        <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.88rem;flex-shrink:0">${(p.preferred_name||p.full_name||'?')[0]}</div>
+        <div style="width:36px;height:36px;border-radius:9px;border:2px solid ${lv.color};background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.88rem">${(p.preferred_name||p.full_name||'?')[0]}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:.81rem;font-weight:700;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.preferred_name||p.full_name||'—'}</div>
-          <div style="font-size:.62rem;color:var(--mute);margin-top:1px">${posLbl(p.position)} · ${p.clubs?.name||'—'}</div>
+          <div style="font-size:.62rem;color:var(--mute)">${posCode2(pos)} · ${p.clubs?.name||'—'}</div>
         </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:1.2rem;font-weight:900;color:var(--g);line-height:1;letter-spacing:-.03em">${p.passport_score||p.dna_overall||'—'}</div>
-          <div style="font-size:.55rem;color:var(--mute);font-weight:600;letter-spacing:.04em">SKOR</div>
-        </div>
-      </div>
-    `).join('');
-  }catch(e){el.innerHTML='';}
-}
-
-async function loadStats_strip(){
-  try{
-    const[{count:l},{count:c},{count:p},{count:m}]=await Promise.all([
-      SB.from('leagues').select('*',{count:'exact',head:true}).eq('is_active',true),
-      SB.from('clubs').select('*',{count:'exact',head:true}).eq('is_active',true),
-      SB.from('players').select('*',{count:'exact',head:true}).eq('is_active',true),
-      SB.from('fixtures').select('*',{count:'exact',head:true}).eq('status','completed'),
-    ]);
-    document.getElementById('ss-liga').textContent=l||'0';
-    document.getElementById('ss-kelab').textContent=c||'0';
-    document.getElementById('ss-pemain').textContent=p||'0';
-    document.getElementById('ss-match').textContent=m||'0';
-  }catch(e){
-    ['ss-liga','ss-kelab','ss-pemain','ss-match'].forEach(id=>{
-      document.getElementById(id).textContent='—';
+        <div style="text-align:right">
+          <div style="font-size:1.2rem;font-weight:900;color:${lv.color}">${p.dna_overall||'—'}</div>
+          <div style="font-size:.55rem;font-weight:700;color:${lv.color}">${p.dna_band||'—'}</div>
+        </div>`;
+      div.addEventListener('mouseover',()=>div.style.background='var(--bg3)');
+      div.addEventListener('mouseout',()=>div.style.background='var(--card)');
+      div.addEventListener('click',()=>viewPlayerProfile(p.id));
+      el.appendChild(div);
     });
-  }
+  }catch(e){el.innerHTML='';console.error('loadTS:',e);}
 }
-
-/* ── SEARCH ── */
-function doSearch(){
-  const q=document.getElementById('search-input').value.trim();
-  if(!q)return;
-  toast('🔍 Carian: "'+q+'" — akan datang!');
-}
-
-/* ── PROFILE ── */
-
-const POS_MAP2 = {
-  gk:'GK|Goalkeeper',cb:'CB|Center-Back',lb:'LB|Left-Back',rb:'RB|Right-Back',
-  lwb:'LWB|Left Wing-Back',rwb:'RWB|Right Wing-Back',
-  dm:'DM|Defensive Midfielder',cm:'CM|Central Midfielder',
-  am:'AM|Attacking Midfielder',lm:'LM|Left Midfielder',rm:'RM|Right Midfielder',
-  cf:'CF|Center-Forward',st:'ST|Striker',ss:'SS|Second Striker',
-  midfielder:'CM|Central Midfielder',forward:'ST|Striker',
-  defender:'CB|Center-Back',goalkeeper:'GK|Goalkeeper',
-};
-function posCode2(p){ if(!p)return'—'; const k=p.toLowerCase(); const m=POS_MAP2[k]; return m?m.split('|')[0]:p.toUpperCase(); }
-function posFull2(p){ if(!p)return''; const k=p.toLowerCase(); const m=POS_MAP2[k]; return m?m.split('|')[1]:''; }
 
 function dnaLevel2(s){
   if(!s||s===0) return{title:'—',stars:0,color:'#9ca3af'};
@@ -1912,26 +1878,38 @@ async function loadLB(){
   const el=document.getElementById('pp-lb');if(!el)return;
   try{
     const{data}=await SB.from('players')
-      .select('id,full_name,preferred_name,position,dna_overall,passport_score,dna_band,passport_frame,clubs(name)')
+      .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,passport_frame,clubs(name)')
       .not('dna_overall','is',null).eq('is_active',true)
       .order('dna_overall',{ascending:false,nullsFirst:false}).limit(8);
     if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Tiada data pemain lagi</div>';return;}
-    el.innerHTML=data.map((p,i)=>{
+    
+    el.innerHTML='';
+    data.forEach((p,i)=>{
       const lv=dnaLevel2(p.dna_overall||0);
-      return `<div onclick="viewPlayerProfile('${p.id}')" style="display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.42rem;box-shadow:var(--sh);cursor:pointer;transition:.15s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--card)'">
-        <span style="font-size:.95rem;width:26px;text-align:center">${['🥇','🥈','🥉'][i]||i+1}</span>
+      const pos=p.best_position||p.position||'';
+      const medals=['🥇','🥈','🥉'];
+      const div=document.createElement('div');
+      div.style.cssText='display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.42rem;box-shadow:var(--sh);cursor:pointer;transition:.15s';
+      div.innerHTML=`
+        <span style="font-size:.95rem;width:26px;text-align:center">${medals[i]||i+1}</span>
         <div style="width:34px;height:34px;border-radius:9px;border:2px solid ${lv.color};background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.85rem">${(p.preferred_name||p.full_name||'?')[0]}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:.78rem;font-weight:700;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.preferred_name||p.full_name||'—'}</div>
-          <div style="font-size:.6rem;color:var(--mute)">${posCode2(p.position)} · ${p.clubs?.name||'—'}</div>
+          <div style="font-size:.6rem;color:var(--mute)">${posCode2(pos)} · ${p.clubs?.name||'—'}</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:1rem;font-weight:900;color:${lv.color}">${p.dna_overall||'—'}</div>
           <div style="font-size:.52rem;font-weight:700;color:${lv.color}">${p.dna_band||'—'}</div>
-        </div>
-      </div>`;
-    }).join('');
-  }catch(e){el.innerHTML='';}
+        </div>`;
+      div.addEventListener('mouseover',()=>div.style.background='var(--bg3)');
+      div.addEventListener('mouseout',()=>div.style.background='var(--card)');
+      div.addEventListener('click',()=>{
+        toast('🔍 Loading '+p.preferred_name+'...');
+        viewPlayerProfile(p.id);
+      });
+      el.appendChild(div);
+    });
+  }catch(e){el.innerHTML='';console.error('loadLB:',e);}
 }
 
 // Tengok profile pemain lain
