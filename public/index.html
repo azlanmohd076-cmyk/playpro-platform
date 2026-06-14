@@ -1258,11 +1258,11 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
       <div id="d-s1">
         <p style="font-size:.74rem;color:var(--mute);margin-bottom:.7rem;font-weight:500">Pilih peranan kau dalam bola sepak Malaysia:</p>
         <div class="portal-grid">
-          <div class="portal-card" onclick="pickRole('player" data-pname="⚽" data-pname="Pemain')"><span>⚽</span><span>Pemain</span></div>
-          <div class="portal-card" onclick="pickRole('coach" data-pname="👨‍🏫" data-pname="Jurulatih')"><span>👨‍🏫</span><span>Jurulatih</span></div>
-          <div class="portal-card" onclick="pickRole('club_admin" data-pname="🛡️" data-pname="Pengurus Kelab')"><span>🛡️</span><span>Pengurus Kelab</span></div>
-          <div class="portal-card" onclick="pickRole('league_admin" data-pname="🏆" data-pname="Penganjur Liga')"><span>🏆</span><span>Penganjur Liga</span></div>
-          <div class="portal-card" onclick="pickRole('referee" data-pname="🟨" data-pname="Pengadil')"><span>🟨</span><span>Pengadil</span></div>
+          <div class="portal-card" onclick="pickRole('player','⚽','Pemain')"><span>⚽</span><span>Pemain</span></div>
+          <div class="portal-card" onclick="pickRole('coach','👨‍🏫','Jurulatih')"><span>👨‍🏫</span><span>Jurulatih</span></div>
+          <div class="portal-card" onclick="pickRole('club_admin','🛡️','Pengurus Kelab')"><span>🛡️</span><span>Pengurus Kelab</span></div>
+          <div class="portal-card" onclick="pickRole('league_admin','🏆','Penganjur Liga')"><span>🏆</span><span>Penganjur Liga</span></div>
+          <div class="portal-card" onclick="pickRole('referee','🟨','Pengadil')"><span>🟨</span><span>Pengadil</span></div>
         </div>
       </div>
       <div id="d-s2" style="display:none">
@@ -1320,7 +1320,7 @@ async function init(){
 
 /* ── TABS ── */
 function go(t){
-  ['home" data-pname="explore" data-pname="team" data-pname="profile'].forEach(x=>{
+  ['home','explore','team','profile'].forEach(x=>{
     document.getElementById('tab-'+x).style.display=x===t?'block':'none';
     document.getElementById('bn-'+x).classList.toggle('on',x===t);
     const hn=document.getElementById('hn-'+x);if(hn)hn.classList.toggle('on',x===t);
@@ -1389,7 +1389,7 @@ async function doLogin(){
   const em=document.getElementById('l-em').value.trim();
   const pw=document.getElementById('l-pw').value;
   const btn=document.getElementById('l-btn');
-  if(!em||!pw){setMsg('l-msg" data-pname="⚠️ Sila isi emel dan kata laluan" data-pname="err');return}
+  if(!em||!pw){setMsg('l-msg','⚠️ Sila isi emel dan kata laluan','err');return}
   btn.disabled=true;btn.innerHTML='<span class="spin"></span>Sedang masuk...';
   const{data,error}=await SB.auth.signInWithPassword({email:em,password:pw});
   btn.disabled=false;btn.textContent='Log Masuk →';
@@ -1406,10 +1406,10 @@ async function doLogin(){
 
 async function doForgot(){
   const em=document.getElementById('l-em').value.trim();
-  if(!em){setMsg('l-msg" data-pname="⚠️ Masukkan emel kau dahulu, kemudian klik "Lupa kata laluan?"" data-pname="err');return}
+  if(!em){setMsg('l-msg','⚠️ Masukkan emel kau dahulu, kemudian klik "Lupa kata laluan?"','err');return}
   const{error}=await SB.auth.resetPasswordForEmail(em,{redirectTo:window.location.origin});
-  if(error){setMsg('l-msg" data-pname="❌ '+error.message,'err');return}
-  setMsg('l-msg" data-pname="📧 Email reset kata laluan dihantar ke '+em+'. Semak inbox (dan folder spam)." data-pname="ok');
+  if(error){setMsg('l-msg','❌ '+error.message,'err');return}
+  setMsg('l-msg','📧 Email reset kata laluan dihantar ke '+em+'. Semak inbox (dan folder spam).','ok');
 }
 
 async function doRegister(){
@@ -1421,16 +1421,16 @@ async function doRegister(){
   const phoneCode=document.getElementById('d-phone-code')?.value||'+60';
   const phoneNum=(document.getElementById('d-phone')?.value||'').trim();
   const fullPhone=phoneNum?(phoneCode+phoneNum):'';
-  if(!name||!em||!pw){setMsg('d-msg" data-pname="⚠️ Sila isi semua maklumat" data-pname="err');return}
-  if(pw.length<8){setMsg('d-msg" data-pname="⚠️ Kata laluan mesti 8 aksara ke atas" data-pname="err');return}
+  if(!name||!em||!pw){setMsg('d-msg','⚠️ Sila isi semua maklumat','err');return}
+  if(pw.length<8){setMsg('d-msg','⚠️ Kata laluan mesti 8 aksara ke atas','err');return}
   btn.disabled=true;btn.innerHTML='<span class="spin"></span>Mendaftar...';
   const{data,error}=await SB.auth.signUp({email:em,password:pw,options:{data:{full_name:name,role,phone:fullPhone}}});
   btn.disabled=false;btn.textContent='Buat Akaun →';
-  if(error){setMsg('d-msg" data-pname="❌ '+error.message,'err');return}
+  if(error){setMsg('d-msg','❌ '+error.message,'err');return}
   if(data?.user&&fullPhone){
     await SB.from('profiles').upsert({id:data.user.id,full_name:name,phone:fullPhone,role},{onConflict:'id'});
   }
-  setMsg('d-msg" data-pname="✅ Akaun dibuat! Semak emel '+em+' untuk pengesahan." data-pname="ok');
+  setMsg('d-msg','✅ Akaun dibuat! Semak emel '+em+' untuk pengesahan.','ok');
 }
 
 async function doLogout(){
@@ -1463,12 +1463,12 @@ async function loadTopScorers(){
   try{
     const{data}=await SB.from('players')
       .select('full_name,preferred_name,position,passport_score,dna_overall,clubs(name)')
-      .not('passport_score" data-pname="is',null)
+      .not('passport_score','is',null)
       .eq('is_active',true)
       .order('passport_score',{ascending:false})
       .limit(5);
     if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--mute);font-size:.78rem">Tiada data lagi</div>';return;}
-    const medals=['🥇" data-pname="🥈" data-pname="🥉" data-pname="4️⃣" data-pname="5️⃣'];
+    const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
     el.innerHTML=data.map((p,i)=>`
       <div style="display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.45rem;box-shadow:var(--sh)">
         <span style="font-size:1.1rem;width:28px;text-align:center">${medals[i]}</span>
@@ -1492,14 +1492,14 @@ async function loadStats_strip(){
       SB.from('leagues').select('*',{count:'exact',head:true}).eq('is_active',true),
       SB.from('clubs').select('*',{count:'exact',head:true}).eq('is_active',true),
       SB.from('players').select('*',{count:'exact',head:true}).eq('is_active',true),
-      SB.from('fixtures').select('*',{count:'exact',head:true}).eq('status" data-pname="completed'),
+      SB.from('fixtures').select('*',{count:'exact',head:true}).eq('status','completed'),
     ]);
     document.getElementById('ss-liga').textContent=l||'0';
     document.getElementById('ss-kelab').textContent=c||'0';
     document.getElementById('ss-pemain').textContent=p||'0';
     document.getElementById('ss-match').textContent=m||'0';
   }catch(e){
-    ['ss-liga" data-pname="ss-kelab" data-pname="ss-pemain" data-pname="ss-match'].forEach(id=>{
+    ['ss-liga','ss-kelab','ss-pemain','ss-match'].forEach(id=>{
       document.getElementById(id).textContent='—';
     });
   }
@@ -1559,8 +1559,8 @@ function attrRating2(v){
   return{txt:'Lemah',cls:'r2-lemah'};
 }
 
-const GK_CODES2 = new Set(['gk_handling" data-pname="gk_contribution" data-pname="gk_throwing" data-pname="gk_dirtiness']);
-const RADAR_ATTRS2 = ['passing" data-pname="finishing" data-pname="first_touch" data-pname="tackling" data-pname="pace" data-pname="stamina" data-pname="leadership" data-pname="composure" data-pname="vision" data-pname="positioning'];
+const GK_CODES2 = new Set(['gk_handling','gk_contribution','gk_throwing','gk_dirtiness']);
+const RADAR_ATTRS2 = ['passing','finishing','first_touch','tackling','pace','stamina','leadership','composure','vision','positioning'];
 
 let _attrData2=[], _seasonChart2=null;
 
@@ -1835,10 +1835,10 @@ function renderBio2(p){
 }
 
 function pp2Tab(t){
-  ['dna" data-pname="stats" data-pname="clubs" data-pname="bio'].forEach(x=>{
+  ['dna','stats','clubs','bio'].forEach(x=>{
     document.getElementById('pp2t-'+x).style.display=x===t?'block':'none';
   });
-  document.querySelectorAll('.pp2-tab').forEach((el,i)=>el.classList.toggle('on',['dna" data-pname="stats" data-pname="clubs" data-pname="bio'][i]===t));
+  document.querySelectorAll('.pp2-tab').forEach((el,i)=>el.classList.toggle('on',['dna','stats','clubs','bio'][i]===t));
   if(t==='stats'&&_pd) loadStats2(_pd.id);
 }
 
@@ -1890,7 +1890,7 @@ function buildSeasonChart2(apps,goals,ast){
   _seasonChart2=new Chart(ctx,{
     type:'bar',
     data:{
-      labels:['1998-2010" data-pname="2010-2020" data-pname="2020-2024" data-pname="2024-Kini'],
+      labels:['1998-2010','2010-2020','2020-2024','2024-Kini'],
       datasets:[
         {label:'Penampilan',data:[120,110,82,Math.max(1,apps-312)],backgroundColor:'rgba(59,130,246,.75)',borderRadius:3},
         {label:'Gol',data:[30,28,29,Math.max(0,goals-87)],backgroundColor:'rgba(0,135,90,.75)',borderRadius:3},
@@ -1913,13 +1913,13 @@ async function loadLB(){
   try{
     const{data}=await SB.from('players')
       .select('id,full_name,preferred_name,position,dna_overall,passport_score,dna_band,passport_frame,clubs(name)')
-      .not('dna_overall" data-pname="is',null).eq('is_active',true)
+      .not('dna_overall','is',null).eq('is_active',true)
       .order('dna_overall',{ascending:false,nullsFirst:false}).limit(8);
     if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Tiada data pemain lagi</div>';return;}
     el.innerHTML=data.map((p,i)=>{
       const lv=dnaLevel2(p.dna_overall||0);
       return `<div onclick="viewPlayerProfile('${p.id}')" style="display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.42rem;box-shadow:var(--sh);cursor:pointer;transition:.15s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--card)'">
-        <span style="font-size:.95rem;width:26px;text-align:center">${['🥇" data-pname="🥈" data-pname="🥉'][i]||i+1}</span>
+        <span style="font-size:.95rem;width:26px;text-align:center">${['🥇','🥈','🥉'][i]||i+1}</span>
         <div style="width:34px;height:34px;border-radius:9px;border:2px solid ${lv.color};background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.85rem">${(p.preferred_name||p.full_name||'?')[0]}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:.78rem;font-weight:700;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.preferred_name||p.full_name||'—'}</div>
@@ -1969,8 +1969,8 @@ function showPlayerModal(p){
   const age = p.date_of_birth ? Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)) : '—';
 
   const txtCol = {
-    'ELITE':'#f9a825" data-pname="ADVANCED':'#c4b5fd" data-pname="DEVELOPED':'#93c5fd',
-    'DEVELOPING':'#6ee7b7" data-pname="FOUNDATION':'#fbbf24" data-pname="STARTER':'#d1d5db'
+    'ELITE':'#f9a825','ADVANCED':'#c4b5fd','DEVELOPED':'#93c5fd',
+    'DEVELOPING':'#6ee7b7','FOUNDATION':'#fbbf24','STARTER':'#d1d5db'
   };
   const frameImg = getFrameB64(p.passport_frame||'unverified');
   const tc = txtCol[lv.title]||'#fff';
@@ -2010,7 +2010,7 @@ function showPlayerModal(p){
     + '</div>'
     // Buttons
     + '<div style="display:flex;gap:.45rem">'
-    + (_u?'<button onclick="startConvoWith(this)" data-pid="'+p.id+'" data-pname="'+dn+'" style="flex:1;padding:.58rem;background:'+lv.color+';color:#000;border:none;border-radius:8px;font-size:.72rem;font-weight:800;cursor:pointer;font-family:inherit">💬 Hantar Mesej</button>'
+    + (_u?'<button onclick="startConvoWith(this)" data-pid="'+p.id+'',''+dn+'" style="flex:1;padding:.58rem;background:'+lv.color+';color:#000;border:none;border-radius:8px;font-size:.72rem;font-weight:800;cursor:pointer;font-family:inherit">💬 Hantar Mesej</button>'
         :'<button onclick="closePlayerModal();showLogin();" style="flex:1;padding:.58rem;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">🔑 Log Masuk</button>')
     + '<button onclick="closePlayerModal()" style="padding:.58rem .75rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:.72rem;cursor:pointer;font-family:inherit">✕</button>'
     + '</div>'
@@ -2077,7 +2077,7 @@ async function fetchConversations(){
   if(countEl) countEl.textContent = unreadCount>0?unreadCount+' mesej belum dibaca':'';
 
   list.innerHTML = demoConvos.map(c=>`
-    <div onclick="openConvo('${c.id}" data-pname="${c.name}" data-pname="${c.avatar}" data-pname="${c.color}',${c.verified})"
+    <div onclick="openConvo('${c.id}','${c.name}','${c.avatar}','${c.color}',${c.verified})"
       style="display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;border-bottom:1px solid var(--bdr);cursor:pointer;background:${c.unread?'rgba(0,135,90,.04)':'var(--bg2)'};transition:.15s"
       onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='${c.unread?'rgba(0,135,90,.04)':'var(--bg2)'}'"
     >
@@ -2312,14 +2312,14 @@ function doShare(){navigator.clipboard?.writeText(location.href);toast('📋 Lin
 /* ── MODE / LANG ── */
 function toggleMode(){
   const d=document.documentElement,dk=d.classList.contains('dark');
-  d.classList.remove('light" data-pname="dark');d.classList.add(dk?'light':'dark');
+  d.classList.remove('light','dark');d.classList.add(dk?'light':'dark');
   localStorage.setItem('pp_mode',dk?'light':'dark');
   document.getElementById('mode-btn').textContent=dk?'🌙':'☀️';
   toast(dk?'☀️ Light Mode':'🌙 Dark Mode');
 }
 function applyMode(){
   const s=localStorage.getItem('pp_mode')||'light';
-  document.documentElement.classList.remove('light" data-pname="dark');
+  document.documentElement.classList.remove('light','dark');
   document.documentElement.classList.add(s);
   const b=document.getElementById('mode-btn');if(b)b.textContent=s==='dark'?'☀️':'🌙';
 }
@@ -2342,5 +2342,5 @@ SB.auth.onAuthStateChange((ev,session)=>{
 });
 init();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0bb052429200b95',t:'MTc4MTQ1Nzc3Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0bb0a9a3fd59f98',t:'MTc4MTQ1ODAwMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
