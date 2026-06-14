@@ -1955,69 +1955,55 @@ async function viewPlayerProfile(elOrId){
 let _viewingPlayer = null;
 
 function showPlayerModal(p){
-  let modal = document.getElementById('player-modal');
+  let modal=document.getElementById('player-modal');
   if(!modal){
-    modal = document.createElement('div');
-    modal.id = 'player-modal';
-    modal.style.cssText = 'position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:1rem';
-    modal.onclick = function(e){if(e.target===this)closePlayerModal();};
+    modal=document.createElement('div');
+    modal.id='player-modal';
+    modal.style.cssText='position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:1rem';
+    modal.onclick=function(e){if(e.target===this)closePlayerModal();};
     document.body.appendChild(modal);
   }
-
-  const dn = p.preferred_name||p.full_name||'Pemain';
-  const dna = p.dna_overall||0;
-  const lv = dnaLevel2(dna);
-  const posVal = p.best_position||p.position||'';
-  const age = p.date_of_birth ? Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)) : '—';
-
-  const txtCol = {
-    'ELITE':'#f9a825','ADVANCED':'#c4b5fd','DEVELOPED':'#93c5fd',
-    'DEVELOPING':'#6ee7b7','FOUNDATION':'#fbbf24','STARTER':'#d1d5db'
-  };
-  const frameImg = getFrameB64(p.passport_frame||'unverified');
-  const tc = txtCol[lv.title]||'#fff';
-  const stats = [
-    {lbl:'TEC',val:p.dna_technical||0},
-    {lbl:'FIZ',val:p.dna_physical||0},
-    {lbl:'MEN',val:p.dna_mental||0},
-    {lbl:'TAK',val:p.dna_tactical||0},
-  ];
-
-  modal.innerHTML = '<div style="position:relative;width:100%;max-width:300px">'
-    + '<button onclick="closePlayerModal()" style="position:absolute;top:-14px;right:-14px;z-index:10;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem">✕</button>'
-    + '<div style="position:relative;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 40px '+lv.color+'44;background:'+frameImg+';min-height:440px">'
-    + '<div style="position:absolute;inset:0;padding:.65rem .55rem .5rem;display:flex;flex-direction:column">'
-    + '<div style="position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.05) 50%,transparent 60%);pointer-events:none"></div>'
-    // Top row
-    + '<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.85rem;position:relative">'
-    + '<div style="text-align:center;min-width:48px"><div style="font-size:2rem;font-weight:900;color:'+tc+';line-height:1;text-shadow:0 2px 8px rgba(0,0,0,.5)">'+dna+'</div><div style="font-size:.7rem;font-weight:800;color:'+tc+';letter-spacing:.05em;margin:.1rem 0">'+posCode2(posVal)+'</div><div style="font-size:.5rem;color:rgba(255,255,255,.45);font-weight:700">'+lv.title+'</div></div>'
-    + '<div style="flex:1;display:flex;justify-content:center"><div style="width:80px;height:80px;border-radius:50%;background:'+lv.color+'33;border:3px solid '+lv.color+';box-shadow:0 0 20px '+lv.color+'66;display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:900;color:#fff">'+dn[0].toUpperCase()+'</div></div>'
-    + '<div style="text-align:center;min-width:48px"><div style="font-size:.58rem;color:rgba(255,255,255,.4);font-weight:700">#'+(p.jersey_number||'—')+'</div><div style="margin-top:.3rem;font-size:.58rem;font-weight:700;color:'+(p.kyc_status==='verified'?'#4ade80':'rgba(255,255,255,.3)')+'">'+(p.kyc_status==='verified'?'✅ KYC':'—')+'</div></div>'
-    + '</div>'
-    // Name
-    + '<div style="text-align:center;margin-bottom:.75rem"><div style="font-size:1.1rem;font-weight:900;color:#fff;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 2px 8px rgba(0,0,0,.5)">'+dn+'</div>'+(p.nickname&&p.nickname!==dn?'<div style="font-size:.6rem;color:'+tc+';font-style:italic;margin-top:.1rem">'+p.nickname+'</div>':'')+'</div>'
-    // Divider
-    + '<div style="height:1px;background:linear-gradient(90deg,transparent,'+lv.color+'88,transparent);margin-bottom:.75rem"></div>'
-    // Stats
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.75rem">'
-    + stats.map(function(s){return '<div style="display:flex;align-items:center;gap:.45rem"><div style="font-size:1rem;font-weight:900;color:'+tc+';min-width:30px;text-align:center">'+s.val+'</div><div style="flex:1"><div style="font-size:.52rem;font-weight:800;color:rgba(255,255,255,.45);letter-spacing:.08em;margin-bottom:.18rem">'+s.lbl+'</div><div style="height:3px;background:rgba(255,255,255,.1);border-radius:2px"><div style="width:'+s.val+'%;height:100%;background:'+lv.color+';border-radius:2px;box-shadow:0 0 4px '+lv.color+'"></div></div></div></div>';}).join('')
-    + '</div>'
-    // Divider
-    + '<div style="height:1px;background:linear-gradient(90deg,transparent,'+lv.color+'88,transparent);margin-bottom:.65rem"></div>'
-    // Footer
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">'
-    + '<div style="font-size:.57rem;color:rgba(255,255,255,.4)"><div>🛡️ '+(p.clubs?.name||'—')+'</div><div style="margin-top:.12rem;font-family:monospace;color:'+tc+';font-size:.58rem">'+(p.passport_number||'—')+'</div></div>'
-    + '<div style="text-align:right;font-size:.55rem;color:rgba(255,255,255,.35)"><div>'+(age!=='—'?age+' tahun':'')+'</div><div>'+(p.preferred_foot==='left'?'👟 Kiri':p.preferred_foot==='right'?'👟 Kanan':'')+'</div></div>'
-    + '</div>'
-    // Buttons
-    + '<div style="display:flex;gap:.45rem">'
-    + (_u?'<button onclick="startConvoWith(this)" data-pid="'+p.id+'" data-pname="'+dn+'" style="flex:1;padding:.58rem;background:'+lv.color+';color:#000;border:none;border-radius:8px;font-size:.72rem;font-weight:800;cursor:pointer;font-family:inherit">💬 Hantar Mesej</button>'
-        :'<button onclick="closePlayerModal();showLogin();" style="flex:1;padding:.58rem;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">🔑 Log Masuk</button>')
-    + '<button onclick="closePlayerModal()" style="padding:.58rem .75rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:.72rem;cursor:pointer;font-family:inherit">✕</button>'
-    + '</div>'
-    + '</div></div></div>';
-
-  modal.style.display = 'flex';
+  const dn=p.preferred_name||p.full_name||'Pemain';
+  const dna=p.dna_overall||0;
+  const lv=dnaLevel2(dna);
+  const posVal=p.best_position||p.position||'';
+  const age=p.date_of_birth?Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)):'—';
+  const txtCol={'ELITE':'#f9a825','ADVANCED':'#c4b5fd','DEVELOPED':'#93c5fd','DEVELOPING':'#6ee7b7','FOUNDATION':'#fbbf24','STARTER':'#d1d5db'};
+  const tc=txtCol[lv.title]||'#fff';
+  const frameImg=getFrameB64(p.passport_frame||'unverified');
+  const stats=[{l:'TEC',v:p.dna_technical||0},{l:'FIZ',v:p.dna_physical||0},{l:'MEN',v:p.dna_mental||0},{l:'TAK',v:p.dna_tactical||0}];
+  const statsHtml=stats.map(s=>`<div style="display:flex;align-items:center;gap:.35rem"><span style="font-size:.95rem;font-weight:900;color:${tc};min-width:28px">${s.v}</span><div style="flex:1"><div style="font-size:.5rem;font-weight:800;color:rgba(255,255,255,.4);letter-spacing:.08em;margin-bottom:.15rem">${s.l}</div><div style="height:3px;background:rgba(255,255,255,.1);border-radius:2px"><div style="width:${s.v}%;height:100%;background:${lv.color};border-radius:2px"></div></div></div></div>`).join('');
+  modal.innerHTML=`
+    <div style="position:relative;width:100%;max-width:300px">
+      <button onclick="closePlayerModal()" style="position:absolute;top:-14px;right:-14px;z-index:10;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
+      <div style="background:${frameImg};border-radius:14px;min-height:420px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 30px ${lv.color}44">
+        <div style="position:absolute;inset:0;padding:.65rem .55rem .5rem;display:flex;flex-direction:column">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem">
+            <div><div style="font-size:1.8rem;font-weight:900;color:${tc};line-height:1">${dna}</div><div style="font-size:.65rem;font-weight:800;color:${tc}">${posCode2(posVal)}</div><div style="font-size:.45rem;color:rgba(255,255,255,.5)">${lv.title}</div></div>
+            <div style="text-align:right;font-size:.5rem;color:rgba(255,255,255,.4)"><div>#${p.jersey_number||'—'}</div><div style="margin-top:.2rem;color:${p.kyc_status==='verified'?'#4ade80':'rgba(255,255,255,.3)'}">${p.kyc_status==='verified'?'✅':'—'}</div></div>
+          </div>
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;margin-bottom:.5rem">
+            <div style="width:90px;height:90px;border-radius:50%;background:${lv.color}33;border:3px solid ${lv.color};box-shadow:0 0 20px ${lv.color}66;display:flex;align-items:center;justify-content:center;font-size:2.5rem;font-weight:900;color:#fff">${dn[0].toUpperCase()}</div>
+          </div>
+          <div style="text-align:center;margin-bottom:.4rem">
+            <div style="font-size:1rem;font-weight:900;color:#fff;letter-spacing:.08em;text-transform:uppercase">${dn}</div>
+            ${p.nickname&&p.nickname!==dn?`<div style="font-size:.58rem;color:${tc};font-style:italic">${p.nickname}</div>`:''}
+          </div>
+          <div style="height:1px;background:linear-gradient(90deg,transparent,${lv.color}88,transparent);margin-bottom:.45rem"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem .5rem;margin-bottom:.45rem">${statsHtml}</div>
+          <div style="height:1px;background:linear-gradient(90deg,transparent,${lv.color}88,transparent);margin-bottom:.4rem"></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:.45rem">
+            <div style="font-size:.55rem;color:rgba(255,255,255,.4)"><div>🛡️ ${p.clubs?.name||'—'}</div><div style="color:${tc};font-family:monospace;font-size:.52rem;margin-top:.1rem">${p.passport_number||'—'}</div></div>
+            <div style="text-align:right;font-size:.52rem;color:rgba(255,255,255,.35)"><div>${age!=='—'?age+' thn':''}</div><div>${p.preferred_foot==='left'?'👟 Kiri':p.preferred_foot==='right'?'👟 Kanan':''}</div></div>
+          </div>
+          <div style="display:flex;gap:.4rem">
+            ${_u?`<button onclick="startConvoWith('${p.id}','${dn}')" style="flex:1;padding:.55rem;background:${lv.color};color:#000;border:none;border-radius:8px;font-size:.7rem;font-weight:800;cursor:pointer;font-family:inherit">💬 Mesej</button>`:`<button onclick="closePlayerModal();showLogin();" style="flex:1;padding:.55rem;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit">🔑 Log Masuk</button>`}
+            <button onclick="closePlayerModal()" style="padding:.55rem .7rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:.7rem;cursor:pointer;font-family:inherit">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  modal.style.display='flex';
 }
 
 function closePlayerModal(){
@@ -2025,9 +2011,7 @@ function closePlayerModal(){
   if(modal) modal.style.display = 'none';
 }
 
-function startConvoWith(el){
-  const playerId = el.dataset.pid;
-  const playerName = el.dataset.pname;
+function startConvoWith(playerId, playerName){
   closePlayerModal();
   go('inbox');
   toast('💬 Mesej kepada '+playerName+' — akan datang!');
