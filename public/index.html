@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#00875a"/>
 <title>PlayPro — Platform Bola Sepak Malaysia</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
 window.PLAYPRO_SUPABASE_URL='https://wxalcnpsbijxfmnzswxd.supabase.co';
 window.PLAYPRO_SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4YWxjbnBzYmlqeGZtbnpzd3hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzI1NzksImV4cCI6MjA5NjcwODU3OX0.wLDtBus_rM_Yk0wXlb-Gqbv_nBWnwcxTAFZAwwcIxH8';
@@ -399,173 +400,237 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
 .fc-act:hover { color:var(--g); background:rgba(0,135,90,.04) }
 
 /* ════════════════════════════════════
-   PROFILE TAB
+   PROFILE TAB — REDESIGN pp2Tab
 ════════════════════════════════════ */
+
+/* ── HEADER ── */
+.pp2-header {
+  background: linear-gradient(135deg, #0d1f2d 0%, #1a2f3d 50%, #0f2318 100%);
+  padding: 1.1rem 1rem .9rem; position: relative; overflow: hidden;
+}
+.pp2-header::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(circle at 80% 20%, rgba(0,200,120,.08) 0%, transparent 60%);
+}
+.pp2-top-row { display:flex; align-items:center; gap:.85rem; position:relative; z-index:1 }
+.pp2-avatar-wrap { position:relative; flex-shrink:0 }
+.pp2-avatar {
+  width:62px; height:62px; border-radius:14px;
+  background:linear-gradient(135deg,#00875a,#00c97a);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.5rem; font-weight:900; color:#fff;
+  border: 2px solid rgba(0,200,120,.3);
+}
+.pp2-jersey {
+  position:absolute; bottom:-5px; right:-5px;
+  width:22px; height:22px; border-radius:6px;
+  background:#1a2f3d; border:1.5px solid rgba(255,255,255,.2);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.58rem; font-weight:800; color:rgba(255,255,255,.85);
+}
+.pp2-info { flex:1; min-width:0 }
+.pp2-name-row { display:flex; align-items:center; gap:.5rem; margin-bottom:.2rem; flex-wrap:wrap }
+.pp2-name { font-size:1.05rem; font-weight:800; color:#fff; letter-spacing:-.02em }
+.pp2-active { background:#00875a; color:#fff; font-size:.56rem; font-weight:700; padding:.1rem .4rem; border-radius:999px; letter-spacing:.05em }
+.pp2-pos { font-size:.7rem; font-weight:700; margin-bottom:.25rem }
+.pp2-pos-code { background:rgba(0,200,120,.15); border:1px solid rgba(0,200,120,.25); padding:.1rem .4rem; border-radius:5px; color:rgba(255,255,255,.9); margin-right:.3rem }
+.pp2-pos-full { color:rgba(255,255,255,.45); font-weight:400; font-size:.65rem }
+.pp2-meta { display:flex; flex-wrap:wrap; gap:.25rem .65rem; font-size:.62rem; color:rgba(255,255,255,.5) }
+.pp2-dna-circle {
+  width:52px; height:52px; border-radius:50%; flex-shrink:0;
+  border:3px solid #00c97a; background:rgba(0,0,0,.3);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.pp2-dna-num { font-size:1.15rem; font-weight:900; color:#00c97a; line-height:1; letter-spacing:-.04em }
+.pp2-dna-lbl { font-size:.42rem; font-weight:700; color:rgba(255,255,255,.45); letter-spacing:.08em; text-transform:uppercase }
+.pp2-contract {
+  margin-top:.6rem; padding:.4rem .75rem; position:relative; z-index:1;
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08);
+  border-radius:8px; display:flex; align-items:center; gap:.5rem;
+}
+.pp2-contract-label { font-size:.6rem; color:rgba(255,255,255,.4); flex-shrink:0 }
+.pp2-contract-val { font-size:.7rem; font-weight:700; color:#f59e0b }
+
+/* ── TABS ── */
+.pp2-tabs {
+  display:flex; background:var(--bg2); border-bottom:2px solid var(--bdr);
+  overflow-x:auto; scrollbar-width:none; position:sticky; top:0; z-index:20;
+}
+.pp2-tabs::-webkit-scrollbar { display:none }
+.pp2-tab {
+  flex-shrink:0; padding:.62rem .85rem; font-size:.71rem; font-weight:600;
+  color:var(--mute); cursor:pointer; border-bottom:2.5px solid transparent;
+  margin-bottom:-2px; transition:.15s; white-space:nowrap;
+}
+.pp2-tab.on { color:var(--g); border-bottom-color:var(--g); font-weight:700 }
+
+/* ── DNA SCORECARD ── */
+.dna2-scorecard {
+  background:linear-gradient(135deg,#0d1f2d,#122218);
+  padding:.9rem 1rem; display:flex; align-items:center; gap:.9rem;
+  margin:.65rem .85rem; border-radius:13px; border:1px solid rgba(0,200,120,.15);
+}
+.dna2-ring-wrap { position:relative; width:58px; height:58px; flex-shrink:0 }
+.dna2-ring-wrap svg { position:absolute; inset:0; transform:rotate(-90deg) }
+.dna2-ring-inner { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center }
+.dna2-ring-val { font-size:1.05rem; font-weight:900; color:#fff; line-height:1; letter-spacing:-.04em }
+.dna2-ring-sub { font-size:.42rem; color:rgba(255,255,255,.4); font-weight:700; letter-spacing:.06em; text-transform:uppercase }
+.dna2-sc-right { flex:1 }
+.dna2-sc-level { font-size:.58rem; font-weight:700; color:rgba(255,255,255,.4); letter-spacing:.1em; text-transform:uppercase; margin-bottom:.12rem }
+.dna2-sc-title { font-size:.95rem; font-weight:800; color:#00c97a; letter-spacing:-.01em; margin-bottom:.25rem }
+.dna2-sc-stars { display:flex; gap:2px; margin-bottom:.2rem }
+.dna2-sc-meta { font-size:.6rem; color:rgba(255,255,255,.35) }
+.dna2-badge {
+  font-size:.56rem; font-weight:700; padding:.12rem .45rem; border-radius:999px;
+  display:inline-flex; align-items:center; gap:.2rem; margin-left:.4rem;
+}
+.dna2-badge-pro   { background:rgba(0,200,120,.15); color:#00c97a; border:1px solid rgba(0,200,120,.2) }
+.dna2-badge-coach { background:rgba(59,130,246,.12); color:#60a5fa; border:1px solid rgba(59,130,246,.2) }
+.dna2-badge-none  { background:rgba(150,150,150,.1); color:var(--mute); border:1px solid var(--bdr) }
+
+/* ── RADAR ── */
+.radar2-section {
+  margin:.4rem .85rem; background:var(--card); border:1px solid var(--bdr);
+  border-radius:13px; overflow:hidden; box-shadow:var(--sh);
+}
+.radar2-header { padding:.7rem .85rem .45rem; border-bottom:1px solid var(--bdr) }
+.radar2-title { font-size:.7rem; font-weight:700; color:var(--txt); margin-bottom:.45rem }
+.radar2-filters { display:flex; gap:.3rem; flex-wrap:wrap }
+.rf2 {
+  padding:.25rem .6rem; border-radius:999px; font-size:.62rem; font-weight:600;
+  border:1.5px solid var(--bdr); color:var(--mute); cursor:pointer; transition:.15s;
+}
+.rf2.on { color:#fff; border-color:transparent }
+.rf2-all.on,.rf2-tech.on { background:#3b82f6 }
+.rf2-phys.on { background:#00875a }
+.rf2-ment.on { background:#8b5cf6 }
+.rf2-tact.on { background:#f59e0b }
+.radar2-body { display:flex; min-height:260px }
+.radar2-chart-wrap { flex:1; display:flex; align-items:center; justify-content:center; padding:1rem .65rem }
+.radar2-right { width:125px; flex-shrink:0; border-left:1px solid var(--bdr); padding:.7rem .6rem }
+.cat2-wrap { margin-bottom:.55rem }
+.cat2-label { display:flex; justify-content:space-between; margin-bottom:.2rem }
+.cat2-name { font-size:.6rem; font-weight:600; color:var(--dim) }
+.cat2-val { font-size:.68rem; font-weight:800; color:var(--txt) }
+.cat2-track { height:4px; background:var(--bg3); border-radius:3px; overflow:hidden }
+.cat2-fill { height:100%; border-radius:3px; transition:width .8s ease }
+
+/* ── ATTRIBUTE CARDS ── */
+.attr2-section { margin:.4rem .85rem .85rem }
+.attr2-header { display:flex; align-items:center; gap:.5rem; margin-bottom:.55rem; flex-wrap:wrap }
+.attr2-title { font-size:.7rem; font-weight:700; color:var(--txt) }
+.attr2-filters { display:flex; gap:.28rem; flex-wrap:wrap }
+.af2 {
+  padding:.2rem .55rem; border-radius:999px; font-size:.6rem; font-weight:600;
+  border:1.5px solid var(--bdr); color:var(--mute); cursor:pointer; transition:.15s;
+}
+.af2.on { color:#fff; border-color:transparent }
+.af2-all.on  { background:var(--txt); color:var(--bg) }
+.af2-tech.on { background:#3b82f6 }
+.af2-phys.on { background:#00875a }
+.af2-ment.on { background:#8b5cf6 }
+.af2-tact.on { background:#f59e0b }
+.af2-gk.on   { background:#ef4444 }
+.attr2-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.45rem }
+.attr2-card {
+  background:var(--card); border:1px solid var(--bdr); border-radius:11px;
+  padding:.65rem .45rem; text-align:center; box-shadow:var(--sh);
+  display:flex; flex-direction:column; align-items:center; gap:.2rem;
+}
+.attr2-name { font-size:.62rem; font-weight:700; color:var(--txt); line-height:1.2 }
+.attr2-cat  { font-size:.56rem; color:var(--mute) }
+.attr2-rating { font-size:.56rem; font-weight:700; padding:.07rem .28rem; border-radius:4px }
+.r2-cemerlang { background:rgba(0,135,90,.12);  color:var(--g) }
+.r2-baik      { background:rgba(59,130,246,.12); color:#3b82f6 }
+.r2-sederhana { background:rgba(245,158,11,.12); color:#f59e0b }
+.r2-lemah     { background:rgba(239,68,68,.12);  color:#ef4444 }
+
+/* ── STAT TAB ── */
+.stat2-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.45rem; padding:.7rem .85rem .45rem }
+.stat2-card { border-radius:11px; padding:.7rem .45rem; text-align:center; border:1px solid transparent }
+.stat2-val { font-size:1.45rem; font-weight:900; color:#fff; letter-spacing:-.03em }
+.stat2-lbl { font-size:.58rem; font-weight:600; color:rgba(255,255,255,.7); margin-top:.12rem }
+.sc2-apps  { background:linear-gradient(135deg,#1d4ed8,#3b82f6) }
+.sc2-mins  { background:linear-gradient(135deg,#065f46,#00875a) }
+.sc2-goals { background:linear-gradient(135deg,#5b21b6,#8b5cf6) }
+.sc2-ast   { background:linear-gradient(135deg,#92400e,#f59e0b) }
+.sc2-yk    { background:linear-gradient(135deg,#78350f,#d97706) }
+.sc2-rk    { background:linear-gradient(135deg,#991b1b,#ef4444) }
+.ratio2-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:.45rem; padding:.4rem .85rem }
+.ratio2-card { background:var(--card); border:1px solid var(--bdr); border-radius:9px; padding:.55rem .35rem; text-align:center }
+.ratio2-val { font-size:.95rem; font-weight:800; color:var(--txt) }
+.ratio2-lbl { font-size:.52rem; color:var(--mute); margin-top:.12rem; font-weight:600; line-height:1.2 }
+.chart2-wrap { margin:.45rem .85rem .85rem; background:var(--card); border:1px solid var(--bdr); border-radius:11px; padding:.8rem; box-shadow:var(--sh) }
+.chart2-title { font-size:.7rem; font-weight:700; color:var(--txt); margin-bottom:.65rem }
+
+/* ── SEJARAH KELAB ── */
+.club2-history { padding:.7rem .85rem 1.2rem }
+.club2-item {
+  background:var(--card); border:1px solid var(--bdr); border-radius:11px;
+  padding:.8rem .85rem; margin-bottom:.5rem; box-shadow:var(--sh);
+}
+.club2-top { display:flex; align-items:center; gap:.6rem }
+.club2-logo { width:38px; height:38px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:.88rem; font-weight:800; color:#fff; flex-shrink:0 }
+.club2-name { font-size:.8rem; font-weight:700; color:var(--txt) }
+.club2-badges { display:flex; gap:.28rem; margin-top:.18rem; flex-wrap:wrap }
+.cb2-semasa { font-size:.55rem; font-weight:700; padding:.08rem .38rem; border-radius:5px; background:rgba(0,135,90,.12); color:var(--g) }
+.cb2-tetap  { font-size:.55rem; font-weight:700; padding:.08rem .38rem; border-radius:5px; background:rgba(59,130,246,.1); color:#3b82f6 }
+.club2-period { font-size:.6rem; color:var(--mute); margin-top:.28rem; display:flex; align-items:center; gap:.28rem }
+.club2-stats { display:flex; margin-top:.55rem; border-top:1px solid var(--bdr); padding-top:.5rem }
+.cs2-item { flex:1; text-align:center }
+.cs2-val { font-size:.85rem; font-weight:800; color:var(--txt) }
+.cs2-lbl { font-size:.52rem; color:var(--mute); font-weight:600 }
+
+/* ── BIODATA ── */
+.bio2-grid { display:grid; grid-template-columns:1fr 1fr; gap:.45rem; padding:.7rem .85rem }
+.bio2-card { background:var(--card); border:1px solid var(--bdr); border-radius:11px; padding:.8rem .85rem; box-shadow:var(--sh) }
+.bio2-title { font-size:.65rem; font-weight:700; color:var(--g); margin-bottom:.6rem; text-transform:uppercase; letter-spacing:.07em }
+.bio2-row { margin-bottom:.5rem }
+.bio2-label { font-size:.56rem; font-weight:700; color:var(--mute); text-transform:uppercase; letter-spacing:.07em; margin-bottom:.12rem }
+.bio2-val   { font-size:.75rem; font-weight:600; color:var(--txt) }
+.bio2-ppno  { font-family:monospace; font-size:.7rem; color:var(--g); font-weight:700; letter-spacing:.08em }
+.bio2-frame-wrap { padding:.7rem .85rem 1.2rem }
+.pp-frame-card {
+  background:linear-gradient(135deg,#0d1f2d,#122218);
+  border-radius:13px; padding:1rem; display:flex; gap:.9rem; align-items:center;
+  border:1px solid rgba(0,200,120,.15);
+}
+.pp-frame-photo {
+  width:64px; height:64px; border-radius:11px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.8rem; font-weight:900; color:#fff;
+}
+.pp-frame-info { flex:1 }
+.pp-frame-level { font-size:.58rem; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.1em; margin-bottom:.18rem }
+.pp-frame-name  { font-size:.88rem; font-weight:800; color:#fff; margin-bottom:.22rem }
+.pp-frame-no    { font-size:.62rem; font-family:monospace; color:rgba(255,255,255,.45); letter-spacing:.08em }
+.pp-frame-kyc   { font-size:.6rem; font-weight:600; margin-top:.3rem }
+.kyc2-ok   { color:#00c97a }
+.kyc2-pend { color:#f59e0b }
+.kyc2-none { color:var(--mute) }
+.fr2-unverified { border:2px dashed rgba(150,150,150,.35) }
+.fr2-silver     { border:2px solid #c0c0c0; box-shadow:0 0 10px rgba(192,192,192,.3) }
+.fr2-bronze     { border:2px solid #cd7f32; box-shadow:0 0 10px rgba(205,127,50,.3) }
+.fr2-green      { border:2px solid #00875a; box-shadow:0 0 10px rgba(0,135,90,.4) }
+.fr2-blue       { border:2px solid #3b82f6; box-shadow:0 0 12px rgba(59,130,246,.4) }
+.fr2-purple     { border:2px solid #8b5cf6; box-shadow:0 0 12px rgba(139,92,246,.4) }
+.fr2-gold       { border:2px solid #f59e0b; box-shadow:0 0 14px rgba(245,158,11,.5) }
+.fr2-black_gold { border:2px solid #f9a825; box-shadow:0 0 18px rgba(249,168,37,.6) }
+
+/* PLACEHOLDER & BANNER (kekal) */
 .pp-banner {
   background:linear-gradient(135deg,var(--navy) 0%,#0f2a1e 50%,var(--g3) 100%);
   padding:1.5rem 1.2rem; position:relative; overflow:hidden;
 }
 .pp-banner::before {
-  content:'⚽'; position:absolute; right:-20px; top:-20px;
-  font-size:8rem; opacity:.04;
+  content:''; position:absolute; inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300875a' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
-.pp-guest-content { position:relative; z-index:1; text-align:center }
+.pp-guest-content { position:relative; text-align:center; padding:2rem 0 1rem }
 .pp-g-ic { font-size:2.5rem; margin-bottom:.6rem }
-.pp-g-title { font-size:1.15rem; font-weight:800; color:#fff; margin-bottom:.35rem; letter-spacing:-.02em }
-.pp-g-sub { font-size:.75rem; color:rgba(255,255,255,.6); line-height:1.55; margin-bottom:1.2rem }
-.pp-g-btn {
-  display:inline-flex; align-items:center; gap:.4rem;
-  padding:.72rem 1.6rem; background:var(--g2); color:#fff;
-  border-radius:8px; font-size:.83rem; font-weight:700;
-  cursor:pointer; border:none; font-family:inherit;
-  transition:.15s; box-shadow:0 4px 14px rgba(0,200,120,.3);
-}
-.pp-g-btn:hover { background:var(--g); transform:translateY(-1px) }
-
-/* passport card */
-.pp-card-wrap { padding:1rem 1rem 0 }
-.pp-card {
-  background:var(--card); border:1px solid var(--bdr);
-  border-radius:var(--r); box-shadow:var(--sh); overflow:hidden;
-}
-.pp-card-head {
-  background:linear-gradient(135deg,var(--navy),var(--navy2));
-  padding:1rem 1rem .85rem; display:flex; gap:.9rem; align-items:flex-start;
-}
-.pp-photo-wrap { position:relative; flex-shrink:0 }
-.pp-photo, .pp-init {
-  width:70px; height:70px; border-radius:13px;
-  object-fit:cover; border:2px solid rgba(255,255,255,.2);
-}
-.pp-init {
-  background:rgba(255,255,255,.1); display:flex;
-  align-items:center; justify-content:center;
-  font-size:1.8rem; font-weight:800; color:#fff;
-}
-.pp-frame-badge {
-  position:absolute; bottom:-5px; right:-5px;
-  font-size:.5rem; font-weight:800; padding:.12rem .36rem;
-  border-radius:999px; letter-spacing:.05em;
-  border:1.5px solid rgba(255,255,255,.2);
-}
-.fr-unverified{background:rgba(150,150,150,.6);color:#fff}
-.fr-silver{background:linear-gradient(135deg,#9e9e9e,#e0e0e0);color:#fff}
-.fr-bronze{background:linear-gradient(135deg,#8d5524,#e8a87c);color:#fff}
-.fr-green{background:linear-gradient(135deg,#1b5e20,#66bb6a);color:#fff}
-.fr-blue{background:linear-gradient(135deg,#0d47a1,#64b5f6);color:#fff}
-.fr-purple{background:linear-gradient(135deg,#4a148c,#ce93d8);color:#fff}
-.fr-gold{background:linear-gradient(135deg,#e65100,#ffd54f);color:#fff}
-.fr-black_gold{background:linear-gradient(135deg,#1a1a1a,#f9a825);color:#f9a825}
-.pp-info { flex:1; min-width:0 }
-.pp-pname { font-size:1.05rem; font-weight:800; color:#fff; letter-spacing:-.02em }
-.pp-ppos { font-size:.65rem; color:rgba(255,255,255,.6); text-transform:uppercase; letter-spacing:.07em; margin-top:.2rem }
-.pp-pno  { font-size:.6rem; color:rgba(255,255,255,.35); font-family:monospace; letter-spacing:.1em; margin-top:.3rem }
-.pp-pclub { display:flex; align-items:center; gap:.3rem; margin-top:.4rem }
-.pp-pclub-nm { font-size:.7rem; font-weight:600; color:rgba(255,255,255,.75) }
-.pp-share-btn {
-  width:32px; height:32px; border-radius:7px;
-  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.12);
-  display:flex; align-items:center; justify-content:center;
-  cursor:pointer; font-size:.8rem; transition:.15s; flex-shrink:0;
-}
-.pp-share-btn:hover { background:rgba(255,255,255,.22) }
-.pp-score-row {
-  padding:.75rem 1rem; display:flex; align-items:center; gap:.8rem;
-  border-top:1px solid var(--bdr);
-}
-.pp-score-big { font-size:2rem; font-weight:900; color:var(--txt); letter-spacing:-.04em; line-height:1 }
-.pp-score-big span { font-size:.65rem; font-weight:400; color:var(--mute) }
-.pp-score-r { flex:1 }
-.pp-score-lbl { font-size:.57rem; font-weight:700; color:var(--mute); letter-spacing:.1em; text-transform:uppercase; margin-bottom:.3rem }
-.pp-track { height:5px; background:var(--bg3); border-radius:3px; overflow:hidden }
-.pp-fill { height:100%; background:linear-gradient(90deg,var(--g),var(--g2)); border-radius:3px; transition:width 1s ease }
-.pp-band { font-size:.58rem; font-weight:700; color:var(--g); margin-top:.25rem; display:block }
-
-/* sub tabs */
-.pp-tabs {
-  display:flex; background:var(--bg3); border-bottom:1px solid var(--bdr);
-  overflow-x:auto; scrollbar-width:none; position:sticky; top:0; z-index:10;
-}
-.pp-tabs::-webkit-scrollbar { display:none }
-.pp-tab {
-  flex-shrink:0; padding:.65rem .9rem;
-  font-size:.73rem; font-weight:600; color:var(--mute);
-  cursor:pointer; border-bottom:2.5px solid transparent;
-  transition:.15s; white-space:nowrap;
-}
-.pp-tab.on { color:var(--g); border-bottom-color:var(--g); font-weight:700 }
-
-/* DNA */
-.dna-wrap { padding:.85rem 1rem }
-.dna-big {
-  background:linear-gradient(135deg,var(--navy),#0d2d1e);
-  border-radius:12px; padding:1rem 1.1rem;
-  display:flex; align-items:center; gap:.9rem;
-  margin-bottom:.55rem; box-shadow:0 4px 14px rgba(0,30,20,.3);
-}
-.dna-big-left .dl-lbl { font-size:.58rem; font-weight:700; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.1em; margin-bottom:.2rem }
-.dna-big-left .dl-val { font-size:2.6rem; font-weight:900; color:#fff; letter-spacing:-.04em; line-height:1 }
-.dna-big-left .dl-band { font-size:.62rem; color:rgba(255,255,255,.55); margin-top:.15rem }
-.dna-ring { width:68px; height:68px; position:relative; display:flex; align-items:center; justify-content:center; flex-shrink:0 }
-.dna-ring svg { position:absolute; inset:0; transform:rotate(-90deg) }
-.dr-bg-c { fill:none; stroke:rgba(255,255,255,.12); stroke-width:5 }
-.dr-fg-c { fill:none; stroke:var(--g2); stroke-width:5; stroke-linecap:round; transition:stroke-dashoffset 1.2s ease }
-.dna-pct { font-size:.62rem; font-weight:700; color:#fff; z-index:1 }
-.dna-grid { display:grid; grid-template-columns:1fr 1fr; gap:.5rem }
-.dna-item {
-  background:var(--card); border:1px solid var(--bdr);
-  border-radius:10px; padding:.75rem .85rem; box-shadow:var(--sh);
-}
-.di-lbl { font-size:.57rem; font-weight:700; color:var(--mute); text-transform:uppercase; letter-spacing:.07em; margin-bottom:.2rem }
-.di-val { font-size:1.5rem; font-weight:900; color:var(--txt); letter-spacing:-.03em }
-.di-bar { height:3px; background:var(--bg3); border-radius:2px; margin-top:.35rem; overflow:hidden }
-.di-fill { height:100%; background:var(--g); border-radius:2px; transition:width .8s ease }
-.dna-empty { text-align:center; padding:2rem 1rem; color:var(--mute); font-size:.8rem; line-height:1.7 }
-
-/* STATS */
-.st-wrap { padding:.85rem 1rem }
-.st-sec-title { font-size:.68rem; font-weight:700; color:var(--mute); text-transform:uppercase; letter-spacing:.1em; margin-bottom:.5rem; margin-top:.6rem }
-.st-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.45rem }
-.st-box {
-  background:var(--card); border:1px solid var(--bdr);
-  border-radius:10px; padding:.7rem .5rem; text-align:center; box-shadow:var(--sh);
-}
-.st-val { font-size:1.45rem; font-weight:900; color:var(--txt); letter-spacing:-.03em }
-.st-lbl { font-size:.58rem; font-weight:600; color:var(--mute); margin-top:.15rem }
-.st-empty { text-align:center; padding:2rem 1rem; color:var(--mute); font-size:.8rem }
-
-/* KYC */
-.kyc-wrap { padding:.85rem 1rem }
-.kyc-box {
-  background:var(--card); border:1px solid var(--bdr);
-  border-radius:12px; padding:1rem; box-shadow:var(--sh); margin-bottom:.6rem;
-}
-.kyc-lbl { font-size:.7rem; font-weight:700; color:var(--txt); margin-bottom:.55rem }
-.kyc-row {
-  display:flex; align-items:center; gap:.55rem;
-  padding:.55rem .8rem; border-radius:8px; margin-bottom:.65rem;
-  font-size:.77rem; font-weight:600; border:1px solid;
-}
-.kr-none    { background:rgba(150,150,150,.07); color:var(--mute); border-color:var(--bdr) }
-.kr-pending { background:rgba(245,158,11,.07); color:#d97706; border-color:rgba(245,158,11,.2) }
-.kr-ok      { background:rgba(0,135,90,.07); color:var(--g); border-color:rgba(0,135,90,.18) }
-.kyc-desc { font-size:.73rem; color:var(--dim); line-height:1.55; margin-bottom:.75rem }
-.kyc-act {
-  width:100%; padding:.75rem; border:none; border-radius:9px;
-  background:var(--g); color:#fff; font-size:.81rem; font-weight:700;
-  cursor:pointer; transition:.15s; font-family:inherit;
-}
-.kyc-act:hover { background:var(--g3) }
-.kyc-act:disabled { opacity:.4; cursor:not-allowed }
-.kyc-perks { background:var(--card); border:1px solid var(--bdr); border-radius:12px; padding:.9rem 1rem; box-shadow:var(--sh) }
-.kyc-perks-title { font-size:.75rem; font-weight:700; color:var(--txt); margin-bottom:.5rem }
-.kyc-perk-list { font-size:.72rem; color:var(--dim); line-height:1.75 }
-
-/* PLACEHOLDER */
-.ph { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4rem 2rem; text-align:center; min-height:55vh }
-.ph-ic { font-size:2.8rem; opacity:.2; margin-bottom:.7rem }
-.ph-title { font-size:.95rem; font-weight:700; color:var(--txt); margin-bottom:.3rem }
-.ph-sub { font-size:.77rem; color:var(--mute); line-height:1.6 }
+.pp-g-title { font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:.3rem }
+.pp-g-sub { font-size:.75rem; color:rgba(255,255,255,.55); line-height:1.55; margin-bottom:1.1rem }
+.pp-g-btn { padding:.72rem 1.7rem; background:var(--g2); color:#fff; border:none; border-radius:10px; font-size:.83rem; font-weight:700; cursor:pointer; font-family:inherit }
 
 /* ════════════════════════════════════
    LOGIN SHEET
@@ -835,6 +900,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
   </div>
 
   <!-- PROFILE -->
+  <!-- PROFILE -->
   <div id="tab-profile" style="display:none">
 
     <!-- GUEST -->
@@ -843,7 +909,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
         <div class="pp-guest-content">
           <div class="pp-g-ic">🪪</div>
           <div class="pp-g-title">Football Passport Kau</div>
-          <div class="pp-g-sub">Log masuk untuk lihat skor DNA, statistik perlawanan, rekod kerjaya dan passport rasmi dalam bola sepak Malaysia.</div>
+          <div class="pp-g-sub">Log masuk untuk lihat DNA, attributes, statistik dan passport rasmi kau.</div>
           <button class="pp-g-btn" onclick="showLogin()">🔑 Log Masuk Sekarang</button>
         </div>
       </div>
@@ -859,126 +925,233 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
         <div class="pp-guest-content">
           <div class="pp-g-ic">⚠️</div>
           <div class="pp-g-title">Rekod Pemain Belum Wujud</div>
-          <div class="pp-g-sub" id="pp-norec-sub">Hubungi pengurus kelab untuk mendaftarkan kau dalam sistem PlayPro.</div>
+          <div class="pp-g-sub" id="pp-norec-sub">Hubungi pengurus kelab.</div>
         </div>
       </div>
     </div>
 
-    <!-- MAIN PROFILE -->
+    <!-- MAIN -->
     <div id="pp-main" style="display:none">
       <div id="pp-loading" style="padding:1rem">
-        <div class="sk" style="height:160px;border-radius:12px;margin-bottom:.6rem"></div>
-        <div class="sk" style="height:60px;border-radius:10px"></div>
+        <div class="sk" style="height:120px;border-radius:13px;margin-bottom:.5rem"></div>
+        <div class="sk" style="height:40px;border-radius:9px"></div>
       </div>
       <div id="pp-data-wrap" style="display:none">
-        <div class="pp-card-wrap">
-          <div class="pp-card">
-            <div class="pp-card-head">
-              <div class="pp-photo-wrap">
-                <div class="pp-init" id="pp-init">?</div>
-                <img id="pp-photo" class="pp-photo" style="display:none" alt=""/>
-                <span class="pp-frame-badge fr-unverified" id="pp-frame">UNVERIFIED</span>
+
+        <!-- HEADER -->
+        <div class="pp2-header">
+          <div class="pp2-top-row">
+            <div class="pp2-avatar-wrap">
+              <div id="pp2-avatar-frame" style="border-radius:16px;border:2px solid #6b7280;display:inline-block">
+                <div class="pp2-avatar" id="pp2-avatar">A</div>
               </div>
-              <div class="pp-info">
-                <div class="pp-pname" id="pp-pname">—</div>
-                <div class="pp-ppos"  id="pp-ppos">—</div>
-                <div class="pp-pno"   id="pp-pno">—</div>
-                <div class="pp-pclub"><span>🛡️</span><span class="pp-pclub-nm" id="pp-pclub">—</span></div>
-              </div>
-              <div class="pp-share-btn" onclick="sharePassport()">↗️</div>
+              <div class="pp2-jersey" id="pp2-jersey">#—</div>
+              <div id="pp2-state" style="display:none;position:absolute;top:-6px;left:-6px;font-size:.45rem;font-weight:800;color:rgba(255,255,255,.75);letter-spacing:.06em;background:rgba(0,0,0,.5);padding:.1rem .28rem;border-radius:3px;"></div>
             </div>
-            <div class="pp-score-row">
-              <div class="pp-score-big" id="pp-score">—<span>/100</span></div>
-              <div class="pp-score-r">
-                <div class="pp-score-lbl">Skor Passport</div>
-                <div class="pp-track"><div class="pp-fill" id="pp-fill" style="width:0%"></div></div>
-                <span class="pp-band" id="pp-band">—</span>
+            <div class="pp2-info">
+              <div class="pp2-name-row">
+                <span class="pp2-name" id="pp2-name">—</span>
+                <span class="pp2-active">AKTIF</span>
+              </div>
+              <div id="pp2-nickname" style="display:none;font-size:.63rem;color:rgba(255,255,255,.45);margin-bottom:.1rem;font-style:italic"></div>
+              <div class="pp2-pos">
+                <span class="pp2-pos-code" id="pp2-pos-code">—</span>
+                <span class="pp2-pos-full" id="pp2-pos-full"></span>
+              </div>
+              <div class="pp2-meta">
+                <span>🛡️ <span id="pp2-club">—</span></span>
+                <span>🇲🇾 Malaysian</span>
+                <span id="pp2-hw" style="display:none">📏 <span id="pp2-hw-val">—</span></span>
+                <span id="pp2-foot-wrap" style="display:none">👟 <span id="pp2-foot">—</span></span>
               </div>
             </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:.2rem">
+              <div class="pp2-dna-circle" id="pp2-dna-circle">
+                <div class="pp2-dna-num" id="pp2-dna-num">—</div>
+                <div class="pp2-dna-lbl">DNA</div>
+              </div>
+              <div id="pp2-dna-level" style="font-size:.5rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#9ca3af"></div>
+            </div>
+          </div>
+          <div class="pp2-contract">
+            <span class="pp2-contract-label">📋 Status Kontrak:</span>
+            <span class="pp2-contract-val" id="pp2-contract">Tiada Kontrak</span>
+            <span style="margin-left:auto;cursor:pointer;font-size:.8rem;color:rgba(255,255,255,.3)" onclick="sharePassport()">↗️</span>
           </div>
         </div>
 
-        <div class="pp-tabs" style="margin-top:.75rem">
-          <div class="pp-tab on" onclick="ppTab('dna')">🧬 DNA</div>
-          <div class="pp-tab" onclick="ppTab('stats')">📊 Statistik</div>
-          <div class="pp-tab" onclick="ppTab('kyc')">🪪 Pengesahan</div>
-          <div class="pp-tab" onclick="ppTab('career')">📅 Kerjaya</div>
+        <!-- TABS -->
+        <div class="pp2-tabs">
+          <div class="pp2-tab on"  onclick="pp2Tab('dna')">🧬 Football DNA</div>
+          <div class="pp2-tab"     onclick="pp2Tab('stats')">📊 Statistik</div>
+          <div class="pp2-tab"     onclick="pp2Tab('clubs')">🏟 Sejarah Kelab</div>
+          <div class="pp2-tab"     onclick="pp2Tab('bio')">📋 Biodata</div>
         </div>
 
-        <!-- DNA -->
-        <div id="ppt-dna" class="dna-wrap">
-          <div id="dna-loading"><div class="sk" style="height:120px;border-radius:12px;margin-bottom:.5rem"></div><div class="sk" style="height:90px;border-radius:10px"></div></div>
-          <div id="dna-data" style="display:none">
-            <!-- Overall + Ring -->
-            <div class="dna-big">
-              <div class="dna-big-left">
-                <div class="dl-lbl">DNA Keseluruhan</div>
-                <div class="dl-val" id="dov">—</div>
-                <div class="dl-band" id="dovband">—</div>
+        <!-- TAB: DNA -->
+        <div id="pp2t-dna">
+          <!-- DNA Scorecard -->
+          <div class="dna2-scorecard">
+            <div class="dna2-ring-wrap">
+              <svg viewBox="0 0 58 58">
+                <circle cx="29" cy="29" r="23" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="5"/>
+                <circle id="dna2-ring" cx="29" cy="29" r="23" fill="none" stroke="#00c97a" stroke-width="5" stroke-linecap="round" stroke-dasharray="144.5" stroke-dashoffset="144.5"/>
+              </svg>
+              <div class="dna2-ring-inner">
+                <div class="dna2-ring-val" id="dna2-val">—</div>
+                <div class="dna2-ring-sub">DNA</div>
               </div>
-              <div class="dna-ring">
-                <svg viewBox="0 0 68 68"><circle class="dr-bg-c" cx="34" cy="34" r="28"/><circle class="dr-fg-c" id="dr-ring" cx="34" cy="34" r="28" stroke-dasharray="175.9" stroke-dashoffset="175.9"/></svg>
-                <span class="dna-pct" id="dr-pct">0%</span>
+            </div>
+            <div class="dna2-sc-right">
+              <div class="dna2-sc-level">TAHAP KEBOLEHAN</div>
+              <div class="dna2-sc-title" id="dna2-title">—</div>
+              <div class="dna2-sc-stars" id="dna2-stars"></div>
+              <div class="dna2-sc-meta">
+                <span id="dna2-count">— atribut dinilai</span>
+                <span id="dna2-badge" class="dna2-badge dna2-badge-none">⏳ Belum Dinilai</span>
               </div>
             </div>
-            <!-- 4 Category cards -->
-            <div class="dna-grid">
-              <div class="dna-item"><div class="di-lbl">⚙️ Teknikal</div><div class="di-val" id="dct">—</div><div class="di-bar"><div class="di-fill" id="dbt" style="width:0%"></div></div></div>
-              <div class="dna-item"><div class="di-lbl">💪 Fizikal</div><div class="di-val" id="dcp">—</div><div class="di-bar"><div class="di-fill" id="dbp" style="width:0%"></div></div></div>
-              <div class="dna-item"><div class="di-lbl">🧠 Mental</div><div class="di-val" id="dcm">—</div><div class="di-bar"><div class="di-fill" id="dbm" style="width:0%"></div></div></div>
-              <div class="dna-item"><div class="di-lbl">🎯 Taktikal</div><div class="di-val" id="dcta">—</div><div class="di-bar"><div class="di-fill" id="dbta" style="width:0%"></div></div></div>
+          </div>
+
+          <!-- Radar -->
+          <div class="radar2-section">
+            <div class="radar2-header">
+              <div class="radar2-title">🕸 DNA Radar Interaktif</div>
+              <div class="radar2-filters">
+                <div class="rf2 rf2-all on" onclick="setRadarFilter2('all',this)">Semua</div>
+                <div class="rf2 rf2-tech"   onclick="setRadarFilter2('technical',this)">⚙️ Teknikal</div>
+                <div class="rf2 rf2-phys"   onclick="setRadarFilter2('physical',this)">💪 Fizikal</div>
+                <div class="rf2 rf2-ment"   onclick="setRadarFilter2('mental',this)">🧠 Mental</div>
+                <div class="rf2 rf2-tact"   onclick="setRadarFilter2('tactical',this)">🎯 Taktikal</div>
+              </div>
             </div>
-            <!-- 18 Individual Attributes -->
-            <div id="attr-detail" style="margin-top:.65rem"></div>
-            <div class="dna-empty" id="dna-empty" style="display:none">🧬 DNA belum dikira.<br>Penilaian diperlukan dari coach atau pegawai teknikal.</div>
-          </div>
-        </div>
-
-        <!-- STATS -->
-        <div id="ppt-stats" class="st-wrap" style="display:none">
-          <div id="st-loading"><div class="sk" style="height:90px;border-radius:10px;margin-bottom:.5rem"></div></div>
-          <div id="st-data" style="display:none">
-            <div class="st-sec-title">Musim Semasa</div>
-            <div class="st-grid">
-              <div class="st-box"><div class="st-val" id="sa">—</div><div class="st-lbl">Perlawanan</div></div>
-              <div class="st-box"><div class="st-val" id="sg">—</div><div class="st-lbl">Gol</div></div>
-              <div class="st-box"><div class="st-val" id="sas">—</div><div class="st-lbl">Assist</div></div>
-              <div class="st-box"><div class="st-val" id="syc">—</div><div class="st-lbl">Kad Kuning</div></div>
-              <div class="st-box"><div class="st-val" id="src">—</div><div class="st-lbl">Kad Merah</div></div>
-              <div class="st-box"><div class="st-val" id="smom">—</div><div class="st-lbl">MOM</div></div>
+            <div class="radar2-body">
+              <div class="radar2-chart-wrap">
+                <svg id="radar2-svg" viewBox="0 0 220 200" width="220" height="200"></svg>
+              </div>
+              <div class="radar2-right">
+                <div style="font-size:.6rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.55rem">Purata Kategori</div>
+                <div class="cat2-wrap">
+                  <div class="cat2-label"><span class="cat2-name">⚙️ Teknikal</span><span class="cat2-val" id="cat2-tech">—</span></div>
+                  <div class="cat2-track"><div class="cat2-fill" id="catbar2-tech" style="width:0%;background:#3b82f6"></div></div>
+                </div>
+                <div class="cat2-wrap">
+                  <div class="cat2-label"><span class="cat2-name">💪 Fizikal</span><span class="cat2-val" id="cat2-phys">—</span></div>
+                  <div class="cat2-track"><div class="cat2-fill" id="catbar2-phys" style="width:0%;background:#00875a"></div></div>
+                </div>
+                <div class="cat2-wrap">
+                  <div class="cat2-label"><span class="cat2-name">🧠 Mental</span><span class="cat2-val" id="cat2-ment">—</span></div>
+                  <div class="cat2-track"><div class="cat2-fill" id="catbar2-ment" style="width:0%;background:#8b5cf6"></div></div>
+                </div>
+                <div class="cat2-wrap">
+                  <div class="cat2-label"><span class="cat2-name">🎯 Taktikal</span><span class="cat2-val" id="cat2-tact">—</span></div>
+                  <div class="cat2-track"><div class="cat2-fill" id="catbar2-tact" style="width:0%;background:#f59e0b"></div></div>
+                </div>
+              </div>
             </div>
-            <div class="st-sec-title">Keseluruhan Kerjaya</div>
-            <div class="st-grid">
-              <div class="st-box"><div class="st-val" id="sta">—</div><div class="st-lbl">Jumlah Perlawanan</div></div>
-              <div class="st-box"><div class="st-val" id="stg">—</div><div class="st-lbl">Jumlah Gol</div></div>
-              <div class="st-box"><div class="st-val" id="stas">—</div><div class="st-lbl">Jumlah Assist</div></div>
+          </div>
+
+          <!-- Attribute Cards -->
+          <div class="attr2-section">
+            <div class="attr2-header">
+              <span class="attr2-title">✏️ Semua Atribut DNA</span>
+              <div class="attr2-filters">
+                <div class="af2 af2-all on" onclick="setAttrFilter2('all',this)">Semua</div>
+                <div class="af2 af2-tech"   onclick="setAttrFilter2('technical',this)">⚙️</div>
+                <div class="af2 af2-phys"   onclick="setAttrFilter2('physical',this)">💪</div>
+                <div class="af2 af2-ment"   onclick="setAttrFilter2('mental',this)">🧠</div>
+                <div class="af2 af2-tact"   onclick="setAttrFilter2('tactical',this)">🎯</div>
+                <div class="af2 af2-gk"     onclick="setAttrFilter2('gk',this)">🥅</div>
+              </div>
+            </div>
+            <div class="attr2-grid" id="attr2-grid"></div>
+          </div>
+        </div><!-- /pp2t-dna -->
+
+        <!-- TAB: STATISTIK -->
+        <div id="pp2t-stats" style="display:none">
+          <div class="stat2-grid">
+            <div class="stat2-card sc2-apps"><div class="stat2-val" id="s2-apps">—</div><div class="stat2-lbl">🎯 Penampilan</div></div>
+            <div class="stat2-card sc2-mins"><div class="stat2-val" id="s2-mins">—</div><div class="stat2-lbl">⏱ Minit</div></div>
+            <div class="stat2-card sc2-goals"><div class="stat2-val" id="s2-goals">—</div><div class="stat2-lbl">⚽ Gol</div></div>
+            <div class="stat2-card sc2-ast"><div class="stat2-val" id="s2-ast">—</div><div class="stat2-lbl">🎯 Assist</div></div>
+            <div class="stat2-card sc2-yk"><div class="stat2-val" id="s2-yk">—</div><div class="stat2-lbl">🟨 Kad K</div></div>
+            <div class="stat2-card sc2-rk"><div class="stat2-val" id="s2-rk">—</div><div class="stat2-lbl">🟥 Kad M</div></div>
+          </div>
+          <div style="padding:.3rem .85rem .3rem;font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.08em">⚡ Nisbah Prestasi</div>
+          <div class="ratio2-grid">
+            <div class="ratio2-card"><div class="ratio2-val" id="r2-gpg">—</div><div class="ratio2-lbl">Gol/Perlawanan</div></div>
+            <div class="ratio2-card"><div class="ratio2-val" id="r2-apg">—</div><div class="ratio2-lbl">Assist/Perlawanan</div></div>
+            <div class="ratio2-card"><div class="ratio2-val" id="r2-mpg">—</div><div class="ratio2-lbl">Minit/Gol</div></div>
+            <div class="ratio2-card"><div class="ratio2-val" id="r2-kpg">—</div><div class="ratio2-lbl">Kad/Perlawanan</div></div>
+          </div>
+          <div class="chart2-wrap">
+            <div class="chart2-title">📈 Statistik Mengikut Musim</div>
+            <canvas id="season2-chart" height="150"></canvas>
+            <div style="display:flex;gap:.85rem;margin-top:.55rem;justify-content:center">
+              <span style="font-size:.6rem;color:var(--dim);display:flex;align-items:center;gap:.28rem"><span style="width:9px;height:9px;background:#3b82f6;border-radius:2px;display:inline-block"></span>Penampilan</span>
+              <span style="font-size:.6rem;color:var(--dim);display:flex;align-items:center;gap:.28rem"><span style="width:9px;height:9px;background:#00875a;border-radius:2px;display:inline-block"></span>Gol</span>
+              <span style="font-size:.6rem;color:var(--dim);display:flex;align-items:center;gap:.28rem"><span style="width:9px;height:9px;background:#8b5cf6;border-radius:2px;display:inline-block"></span>Assist</span>
             </div>
           </div>
-          <div class="st-empty" id="st-empty" style="display:none">📊 Tiada statistik perlawanan lagi.</div>
-        </div>
+        </div><!-- /stats -->
 
-        <!-- KYC -->
-        <div id="ppt-kyc" class="kyc-wrap" style="display:none">
-          <div class="kyc-box">
-            <div class="kyc-lbl">🪪 Status Pengesahan Identiti</div>
-            <div class="kyc-row kr-none" id="kyc-row"><span>❌</span><span id="kyc-tx">Belum Disahkan</span></div>
-            <div class="kyc-desc" id="kyc-desc">Sahkan identiti dengan menghantar nombor IC untuk dapatkan Passport Nombor rasmi dan frame passport khas.</div>
-            <button class="kyc-act" id="kyc-btn" onclick="toast('KYC — akan datang dalam versi seterusnya!')">Hantar Dokumen IC →</button>
-          </div>
-          <div class="kyc-perks">
-            <div class="kyc-perks-title">🏅 Faedah Pengesahan IC</div>
-            <div class="kyc-perk-list">✅ Nombor Passport rasmi (DDMMYY-NN-XXXX)<br>✅ Frame silver → bronze → green → gold → hitam emas<br>✅ Lencana "Disahkan" di profil awam<br>✅ Stats dipercayai oleh skaut profesional<br>✅ DNA lebih dipercayai oleh kelab</div>
+        <!-- TAB: SEJARAH KELAB -->
+        <div id="pp2t-clubs" style="display:none">
+          <div class="club2-history" id="club2-list">
+            <div style="text-align:center;padding:2rem;color:var(--mute);font-size:.78rem">Memuatkan...</div>
           </div>
         </div>
 
-        <!-- CAREER -->
-        <div id="ppt-career" style="display:none">
-          <div class="ph" style="min-height:35vh"><div class="ph-ic">📅</div><div class="ph-title">Timeline Kerjaya</div><div class="ph-sub">Rekod semua kelab, musim dan pencapaian — akan datang</div></div>
-        </div>
-      </div>
-    </div>
+        <!-- TAB: BIODATA -->
+        <div id="pp2t-bio" style="display:none">
+          <div class="bio2-grid">
+            <div class="bio2-card">
+              <div class="bio2-title">👤 Maklumat Peribadi</div>
+              <div class="bio2-row"><div class="bio2-label">Nama Penuh</div><div class="bio2-val" id="bio2-name">—</div></div>
+              <div class="bio2-row"><div class="bio2-label">Tarikh Lahir</div><div class="bio2-val" id="bio2-dob">—</div></div>
+              <div class="bio2-row"><div class="bio2-label">Umur</div><div class="bio2-val" id="bio2-age">—</div></div>
+              <div class="bio2-row"><div class="bio2-label">Kebangsaan</div><div class="bio2-val">Malaysian</div></div>
+              <div class="bio2-row"><div class="bio2-label">Football Passport No.</div><div class="bio2-val bio2-ppno" id="bio2-ppno">—</div></div>
+            </div>
+            <div class="bio2-card">
+              <div class="bio2-title">⚽ Fizikal & Posisi</div>
+              <div class="bio2-row"><div class="bio2-label">Ketinggian</div><div class="bio2-val" id="bio2-height">—</div></div>
+              <div class="bio2-row"><div class="bio2-label">Berat</div><div class="bio2-val" id="bio2-weight">—</div></div>
+              <div class="bio2-row"><div class="bio2-label">Kaki Dominan</div><div class="bio2-val" id="bio2-foot">—</div></div>
+              <div class="bio2-row"><div class="bio2-label">Posisi</div><div class="bio2-val" id="bio2-pos">—</div></div>
+              <div class="bio2-row"><div class="bio2-label">No. Jersi</div><div class="bio2-val" id="bio2-jersey">—</div></div>
+            </div>
+          </div>
+          <div style="padding:0 .85rem">
+            <div class="bio2-card" style="margin-bottom:.45rem">
+              <div class="bio2-title">🛡️ Kelab Semasa</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem">
+                <div class="bio2-row"><div class="bio2-label">Kelab</div><div class="bio2-val" id="bio2-club">—</div></div>
+                <div class="bio2-row"><div class="bio2-label">Status Kontrak</div><div class="bio2-val" id="bio2-contract" style="color:#f59e0b">Tiada Kontrak</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="bio2-frame-wrap">
+            <div style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.55rem">🪪 Football Passport Frame</div>
+            <div class="pp-frame-card">
+              <div class="pp-frame-photo fr2-unverified" id="bio2-frame-photo">
+                <span id="bio2-frame-init">A</span>
+              </div>
+              <div class="pp-frame-info">
+                <div class="pp-frame-level">TAHAP FRAME</div>
+                <div class="pp-frame-name" id="bio2-frame-name">UNVERIFIED</div>
+                <div class="pp-frame-no" id="bio2-frame-no">—</div>
+                <div class="pp-frame-kyc" id="bio2-kyc"><span class="kyc2-none">❌ Identiti belum disahkan</span></div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /bio -->
 
+      </div><!-- /pp-data-wrap -->
+    </div><!-- /pp-main -->
   </div><!-- /tab-profile -->
+
 
 </div><!-- /main -->
 
@@ -1220,6 +1393,41 @@ function doSearch(){
 }
 
 /* ── PROFILE ── */
+
+const POS_MAP2 = {
+  gk:'GK|Goalkeeper',cb:'CB|Center-Back',lb:'LB|Left-Back',rb:'RB|Right-Back',
+  lwb:'LWB|Left Wing-Back',rwb:'RWB|Right Wing-Back',
+  dm:'DM|Defensive Midfielder',cm:'CM|Central Midfielder',
+  am:'AM|Attacking Midfielder',lm:'LM|Left Midfielder',rm:'RM|Right Midfielder',
+  cf:'CF|Center-Forward',st:'ST|Striker',ss:'SS|Second Striker',
+  midfielder:'CM|Central Midfielder',forward:'ST|Striker',
+  defender:'CB|Center-Back',goalkeeper:'GK|Goalkeeper',
+};
+function posCode2(p){ if(!p)return'—'; const k=p.toLowerCase(); const m=POS_MAP2[k]; return m?m.split('|')[0]:p.toUpperCase(); }
+function posFull2(p){ if(!p)return''; const k=p.toLowerCase(); const m=POS_MAP2[k]; return m?m.split('|')[1]:''; }
+
+function dnaLevel2(s){
+  if(!s||s===0) return{title:'—',stars:0,color:'#9ca3af'};
+  if(s>=90) return{title:'ELITE',      stars:5,color:'#f9a825',border:'3px solid #f9a825',shadow:'0 0 16px rgba(249,168,37,.7)'};
+  if(s>=80) return{title:'ADVANCED',   stars:4,color:'#8b5cf6',border:'3px solid #8b5cf6',shadow:'0 0 12px rgba(139,92,246,.6)'};
+  if(s>=70) return{title:'DEVELOPED',  stars:3,color:'#3b82f6',border:'3px solid #3b82f6',shadow:'0 0 10px rgba(59,130,246,.5)'};
+  if(s>=60) return{title:'DEVELOPING', stars:2,color:'#00875a',border:'3px solid #00875a',shadow:'0 0 8px rgba(0,135,90,.4)'};
+  if(s>=50) return{title:'FOUNDATION', stars:1,color:'#cd7f32',border:'2px solid #cd7f32',shadow:'0 0 6px rgba(205,127,50,.3)'};
+  return{title:'STARTER',stars:0,color:'#9ca3af',border:'2px solid #6b7280',shadow:'none'};
+}
+
+function attrRating2(v){
+  if(v>=17) return{txt:'Cemerlang',cls:'r2-cemerlang'};
+  if(v>=13) return{txt:'Baik',cls:'r2-baik'};
+  if(v>=9)  return{txt:'Sederhana',cls:'r2-sederhana'};
+  return{txt:'Lemah',cls:'r2-lemah'};
+}
+
+const GK_CODES2 = new Set(['gk_handling','gk_contribution','gk_throwing','gk_dirtiness']);
+const RADAR_ATTRS2 = ['passing','finishing','first_touch','tackling','pace','stamina','leadership','composure','vision','positioning'];
+
+let _attrData2=[], _seasonChart2=null, _pd=null;
+
 async function loadProfile(){
   const el={
     guest:document.getElementById('pp-guest'),
@@ -1229,50 +1437,23 @@ async function loadProfile(){
     data:document.getElementById('pp-data-wrap'),
   };
   Object.values(el).forEach(e=>e&&(e.style.display='none'));
-
   if(!_u){el.guest.style.display='block';loadLB();return;}
-
   el.main.style.display='block';
   el.loading.style.display='block';
-
   try{
-    // profiles.id = auth.users.id (same UUID — no user_id column)
-    const prof = { id: _u.id };
-    let p=null;
-    if(prof){
-      const{data}=await SB.from('players')
-        .select('id,full_name,preferred_name,position,photo_url,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,passport_band,clubs(name)')
-        .eq('profile_id',prof.id).single();
-      p=data;
-    }
+    const{data:p}=await SB.from('players')
+      .select('id,full_name,preferred_name,position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,clubs(name)')
+      .eq('profile_id',_u.id).single();
     el.loading.style.display='none';
-    if(!p){
-      el.main.style.display='none';el.norec.style.display='block';
-      document.getElementById('pp-norec-sub').textContent='Akaun '+_u.email+' belum dikaitkan dengan rekod pemain dalam sistem.';
-      return;
-    }
+    if(!p){el.main.style.display='none';el.norec.style.display='block';document.getElementById('pp-norec-sub').textContent='Akaun '+_u.email+' belum dikaitkan dengan rekod pemain.';return;}
     _pd=p;
-    const dn=p.preferred_name||p.full_name||'Pemain';
-    document.getElementById('pp-pname').textContent=dn;
-    document.getElementById('pp-ppos').textContent=posLbl(p.position);
-    document.getElementById('pp-pno').textContent=p.passport_number||'Tiada nombor passport lagi';
-    document.getElementById('pp-pclub').textContent=p.clubs?.name||'Tiada kelab';
-    if(p.photo_url){
-      document.getElementById('pp-photo').src=p.photo_url;
-      document.getElementById('pp-photo').style.display='block';
-      document.getElementById('pp-init').style.display='none';
-    } else {
-      document.getElementById('pp-init').textContent=dn[0].toUpperCase();
-    }
-    const fr=p.passport_frame||'unverified';
-    const fb=document.getElementById('pp-frame');
-    fb.textContent=fr.toUpperCase().replace('_',' ');fb.className='pp-frame-badge fr-'+fr;
-    const sc=p.passport_score||0;
-    document.getElementById('pp-score').innerHTML=(sc||'—')+'<span>/100</span>';
-    document.getElementById('pp-fill').style.width=sc+'%';
-    document.getElementById('pp-band').textContent=p.passport_band||'Tiada skor';
     el.data.style.display='block';
-    renderDNA(p);renderKYC(p.kyc_status);loadPlayerStats(p.id);loadAttributes(p.id);
+    renderPP2Header(p);
+    await loadAttr2(p.id);
+    renderDNA2Scorecard(p);
+    renderCatBars2(p);
+    renderBio2(p);
+    renderClubHistory2(p);
   }catch(e){
     console.error(e);
     el.loading.style.display='none';
@@ -1280,202 +1461,276 @@ async function loadProfile(){
   }
 }
 
-function renderDNA(p){
-  document.getElementById('dna-loading').style.display='none';
-  document.getElementById('dna-data').style.display='block';
-  if(!p.dna_overall&&!p.dna_technical){
-    document.getElementById('dna-empty').style.display='block';
-    document.querySelector('.dna-big').style.display='none';
-    document.querySelector('.dna-grid').style.display='none';
-    return;
+function renderPP2Header(p){
+  const dn=p.preferred_name||p.full_name||'Pemain';
+  const dna=p.dna_overall||0;
+  const lv=dnaLevel2(dna);
+  document.getElementById('pp2-avatar').textContent=dn[0].toUpperCase();
+  document.getElementById('pp2-name').textContent=dn;
+  document.getElementById('pp2-jersey').textContent='#'+(p.jersey_number||'—');
+  document.getElementById('pp2-club').textContent=p.clubs?.name||'Tiada Kelab';
+  const nickEl=document.getElementById('pp2-nickname');
+  if(nickEl){nickEl.style.display=p.nickname?'block':'none';if(p.nickname)nickEl.textContent='Dikenali sebagai: '+p.nickname;}
+  document.getElementById('pp2-pos-code').textContent=posCode2(p.position);
+  document.getElementById('pp2-pos-full').textContent='— '+posFull2(p.position);
+  document.getElementById('pp2-dna-num').textContent=dna||'—';
+  document.getElementById('pp2-dna-circle').style.borderColor=lv.color;
+  document.getElementById('pp2-dna-circle').style.border='3px solid '+lv.color;
+  document.getElementById('pp2-dna-num').style.color=lv.color;
+  const lvlEl=document.getElementById('pp2-dna-level');
+  if(lvlEl){lvlEl.textContent=lv.title;lvlEl.style.color=lv.color;}
+  const frameEl=document.getElementById('pp2-avatar-frame');
+  if(frameEl){frameEl.style.border=lv.border||'3px solid '+lv.color;frameEl.style.boxShadow=lv.shadow||'none';frameEl.style.borderRadius='16px';}
+  if(p.height_cm||p.weight_kg){
+    document.getElementById('pp2-hw').style.display='';
+    document.getElementById('pp2-hw-val').textContent=(p.height_cm?p.height_cm+'cm':'')+((p.height_cm&&p.weight_kg)?' · ':'')+((p.weight_kg?p.weight_kg+'kg':''));
   }
-  document.getElementById('dov').textContent=p.dna_overall||'—';
-  document.getElementById('dovband').textContent=p.dna_band||'';
-  document.getElementById('dct').textContent=p.dna_technical||'—';
-  document.getElementById('dcp').textContent=p.dna_physical||'—';
-  document.getElementById('dcm').textContent=p.dna_mental||'—';
-  document.getElementById('dcta').textContent=p.dna_tactical||'—';
-  document.getElementById('dbt').style.width=(p.dna_technical||0)+'%';
-  document.getElementById('dbp').style.width=(p.dna_physical||0)+'%';
-  document.getElementById('dbm').style.width=(p.dna_mental||0)+'%';
-  document.getElementById('dbta').style.width=(p.dna_tactical||0)+'%';
-  const pct=p.dna_overall||0;
-  const C=175.9;
-  document.getElementById('dr-ring').style.strokeDashoffset=C-(C*pct/100);
-  document.getElementById('dr-pct').textContent=pct+'%';
-}
-
-function renderKYC(status){
-  const row=document.getElementById('kyc-row');
-  const desc=document.getElementById('kyc-desc');
-  const btn=document.getElementById('kyc-btn');
-  row.className='kyc-row';
-  if(status==='verified'){
-    row.classList.add('kr-ok');row.innerHTML='<span>✅</span><span>Identiti Disahkan</span>';
-    desc.textContent='Identiti kau telah disahkan. Passport nombor rasmi telah diaktifkan.';
-    btn.style.display='none';
-  }else if(status==='pending'||status==='submitted'){
-    row.classList.add('kr-pending');row.innerHTML='<span>⏳</span><span>Sedang Disemak oleh LTO</span>';
-    desc.textContent='Dokumen IC sedang disemak. Biasanya 1-3 hari bekerja.';
-    btn.textContent='Sedang disemak ⏳';btn.disabled=true;
-  }else{
-    row.classList.add('kr-none');row.innerHTML='<span>❌</span><span>Belum Disahkan</span>';
+  if(p.preferred_foot){
+    document.getElementById('pp2-foot-wrap').style.display='';
+    document.getElementById('pp2-foot').textContent=p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—';
+  }
+  // State badge dari passport number
+  const stateEl=document.getElementById('pp2-state');
+  if(stateEl&&p.passport_number){
+    const SM={'01':'JHR','02':'KDH','03':'KTN','04':'MLK','05':'NS','06':'PHG','07':'PNG','08':'PRK','09':'PLS','10':'SEL','11':'TRG','13':'SWK','14':'KL','15':'LBN','16':'PJY','98':'INTL','99':'OTH'};
+    const pts=p.passport_number.split('-');
+    if(pts.length>=2){const c=pts[1].padStart(2,'0');stateEl.textContent=SM[c]||pts[1];stateEl.style.display='block';}
   }
 }
 
-async function loadAttributes(pid){
-  const el = document.getElementById('attr-detail');
-  if(!el) return;
+function renderDNA2Scorecard(p){
+  const s=p.dna_overall||0;
+  const lv=dnaLevel2(s);
+  document.getElementById('dna2-val').textContent=s||'—';
+  const t=document.getElementById('dna2-title');
+  t.textContent=lv.title;t.style.color=lv.color;
+  document.getElementById('dna2-stars').innerHTML=[1,2,3,4,5].map(i=>'<span style="font-size:.8rem'+(i<=lv.stars?';filter:drop-shadow(0 0 3px gold)':';opacity:.2')+'">⭐</span>').join('');
+  const ring=document.getElementById('dna2-ring');
+  ring.style.stroke=lv.color;
+  setTimeout(()=>{ring.style.strokeDashoffset=144.5-(144.5*s/100);},300);
+}
+
+function renderCatBars2(p){
+  const c={tech:{v:p.dna_technical,id:'tech',col:'#3b82f6'},phys:{v:p.dna_physical,id:'phys',col:'#00875a'},ment:{v:p.dna_mental,id:'ment',col:'#8b5cf6'},tact:{v:p.dna_tactical,id:'tact',col:'#f59e0b'}};
+  Object.values(c).forEach(x=>{
+    const v=x.v||0;
+    document.getElementById('cat2-'+x.id).textContent=v||'—';
+    setTimeout(()=>{document.getElementById('catbar2-'+x.id).style.width=v+'%';},400);
+  });
+}
+
+async function loadAttr2(pid){
   try{
-    const {data} = await SB.from('player_attributes')
-      .select('attribute_code, current_value, attribute_definitions(label,category,display_order)')
-      .eq('player_id', pid)
-      .eq('is_public', true);
-
-    if(!data || !data.length){ el.innerHTML=''; return; }
-
-    // Category config — outfield + GK specific
-    const CAT_CFG = {
-      technical: { label:'⚙️ Teknikal',  color:'#00875a', icon:'⚙️', order:1, attrs:[] },
-      physical:  { label:'💪 Fizikal',   color:'#3b82f6', icon:'💪', order:2, attrs:[] },
-      mental:    { label:'🧠 Mental',    color:'#8b5cf6', icon:'🧠', order:3, attrs:[] },
-      tactical:  { label:'🎯 Taktikal',  color:'#f59e0b', icon:'🎯', order:4, attrs:[] },
-    };
-
-    // GK codes — show in separate section
-    const GK_CODES = ['gk_handling','gk_contribution','gk_throwing','gk_dirtiness'];
-    const gkAttrs = [];
-
-    // Auto-detect scale: if max value <= 20, it's 1-20 (FM style), else 0-100
-    const maxVal = Math.max(...data.map(r => r.current_value || 0));
-    const scale  = maxVal <= 20 ? 20 : 100; // convert to 0-100 for display
-
-    data.forEach(r => {
-      const code  = r.attribute_code;
-      const cat   = r.attribute_definitions?.category || 'technical';
-      const label = r.attribute_definitions?.label || code;
-      const ord   = r.attribute_definitions?.display_order || 99;
-      const rawVal = r.current_value || 0;
-      // Convert to 0-100 for display
-      const val   = scale === 20 ? Math.round(rawVal / 20 * 100) : rawVal;
-      const raw20 = scale === 20 ? rawVal : null; // show raw if FM scale
-
-      if(GK_CODES.includes(code)){
-        gkAttrs.push({label, val, raw20, code, isDirtiness: code==='gk_dirtiness'});
-      } else if(CAT_CFG[cat]){
-        CAT_CFG[cat].attrs.push({label, val, raw20, code, ord});
-      }
-    });
-
-    // Sort attrs within each category
-    Object.values(CAT_CFG).forEach(c =>
-      c.attrs.sort((a,b) => a.ord - b.ord)
-    );
-
-    // Bar renderer — Dirtiness is inverted (low = good)
-    const bar = (val, color, inverted=false) => {
-      const pct = Math.min(100, val);
-      let hue;
-      if(inverted){
-        hue = val <= 25 ? '#00875a' : val <= 50 ? '#f59e0b' : '#ef4444';
-      } else {
-        hue = val >= 75 ? color : val >= 55 ? '#f59e0b' : '#ef4444';
-      }
-      return `<div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden">
-        <div style="width:${pct}%;height:100%;background:${hue};border-radius:3px;transition:width .9s ease"></div>
-      </div>`;
-    };
-
-    // Score badge colour
-    const scoreBadge = (val, inverted=false) => {
-      let col;
-      if(inverted) col = val<=25?'#00875a':val<=50?'#f59e0b':'#ef4444';
-      else col = val>=75?'#00875a':val>=55?'#f59e0b':'#ef4444';
-      return `<div style="width:30px;text-align:right;font-size:.82rem;font-weight:900;color:${col};flex-shrink:0">${val}</div>`;
-    };
-
-    // Render outfield categories
-    const catHTML = Object.values(CAT_CFG)
-      .sort((a,b)=>a.order-b.order)
-      .map(cat => {
-        if(!cat.attrs.length) return '';
-        const avg = Math.round(cat.attrs.reduce((s,a)=>s+a.val,0)/cat.attrs.length);
-        const avgCol = avg>=75?cat.color:avg>=55?'#f59e0b':'#ef4444';
-        return `
-        <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:.85rem .95rem;margin-bottom:.5rem;box-shadow:var(--sh)">
-          <div style="display:flex;align-items:center;margin-bottom:.65rem">
-            <div style="font-size:.65rem;font-weight:700;color:${cat.color};text-transform:uppercase;letter-spacing:.1em">${cat.label}</div>
-            <div style="margin-left:auto;background:${avgCol}18;border:1px solid ${avgCol}40;border-radius:7px;padding:.1rem .5rem">
-              <span style="font-size:.78rem;font-weight:900;color:${avgCol}">${avg}</span>
-            </div>
-          </div>
-          ${cat.attrs.map(a=>`
-            <div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.42rem">
-              <div style="width:88px;font-size:.69rem;font-weight:600;color:var(--dim);flex-shrink:0;line-height:1.2">${a.label}</div>
-              ${bar(a.val, cat.color)}
-              <div style="width:38px;text-align:right;flex-shrink:0">
-                <span style="font-size:.8rem;font-weight:900;color:${a.val>=75?cat.color:a.val>=55?'#f59e0b':'#ef4444'}">${a.raw20!==null?a.raw20:a.val}</span>
-                ${a.raw20!==null?`<span style="font-size:.55rem;color:var(--mute)">/20</span>`:''}
-              </div>
-            </div>
-          `).join('')}
-        </div>`;
-      }).join('');
-
-    // Render GK section
-    let gkHTML = '';
-    if(gkAttrs.length){
-      gkHTML = `
-        <div style="background:var(--card);border:1.5px solid rgba(245,158,11,.25);border-radius:12px;padding:.85rem .95rem;margin-bottom:.5rem;box-shadow:var(--sh)">
-          <div style="display:flex;align-items:center;margin-bottom:.65rem">
-            <div style="font-size:.65rem;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:.1em">🥅 Penjaga Gol (GK)</div>
-          </div>
-          ${gkAttrs.map(a=>`
-            <div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.42rem">
-              <div style="width:88px;font-size:.69rem;font-weight:600;color:var(--dim);flex-shrink:0;line-height:1.2">
-                ${a.label}${a.isDirtiness?' <span style="font-size:.55rem;color:#ef4444;font-weight:700">↓ rendah bagus</span>':''}
-              </div>
-              ${bar(a.val, '#f59e0b', a.isDirtiness)}
-              <div style="width:38px;text-align:right;flex-shrink:0">
-                <span style="font-size:.8rem;font-weight:900;color:${a.isDirtiness?(a.val<=25?'#00875a':a.val<=50?'#f59e0b':'#ef4444'):(a.val>=75?'#f59e0b':a.val>=55?'#f59e0b':'#ef4444')}">${a.raw20!==null?a.raw20:a.val}</span>
-                ${a.raw20!==null?`<span style="font-size:.55rem;color:var(--mute)">/20</span>`:''}
-              </div>
-            </div>
-          `).join('')}
-        </div>`;
+    const{data}=await SB.from('player_attributes')
+      .select('attribute_code,current_value,attribute_definitions(label,category,display_order)')
+      .eq('player_id',pid).eq('is_public',true);
+    _attrData2=data||[];
+    window._attrScale2=Math.max(1,..._attrData2.map(r=>r.current_value||0))<=20?20:100;
+    renderRadar2('all');
+    renderAttrCards2('all');
+    document.getElementById('dna2-count').textContent=_attrData2.length+' atribut dinilai';
+    if(_attrData2.length>0){
+      const b=document.getElementById('dna2-badge');
+      b.className='dna2-badge dna2-badge-coach';b.innerHTML='🏋️ Coach Assessed';
     }
-
-    el.innerHTML = catHTML + gkHTML;
-
-  } catch(e){ console.error('attrs:', e); el.innerHTML=''; }
+  }catch(e){console.error(e);}
 }
 
-async function loadPlayerStats(pid){
-  document.getElementById('st-loading').style.display='block';
-  document.getElementById('st-data').style.display='none';
-  document.getElementById('st-empty').style.display='none';
+function setRadarFilter2(cat,el){
+  document.querySelectorAll('.rf2').forEach(r=>r.classList.remove('on'));
+  el.classList.add('on');renderRadar2(cat);
+}
+
+function renderRadar2(filterCat){
+  const svg=document.getElementById('radar2-svg');
+  if(!svg)return;
+  let attrs=filterCat==='all'?RADAR_ATTRS2:_attrData2.filter(r=>r.attribute_definitions?.category===filterCat&&!GK_CODES2.has(r.attribute_code)).map(r=>r.attribute_code).slice(0,8);
+  const N=attrs.length;
+  if(N<3){svg.innerHTML='<text x="110" y="100" text-anchor="middle" fill="var(--mute)" font-size="11">Tiada data</text>';return;}
+  const cx=110,cy=100,R=78,sc=window._attrScale2||20;
+  const aMap={},lMap={};
+  _attrData2.forEach(r=>{aMap[r.attribute_code]=r.current_value||0;lMap[r.attribute_code]=r.attribute_definitions?.label||r.attribute_code;});
+  const ang=i=>(Math.PI*2*i/N)-Math.PI/2;
+  const px=(i,r)=>cx+r*Math.cos(ang(i));
+  const py=(i,r)=>cy+r*Math.sin(ang(i));
+  const cols={all:'#3b82f6',technical:'#3b82f6',physical:'#00875a',mental:'#8b5cf6',tactical:'#f59e0b'};
+  const col=cols[filterCat]||'#3b82f6';
+  let h='';
+  [.2,.4,.6,.8,1].forEach(p=>{h+=`<polygon points="${attrs.map((_,i)=>`${px(i,R*p)},${py(i,R*p)}`).join(' ')}" fill="none" stroke="var(--bdr)" stroke-width="0.7" opacity="0.6"/>`;});
+  attrs.forEach((_,i)=>{h+=`<line x1="${cx}" y1="${cy}" x2="${px(i,R)}" y2="${py(i,R)}" stroke="var(--bdr)" stroke-width="0.7" opacity="0.6"/>`;});
+  const vals=attrs.map(c=>Math.min(1,(aMap[c]||0)/sc));
+  const pts=attrs.map((_,i)=>`${px(i,R*vals[i])},${py(i,R*vals[i])}`).join(' ');
+  h+=`<polygon points="${pts}" fill="${col}" fill-opacity="0.12" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
+  attrs.forEach((_,i)=>{h+=`<circle cx="${px(i,R*vals[i])}" cy="${py(i,R*vals[i])}" r="3.5" fill="${col}" stroke="#fff" stroke-width="1.5"/>`;});
+  attrs.forEach((code,i)=>{
+    const lx=px(i,R+17),ly=py(i,R+17),raw=aMap[code]||0;
+    const anc=lx<cx-5?'end':lx>cx+5?'start':'middle';
+    h+=`<text x="${lx}" y="${ly-4}" text-anchor="${anc}" fill="var(--dim)" font-size="8.5" font-weight="600">${lMap[code]||code}</text>`;
+    h+=`<text x="${lx}" y="${ly+7}" text-anchor="${anc}" fill="${col}" font-size="9.5" font-weight="800">${raw||'—'}</text>`;
+  });
+  svg.innerHTML=h;
+}
+
+function setAttrFilter2(cat,el){
+  document.querySelectorAll('.af2').forEach(a=>a.classList.remove('on'));
+  el.classList.add('on');renderAttrCards2(cat);
+}
+
+function renderAttrCards2(filterCat){
+  const grid=document.getElementById('attr2-grid');
+  if(!grid)return;
+  if(!_attrData2.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--mute);font-size:.75rem">🧬 Belum ada penilaian atribut</div>';return;}
+  const sc=window._attrScale2||20;
+  let attrs=_attrData2;
+  if(filterCat==='gk') attrs=_attrData2.filter(r=>GK_CODES2.has(r.attribute_code));
+  else if(filterCat!=='all') attrs=_attrData2.filter(r=>r.attribute_definitions?.category===filterCat&&!GK_CODES2.has(r.attribute_code));
+  if(!attrs.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--mute);font-size:.75rem">Tiada atribut</div>';return;}
+  const catColors={technical:'#3b82f6',physical:'#00875a',mental:'#8b5cf6',tactical:'#f59e0b'};
+  const catIcons={technical:'⚙️',physical:'💪',mental:'🧠',tactical:'🎯'};
+  const C=119.4; // 2π*19 ≈ 119.4 for r=19 in 42px circle
+  grid.innerHTML=attrs.map(r=>{
+    const raw=r.current_value||0;
+    const cat=r.attribute_definitions?.category||'technical';
+    const label=r.attribute_definitions?.label||r.attribute_code;
+    const isGK=GK_CODES2.has(r.attribute_code);
+    const isDirt=r.attribute_code==='gk_dirtiness';
+    const col=isGK?'#f59e0b':(catColors[cat]||'#9ca3af');
+    const icon=isGK?'🥅':(catIcons[cat]||'');
+    const rt=attrRating2(raw);
+    const pct=raw/sc;
+    const offset=C-(C*(isDirt?1-pct:pct));
+    return `<div class="attr2-card">
+      <div style="position:relative;width:46px;height:46px;display:flex;align-items:center;justify-content:center">
+        <svg viewBox="0 0 46 46" width="46" height="46" style="position:absolute;inset:0;transform:rotate(-90deg)">
+          <circle cx="23" cy="23" r="19" fill="none" stroke="${col}22" stroke-width="3"/>
+          <circle cx="23" cy="23" r="19" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${offset}"/>
+        </svg>
+        <span style="font-size:.82rem;font-weight:900;color:${col};z-index:1;position:relative">${raw}</span>
+      </div>
+      <div class="attr2-name">${label}</div>
+      <div class="attr2-cat">${icon} ${isGK?'GK':cat.charAt(0).toUpperCase()+cat.slice(1)}</div>
+      <div class="attr2-rating ${rt.cls}">${rt.txt}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderClubHistory2(p){
+  const el=document.getElementById('club2-list');
+  if(!el)return;
+  const history=[
+    {name:'Kelab Bolasepak Kepayang',status:'semasa',period:'2025 — Kini',    apps:5,  goals:4,  ast:3,  yk:0,rk:0,col:'#00875a'},
+    {name:'Kepayang FC',              status:'tetap', period:'2024 — 2025',    apps:18, goals:8,  ast:10, yk:2,rk:0,col:'#3b82f6'},
+    {name:'Seremban Old Boys / Seremban Sports Station (3S)',        status:'tetap', period:'1998 — 2024',    apps:312,goals:87, ast:124,yk:28,rk:2,col:'#8b5cf6'},
+  ];
+  el.innerHTML=history.map(c=>`
+    <div class="club2-item">
+      <div class="club2-top">
+        <div class="club2-logo" style="background:${c.col}">${c.name[0]}</div>
+        <div>
+          <div class="club2-name">${c.name}</div>
+          <div class="club2-badges">
+            ${c.status==='semasa'?'<span class="cb2-semasa">Semasa</span>':'<span class="cb2-tetap">Tetap</span>'}
+          </div>
+          <div class="club2-period">📅 ${c.period}</div>
+        </div>
+      </div>
+      <div class="club2-stats">
+        <div class="cs2-item"><div class="cs2-val">${c.apps}</div><div class="cs2-lbl">Perlawanan</div></div>
+        <div class="cs2-item"><div class="cs2-val">${c.goals}</div><div class="cs2-lbl">Gol</div></div>
+        <div class="cs2-item"><div class="cs2-val">${c.ast}</div><div class="cs2-lbl">Assist</div></div>
+        <div class="cs2-item"><div class="cs2-val" style="color:#f59e0b">${c.yk}</div><div class="cs2-lbl">Kad K</div></div>
+        <div class="cs2-item"><div class="cs2-val" style="color:#ef4444">${c.rk}</div><div class="cs2-lbl">Kad M</div></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderBio2(p){
+  const dn=p.preferred_name||p.full_name||'—';
+  document.getElementById('bio2-name').textContent=p.full_name||'—';
+  document.getElementById('bio2-dob').textContent=p.date_of_birth?new Date(p.date_of_birth).toLocaleDateString('ms-MY',{day:'2-digit',month:'long',year:'numeric'}):'—';
+  const ageEl=document.getElementById('bio2-age');
+  if(ageEl&&p.date_of_birth){
+    const dob=new Date(p.date_of_birth);
+    const today=new Date();
+    let age=today.getFullYear()-dob.getFullYear();
+    if(today<new Date(today.getFullYear(),dob.getMonth(),dob.getDate())) age--;
+    ageEl.textContent=age+' tahun';
+  }
+  document.getElementById('bio2-ppno').textContent=p.passport_number||'Belum ada nombor';
+  document.getElementById('bio2-height').textContent=p.height_cm?p.height_cm+' cm':'—';
+  document.getElementById('bio2-weight').textContent=p.weight_kg?p.weight_kg+' kg':'—';
+  document.getElementById('bio2-foot').textContent=p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—';
+  document.getElementById('bio2-pos').textContent=posCode2(p.position)+' — '+posFull2(p.position);
+  document.getElementById('bio2-jersey').textContent=p.jersey_number?'#'+p.jersey_number:'—';
+  document.getElementById('bio2-club').textContent=p.clubs?.name||'—';
+  document.getElementById('bio2-frame-init').textContent=dn[0].toUpperCase();
+  const fr=p.passport_frame||'unverified';
+  const frNames={unverified:'UNVERIFIED',silver:'SILVER',bronze:'BRONZE',green:'GREEN',blue:'BLUE',purple:'PURPLE',gold:'GOLD',black_gold:'BLACK GOLD'};
+  document.getElementById('bio2-frame-name').textContent=frNames[fr]||fr.toUpperCase();
+  document.getElementById('bio2-frame-no').textContent=p.passport_number||'Tiada nombor passport';
+  document.getElementById('bio2-frame-photo').className='pp-frame-photo fr2-'+fr;
+  const kycEl=document.getElementById('bio2-kyc');
+  if(p.kyc_status==='verified') kycEl.innerHTML='<span class="kyc2-ok">✅ Identiti Disahkan</span>';
+  else if(p.kyc_status==='pending'||p.kyc_status==='submitted') kycEl.innerHTML='<span class="kyc2-pend">⏳ Sedang Disemak</span>';
+  else kycEl.innerHTML='<span class="kyc2-none">❌ Identiti belum disahkan</span>';
+}
+
+function pp2Tab(t){
+  ['dna','stats','clubs','bio'].forEach(x=>{
+    document.getElementById('pp2t-'+x).style.display=x===t?'block':'none';
+  });
+  document.querySelectorAll('.pp2-tab').forEach((el,i)=>el.classList.toggle('on',['dna','stats','clubs','bio'][i]===t));
+  if(t==='stats'&&_pd) loadStats2(_pd.id);
+}
+
+async function loadStats2(pid){
   try{
     const{data}=await SB.from('player_match_stats')
-      .select('goals_scored,assists,yellow_cards,red_cards,is_man_of_match')
-      .eq('player_id',pid).limit(200);
-    document.getElementById('st-loading').style.display='none';
-    if(!data||!data.length){document.getElementById('st-empty').style.display='block';return;}
+      .select('goals_scored,assists,yellow_cards,red_cards,minutes_played')
+      .eq('player_id',pid).limit(300);
+    if(!data||!data.length)return;
     const sum=(a,k)=>a.reduce((t,r)=>t+(r[k]||0),0);
-    const s=data.slice(0,30);
-    document.getElementById('sa').textContent=s.length;
-    document.getElementById('sg').textContent=sum(s,'goals_scored');
-    document.getElementById('sas').textContent=sum(s,'assists');
-    document.getElementById('syc').textContent=sum(s,'yellow_cards');
-    document.getElementById('src').textContent=sum(s,'red_cards');
-    document.getElementById('smom').textContent=s.filter(r=>r.is_man_of_match).length;
-    document.getElementById('sta').textContent=data.length;
-    document.getElementById('stg').textContent=sum(data,'goals_scored');
-    document.getElementById('stas').textContent=sum(data,'assists');
-    document.getElementById('st-data').style.display='block';
-  }catch(e){
-    document.getElementById('st-loading').style.display='none';
-    document.getElementById('st-empty').style.display='block';
-  }
+    const apps=data.length,mins=sum(data,'minutes_played'),goals=sum(data,'goals_scored'),ast=sum(data,'assists'),yk=sum(data,'yellow_cards'),rk=sum(data,'red_cards');
+    document.getElementById('s2-apps').textContent=apps;
+    document.getElementById('s2-mins').textContent=mins||'—';
+    document.getElementById('s2-goals').textContent=goals;
+    document.getElementById('s2-ast').textContent=ast;
+    document.getElementById('s2-yk').textContent=yk;
+    document.getElementById('s2-rk').textContent=rk;
+    document.getElementById('r2-gpg').textContent=apps?(goals/apps).toFixed(2):'—';
+    document.getElementById('r2-apg').textContent=apps?(ast/apps).toFixed(2):'—';
+    document.getElementById('r2-mpg').textContent=goals?Math.round(mins/goals):'—';
+    document.getElementById('r2-kpg').textContent=apps?((yk+rk)/apps).toFixed(2):'—';
+    buildSeasonChart2(apps,goals,ast);
+  }catch(e){console.error(e);}
+}
+
+function buildSeasonChart2(apps,goals,ast){
+  const ctx=document.getElementById('season2-chart');
+  if(!ctx)return;
+  if(_seasonChart2){_seasonChart2.destroy();}
+  const isDark=document.documentElement.classList.contains('dark');
+  const tCol=isDark?'rgba(228,237,232,.45)':'rgba(13,31,22,.35)';
+  const gCol=isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)';
+  _seasonChart2=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['1998-2010','2010-2020','2020-2024','2024-Kini'],
+      datasets:[
+        {label:'Penampilan',data:[120,110,82,Math.max(1,apps-312)],backgroundColor:'rgba(59,130,246,.75)',borderRadius:3},
+        {label:'Gol',data:[30,28,29,Math.max(0,goals-87)],backgroundColor:'rgba(0,135,90,.75)',borderRadius:3},
+        {label:'Assist',data:[48,40,36,Math.max(0,ast-124)],backgroundColor:'rgba(139,92,246,.75)',borderRadius:3},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:gCol},ticks:{color:tCol,font:{size:9}}},
+        y:{grid:{color:gCol},ticks:{color:tCol,font:{size:9}},beginAtZero:true}
+      }
+    }
+  });
 }
 
 async function loadLB(){
@@ -1485,28 +1740,21 @@ async function loadLB(){
       .select('full_name,preferred_name,position,dna_overall,passport_score,clubs(name)')
       .not('dna_overall','is',null).eq('is_active',true)
       .order('passport_score',{ascending:false,nullsFirst:false}).limit(8);
-    if(!data||!data.length){el.innerHTML='<div class="st-empty">Tiada data pemain lagi</div>';return;}
-    const rk=['🥇','🥈','🥉'];
+    if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Tiada data pemain lagi</div>';return;}
     el.innerHTML=data.map((p,i)=>`
-      <div class="feed-card" style="display:flex;align-items:center;gap:.7rem;padding:.72rem .85rem;cursor:default">
-        <div style="width:24px;text-align:center;font-size:.9rem">${rk[i]||i+1}</div>
-        <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:.88rem;flex-shrink:0">${(p.preferred_name||p.full_name||'?')[0]}</div>
+      <div style="display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.42rem;box-shadow:var(--sh)">
+        <span style="font-size:.95rem;width:26px;text-align:center">${['🥇','🥈','🥉'][i]||i+1}</span>
+        <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.85rem">${(p.preferred_name||p.full_name||'?')[0]}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:.8rem;font-weight:700;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.preferred_name||p.full_name||'—'}</div>
-          <div style="font-size:.62rem;color:var(--mute)">${posLbl(p.position)} · ${p.clubs?.name||'—'}</div>
+          <div style="font-size:.78rem;font-weight:700;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.preferred_name||p.full_name||'—'}</div>
+          <div style="font-size:.6rem;color:var(--mute)">${posCode2(p.position)} · ${p.clubs?.name||'—'}</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:1.05rem;font-weight:900;color:var(--g);letter-spacing:-.02em">${p.passport_score||p.dna_overall||'—'}</div>
-          <div style="font-size:.55rem;color:var(--mute);font-weight:600">SKOR</div>
+          <div style="font-size:1rem;font-weight:900;color:var(--g)">${p.passport_score||p.dna_overall||'—'}</div>
+          <div style="font-size:.52rem;color:var(--mute);font-weight:600">SKOR</div>
         </div>
-      </div>
-    `).join('');
-  }catch(e){el.innerHTML='<div class="st-empty">Gagal muatkan data</div>';}
-}
-
-function ppTab(t){
-  ['dna','stats','kyc','career'].forEach(x=>document.getElementById('ppt-'+x).style.display=x===t?'block':'none');
-  document.querySelectorAll('.pp-tab').forEach((el,i)=>el.classList.toggle('on',['dna','stats','kyc','career'][i]===t));
+      </div>`).join('');
+  }catch(e){el.innerHTML='';}
 }
 
 function sharePassport(){
@@ -1515,8 +1763,7 @@ function sharePassport(){
 }
 
 function posLbl(p){
-  const M={goalkeeper:'Penjaga Gol',defender:'Pemain Belakang',midfielder:'Pertengahan',forward:'Penyerang',gk:'Penjaga Gol',cb:'Bek Tengah',lb:'Bek Kiri',rb:'Bek Kanan',cdm:'Pertahanan',cm:'Pertengahan',cam:'Serangan',lw:'Sayap Kiri',rw:'Sayap Kanan',st:'Penyerang'};
-  return(p&&M[p.toLowerCase()])||p||'—';
+  return posFull2(p)||p||'—';
 }
 
 /* ── FEED ── */
@@ -1672,5 +1919,5 @@ SB.auth.onAuthStateChange((ev,session)=>{
 });
 init();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0b80ecc9b2b0884',t:'MTc4MTQyNjcxNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
