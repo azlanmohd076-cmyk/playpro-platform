@@ -1630,7 +1630,7 @@ function renderPP2Header(p){
   // State badge dari passport number
   const stateEl=document.getElementById('pp2-state');
   if(stateEl&&p.passport_number){
-    const SM={'01':'JHR" data-pname="02':'KDH" data-pname="03':'KTN" data-pname="04':'MLK" data-pname="05':'NS" data-pname="06':'PHG" data-pname="07':'PNG" data-pname="08':'PRK" data-pname="09':'PLS" data-pname="10':'SEL" data-pname="11':'TRG" data-pname="13':'SWK" data-pname="14':'KL" data-pname="15':'LBN" data-pname="16':'PJY" data-pname="98':'INTL" data-pname="99':'OTH'};
+    const SM={'01':'JHR','02':'KDH','03':'KTN','04':'MLK','05':'NS','06':'PHG','07':'PNG','08':'PRK','09':'PLS','10':'SEL','11':'TRG','13':'SWK','14':'KL','15':'LBN','16':'PJY','98':'INTL','99':'OTH'};
     const pts=p.passport_number.split('-');
     if(pts.length>=2){const c=pts[1].padStart(2,'0');stateEl.textContent=SM[c]||pts[1];stateEl.style.display='block';}
   }
@@ -2342,5 +2342,5 @@ SB.auth.onAuthStateChange((ev,session)=>{
 });
 init();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0bb00c27f55fe08',t:'MTc4MTQ1NzU5Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0bb052429200b95',t:'MTc4MTQ1Nzc3Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
