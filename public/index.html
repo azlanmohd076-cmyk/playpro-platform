@@ -1160,7 +1160,8 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
               <div class="bio2-row"><div class="bio2-label">No. Jersi</div><div class="bio2-val" id="bio2-jersey">—</div></div>
             </div>
           </div>
-          <div style="padding:0 .85rem">
+          <div style="padding:0 .85rem .85rem">
+            <!-- Kelab Semasa -->
             <div class="bio2-card" style="margin-bottom:.45rem">
               <div class="bio2-title">🛡️ Kelab Semasa</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem">
@@ -1168,21 +1169,27 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
                 <div class="bio2-row"><div class="bio2-label">Status Kontrak</div><div class="bio2-val" id="bio2-contract" style="color:#f59e0b">Tiada Kontrak</div></div>
               </div>
             </div>
-          </div>
-          <div class="bio2-frame-wrap">
-            <div style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.55rem">🪪 Football Passport Frame</div>
-            <div class="pp-frame-card">
-              <div class="pp-frame-photo fr2-unverified" id="bio2-frame-photo">
-                <span id="bio2-frame-init">A</span>
-              </div>
-              <div class="pp-frame-info">
-                <div class="pp-frame-level">TAHAP FRAME</div>
-                <div class="pp-frame-name" id="bio2-frame-name">UNVERIFIED</div>
-                <div class="pp-frame-no" id="bio2-frame-no">—</div>
-                <div class="pp-frame-kyc" id="bio2-kyc"><span class="kyc2-none">❌ Identiti belum disahkan</span></div>
+            <!-- Football Passport Info -->
+            <div style="background:linear-gradient(135deg,#0d1f2d,#122218);border-radius:13px;padding:1rem;border:1px solid rgba(0,200,120,.15)">
+              <div style="font-size:.62rem;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.65rem">🪪 Football Passport</div>
+              <div style="display:flex;align-items:center;gap:.85rem">
+                <div id="bio2-fp-avatar" style="width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;color:#fff;background:linear-gradient(135deg,#00875a,#00c97a);border:2px solid #9ca3af;flex-shrink:0">A</div>
+                <div style="flex:1">
+                  <div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:.15rem" id="bio2-fp-name">—</div>
+                  <div style="font-size:.72rem;font-family:monospace;color:#00c97a;font-weight:700;letter-spacing:.1em;margin-bottom:.3rem" id="bio2-fp-no">Belum ada nombor</div>
+                  <div style="font-size:.6rem;color:rgba(255,255,255,.4);line-height:1.7" id="bio2-fp-meta">—</div>
+                  <div id="bio2-kyc" style="margin-top:.35rem;font-size:.6rem;font-weight:700"><span class="kyc2-none">❌ Identiti belum disahkan</span></div>
+                </div>
+                <div style="text-align:center;flex-shrink:0">
+                  <div style="width:42px;height:42px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:.25rem">
+                    <span style="font-size:1.2rem">▦</span>
+                  </div>
+                  <div style="font-size:.5rem;color:rgba(255,255,255,.25);text-align:center">QR<br>Tetapan</div>
+                </div>
               </div>
             </div>
           </div>
+
         </div><!-- /bio -->
 
       </div><!-- /pp-data-wrap -->
@@ -1794,16 +1801,27 @@ function renderBio2(p){
   document.getElementById('bio2-pos').textContent=posCode2(p.position)+' — '+posFull2(p.position);
   document.getElementById('bio2-jersey').textContent=p.jersey_number?'#'+p.jersey_number:'—';
   document.getElementById('bio2-club').textContent=p.clubs?.name||'—';
-  document.getElementById('bio2-frame-init').textContent=dn[0].toUpperCase();
-  const fr=p.passport_frame||'unverified';
-  const frNames={unverified:'UNVERIFIED',silver:'SILVER',bronze:'BRONZE',green:'GREEN',blue:'BLUE',purple:'PURPLE',gold:'GOLD',black_gold:'BLACK GOLD'};
-  document.getElementById('bio2-frame-name').textContent=frNames[fr]||fr.toUpperCase();
-  document.getElementById('bio2-frame-no').textContent=p.passport_number||'Tiada nombor passport';
-  document.getElementById('bio2-frame-photo').className='pp-frame-photo fr2-'+fr;
+  // Football Passport section
+  const fpAvatar=document.getElementById('bio2-fp-avatar');
+  const fpName=document.getElementById('bio2-fp-name');
+  const fpNo=document.getElementById('bio2-fp-no');
+  const fpMeta=document.getElementById('bio2-fp-meta');
   const kycEl=document.getElementById('bio2-kyc');
-  if(p.kyc_status==='verified') kycEl.innerHTML='<span class="kyc2-ok">✅ Identiti Disahkan</span>';
-  else if(p.kyc_status==='pending'||p.kyc_status==='submitted') kycEl.innerHTML='<span class="kyc2-pend">⏳ Sedang Disemak</span>';
-  else kycEl.innerHTML='<span class="kyc2-none">❌ Identiti belum disahkan</span>';
+
+  if(fpAvatar) fpAvatar.textContent=dn[0].toUpperCase();
+  if(fpName)   fpName.textContent=p.full_name||dn;
+  if(fpNo)     fpNo.textContent=p.passport_number||'Belum ada nombor passport';
+  if(fpMeta)   fpMeta.innerHTML=(posCode2(p.position)||'—')+' &nbsp;·&nbsp; '+(p.clubs?.name||'—')+'<br>DNA: '+(p.dna_overall||'—')+' &nbsp;·&nbsp; '+(p.dna_band||'—');
+
+  // Frame pada avatar ikut DNA level
+  const lv2=dnaLevel2(p.dna_overall||0);
+  if(fpAvatar){fpAvatar.style.border=lv2.border||'2px solid #9ca3af';fpAvatar.style.boxShadow=lv2.shadow||'none';}
+
+  if(kycEl){
+    if(p.kyc_status==='verified') kycEl.innerHTML='<span class="kyc2-ok">✅ Identiti Disahkan</span>';
+    else if(p.kyc_status==='pending'||p.kyc_status==='submitted') kycEl.innerHTML='<span class="kyc2-pend">⏳ Sedang Disemak</span>';
+    else kycEl.innerHTML='<span class="kyc2-none">❌ Identiti belum disahkan</span>';
+  }
 }
 
 function pp2Tab(t){
@@ -2198,5 +2216,5 @@ SB.auth.onAuthStateChange((ev,session)=>{
 });
 init();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0b8f4c2bbcdfdc1',t:'MTc4MTQzNjEzNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0b962fb3e439e1e',t:'MTc4MTQ0MDY0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
