@@ -1937,11 +1937,12 @@ async function loadLB(){
 // Tengok profile pemain lain
 async function viewPlayerProfile(elOrId){
   const playerId = typeof elOrId === 'string' ? elOrId : elOrId.dataset?.pid || elOrId;
+  toast('🔍 Loading: '+playerId);
   if(!playerId){toast('❌ ID pemain tidak ditemui');return;}
   try{
     const{data:p}=await SB.from('players')
       .select('id,full_name,preferred_name,nickname,position,best_position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,nationality,phone,clubs(name)')
-      .eq('id',playerId).eq('is_passport_public',true).single();
+      .eq('id',playerId).single();
     if(!p){toast('❌ Profil tidak dijumpai atau tidak awam');return;}
 
     // Simpan player yang ditengok
