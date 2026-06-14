@@ -2153,6 +2153,19 @@ function sendMsg(){
   // TODO: dalam production — SB.from('messages').insert(...)
 }
 
+
+async function loadStats_strip(){
+  try{
+    const[{count:p},{count:m}]=await Promise.all([
+      SB.from('players').select('*',{count:'exact',head:true}).eq('is_active',true),
+      SB.from('fixtures').select('*',{count:'exact',head:true}).eq('status','completed'),
+    ]);
+    document.getElementById('ss-liga').textContent='0';
+    document.getElementById('ss-kelab').textContent='0';
+    document.getElementById('ss-pemain').textContent=p||'0';
+    document.getElementById('ss-match').textContent=m||'0';
+  }catch(e){}
+}
 /* ── FEED ── */
 /* ── FEED DATA ── */
 const FEED=[
