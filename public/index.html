@@ -2028,9 +2028,9 @@ function showPlayerModal(p){
     +'</div>'
     // TABS
     +'<div style="display:flex;background:#0f172a;border-bottom:2px solid rgba(255,255,255,.06);overflow-x:auto;scrollbar-width:none;position:sticky;top:113px;z-index:9">'
-      +'<div class="vp-tab on" onclick="vpTab('dna',this)" style="flex-shrink:0;padding:.58rem .9rem;font-size:.7rem;font-weight:700;cursor:pointer;color:'+lv.color+';border-bottom:2.5px solid '+lv.color+';margin-bottom:-2px;white-space:nowrap">DNA Attributes</div>'
-      +'<div class="vp-tab" onclick="vpTab('stats',this)" style="flex-shrink:0;padding:.58rem .9rem;font-size:.7rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap">Statistik</div>'
-      +'<div class="vp-tab" onclick="vpTab('bio',this)" style="flex-shrink:0;padding:.58rem .9rem;font-size:.7rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap">Biodata</div>'
+      +'<div class="vp-tab on" onclick="vpTab(this)" data-tab="dna" style="flex-shrink:0;padding:.58rem .9rem;font-size:.7rem;font-weight:700;cursor:pointer;color:'+lv.color+';border-bottom:2.5px solid '+lv.color+';margin-bottom:-2px;white-space:nowrap">DNA Attributes</div>'
+      +'<div class="vp-tab" onclick="vpTab(this)" data-tab="stats" style="flex-shrink:0;padding:.58rem .9rem;font-size:.7rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap">Statistik</div>'
+      +'<div class="vp-tab" onclick="vpTab(this)" data-tab="bio" style="flex-shrink:0;padding:.58rem .9rem;font-size:.7rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap">Biodata</div>'
     +'</div>'
     // DNA TAB
     +'<div id="vp-dna" style="padding:.75rem .85rem;background:#0f172a;min-height:60vh">'
@@ -2075,17 +2075,18 @@ function showPlayerModal(p){
   modal.scrollTop=0;
   loadViewerAttributes(p.id);
 }
-function vpTab(t, el){
-  ['dna','stats','bio'].forEach(x=>{
+function vpTab(el){
+  const t=el.dataset.tab||el;
+  ['dna','stats','bio','clubs'].forEach(x=>{
     const d=document.getElementById('vp-'+x);
     if(d) d.style.display=x===t?'block':'none';
   });
-  document.querySelectorAll('.vp-tab').forEach(tab=>{
+  document.querySelectorAll('.vp-tab').forEach(function(tab){
     tab.style.color='rgba(255,255,255,.45)';
     tab.style.borderBottomColor='transparent';
     tab.style.fontWeight='600';
   });
-  if(el){el.style.color='var(--g)';el.style.borderBottomColor='var(--g)';el.style.fontWeight='700';}
+  if(el&&el.style){el.style.color='var(--g)';el.style.borderBottomColor='var(--g)';el.style.fontWeight='700';}
 }
 
 async function loadViewerAttributes(playerId){
