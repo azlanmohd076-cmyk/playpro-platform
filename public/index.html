@@ -1195,6 +1195,136 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
 </div>
 
 <!-- LOGIN SHEET -->
+<!-- ONBOARDING SCREEN -->
+<div id="onboarding-mask" style="position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.85);display:none;align-items:flex-end;justify-content:center">
+  <div id="onboarding-sheet" style="width:100%;max-width:430px;background:var(--bg2);border-radius:18px 18px 0 0;border-top:1px solid var(--bdr);padding:0 1.2rem 2.5rem;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
+    <div style="width:40px;height:4px;background:var(--bg4);border-radius:2px;margin:.85rem auto 1rem"></div>
+
+    <!-- Step 1: IC/Passport -->
+    <div id="ob-step1">
+      <div style="margin-bottom:1.2rem">
+        <div style="font-size:1.1rem;font-weight:800;color:var(--txt);margin-bottom:.3rem">Satu Langkah Lagi! 🎉</div>
+        <div style="font-size:.75rem;color:var(--mute);line-height:1.55">Isi maklumat pengenalan diri untuk dapatkan <strong style="color:var(--g)">Football Passport</strong> rasmi kau.</div>
+      </div>
+
+      <!-- Jenis Dokumen -->
+      <div style="margin-bottom:.75rem">
+        <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem">Jenis Dokumen Pengenalan</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem">
+          <div class="doc-type-btn active" onclick="selectDocType(this,'mykad')" data-type="mykad" style="padding:.6rem .4rem;background:rgba(0,135,90,.15);border:1.5px solid var(--g);border-radius:10px;text-align:center;cursor:pointer;transition:.15s">
+            <div style="font-size:1.1rem">🪪</div>
+            <div style="font-size:.62rem;font-weight:700;color:var(--g);margin-top:.2rem">MyKad</div>
+          </div>
+          <div class="doc-type-btn" onclick="selectDocType(this,'passport')" data-type="passport" style="padding:.6rem .4rem;background:var(--bg3);border:1.5px solid var(--bdr);border-radius:10px;text-align:center;cursor:pointer;transition:.15s">
+            <div style="font-size:1.1rem">📕</div>
+            <div style="font-size:.62rem;font-weight:700;color:var(--mute);margin-top:.2rem">Passport</div>
+          </div>
+          <div class="doc-type-btn" onclick="selectDocType(this,'redcard')" data-type="redcard" style="padding:.6rem .4rem;background:var(--bg3);border:1.5px solid var(--bdr);border-radius:10px;text-align:center;cursor:pointer;transition:.15s">
+            <div style="font-size:1.1rem">🔴</div>
+            <div style="font-size:.62rem;font-weight:700;color:var(--mute);margin-top:.2rem">Kad Merah</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No. Dokumen -->
+      <div style="margin-bottom:.75rem">
+        <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem" id="ob-doc-label">No. MyKad (12 digit)</label>
+        <input class="fi" id="ob-doc-no" type="text" placeholder="e.g. 761927051234" maxlength="20" oninput="validateDocNo()" style="font-family:monospace;letter-spacing:.05em"/>
+        <div id="ob-doc-hint" style="font-size:.62rem;color:var(--mute);margin-top:.3rem">Format: DDMMYY-SS-XXXX (12 digit tanpa sempang)</div>
+        <div id="ob-doc-err" style="font-size:.62rem;color:#ef4444;margin-top:.3rem;display:none"></div>
+        <div id="ob-doc-ok" style="font-size:.62rem;color:var(--g);margin-top:.3rem;display:none">✅ Format betul</div>
+      </div>
+
+      <!-- Auto-fill preview -->
+      <div id="ob-preview" style="display:none;background:rgba(0,135,90,.06);border:1px solid rgba(0,135,90,.15);border-radius:10px;padding:.75rem;margin-bottom:.75rem">
+        <div style="font-size:.62rem;font-weight:700;color:var(--g);margin-bottom:.5rem">📋 Maklumat Auto-Detect</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
+          <div><div style="font-size:.55rem;color:var(--mute);text-transform:uppercase">Tarikh Lahir</div><div style="font-size:.75rem;font-weight:600;color:var(--txt)" id="ob-dob-preview">—</div></div>
+          <div><div style="font-size:.55rem;color:var(--mute);text-transform:uppercase">Negeri</div><div style="font-size:.75rem;font-weight:600;color:var(--txt)" id="ob-state-preview">—</div></div>
+          <div style="grid-column:1/-1"><div style="font-size:.55rem;color:var(--mute);text-transform:uppercase">Football Passport No. (Preview)</div><div style="font-size:.72rem;font-weight:700;color:var(--g);font-family:monospace" id="ob-fp-preview">—</div></div>
+        </div>
+      </div>
+
+      <button class="fb" id="ob-btn1" onclick="obNext()" disabled style="opacity:.5">Teruskan →</button>
+      <div class="fm" id="ob-msg"></div>
+    </div>
+
+    <!-- Step 2: Maklumat Tambahan (Optional) -->
+    <div id="ob-step2" style="display:none">
+      <div style="margin-bottom:1rem">
+        <div style="font-size:1rem;font-weight:800;color:var(--txt);margin-bottom:.3rem">Lengkapkan Profil Kau ⚽</div>
+        <div style="font-size:.73rem;color:var(--mute)">Boleh skip dan isi kemudian dalam Football Passport.</div>
+      </div>
+
+      <div style="margin-bottom:.65rem">
+        <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem">Posisi Utama</label>
+        <select class="fi" id="ob-position" style="cursor:pointer">
+          <option value="">-- Pilih Posisi --</option>
+          <optgroup label="Penjaga Gol"><option value="gk">GK — Goalkeeper</option></optgroup>
+          <optgroup label="Pertahanan">
+            <option value="cb">CB — Center-Back</option>
+            <option value="lb">LB — Left-Back</option>
+            <option value="rb">RB — Right-Back</option>
+            <option value="lwb">LWB — Left Wing-Back</option>
+            <option value="rwb">RWB — Right Wing-Back</option>
+          </optgroup>
+          <optgroup label="Pertengahan">
+            <option value="dm">DM — Defensive Midfielder</option>
+            <option value="cm">CM — Central Midfielder</option>
+            <option value="am">AM — Attacking Midfielder</option>
+            <option value="lm">LM — Left Midfielder</option>
+            <option value="rm">RM — Right Midfielder</option>
+          </optgroup>
+          <optgroup label="Penyerang">
+            <option value="cf">CF — Center-Forward</option>
+            <option value="st">ST — Striker</option>
+            <option value="ss">SS — Second Striker</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.65rem">
+        <div>
+          <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem">Kaki Dominan</label>
+          <select class="fi" id="ob-foot" style="cursor:pointer">
+            <option value="">-- Pilih --</option>
+            <option value="right">Kanan</option>
+            <option value="left">Kiri</option>
+            <option value="both">Kedua-dua</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem">No. Jersi</label>
+          <input class="fi" id="ob-jersey" type="number" min="1" max="99" placeholder="1-99"/>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.65rem">
+        <div>
+          <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem">Tinggi (cm)</label>
+          <input class="fi" id="ob-height" type="number" min="100" max="230" placeholder="170"/>
+        </div>
+        <div>
+          <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem">Berat (kg)</label>
+          <input class="fi" id="ob-weight" type="number" min="30" max="150" placeholder="68"/>
+        </div>
+      </div>
+
+      <div style="margin-bottom:.75rem">
+        <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem">Nickname / Nama Samaran</label>
+        <input class="fi" id="ob-nickname" type="text" placeholder="e.g. Lan Rompa (optional)"/>
+      </div>
+
+      <div style="display:flex;gap:.65rem">
+        <button onclick="obSkip()" style="flex:1;padding:.72rem;background:var(--bg3);color:var(--mute);border:1px solid var(--bdr);border-radius:10px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit">Skip dulu</button>
+        <button class="fb" id="ob-btn2" onclick="obComplete()" style="flex:2">Simpan & Mula →</button>
+      </div>
+      <div class="fm" id="ob-msg2"></div>
+    </div>
+
+  </div>
+</div>
+
 <div id="lmask" onclick="if(event.target===this)closeLogin()">
   <div id="lsheet">
     <div class="ls-bar"></div>
@@ -1561,7 +1691,19 @@ async function loadProfile(){
       .select('id,full_name,preferred_name,nickname,position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,best_position,secondary_position,nationality,phone,clubs(name)')
       .eq('profile_id',_u.id).single();
     el.loading.style.display='none';
-    if(!p){el.main.style.display='none';el.norec.style.display='block';document.getElementById('pp-norec-sub').textContent='Akaun '+_u.email+' belum dikaitkan dengan rekod pemain.';return;}
+    if(!p){
+      el.main.style.display='none';
+      // Tunjuk onboarding untuk pemain yang baru daftar
+      var role=_u.user_metadata?.role||'player';
+      if(role==='player'||role==='coach'||role==='referee'){
+        closeLogin();
+        showOnboarding();
+      } else {
+        el.norec.style.display='block';
+        document.getElementById('pp-norec-sub').textContent='Akaun '+_u.email+' belum dikaitkan dengan rekod pemain.';
+      }
+      return;
+    }
     _pd=p;
     el.data.style.display='block';
     renderPP2Header(p);
@@ -2285,6 +2427,219 @@ async function loadStats_strip(){
     document.getElementById('ss-match').textContent=m||'0';
   }catch(e){}
 }
+/* ── ONBOARDING ── */
+let _obDocType = 'mykad';
+let _obDocNo = '';
+let _obDOB = null;
+let _obStateCode = '99';
+
+const STATE_NAMES_OB = {'01': 'Johor', '02': 'Kedah', '03': 'Kelantan', '04': 'Melaka', '05': 'Negeri Sembilan', '06': 'Pahang', '07': 'Pulau Pinang', '08': 'Perak', '09': 'Perlis', '10': 'Selangor', '11': 'Terengganu', '13': 'Sarawak', '14': 'WP Kuala Lumpur', '15': 'WP Labuan', '16': 'WP Putrajaya', '98': 'Luar Negeri', '99': 'Lain-lain'};
+
+function showOnboarding(){
+  const mask=document.getElementById('onboarding-mask');
+  const sheet=document.getElementById('onboarding-sheet');
+  mask.style.display='flex';
+  setTimeout(function(){sheet.style.transform='translateY(0)';},10);
+}
+
+function hideOnboarding(){
+  const sheet=document.getElementById('onboarding-sheet');
+  sheet.style.transform='translateY(100%)';
+  setTimeout(function(){document.getElementById('onboarding-mask').style.display='none';},300);
+}
+
+function selectDocType(el, type){
+  _obDocType=type;
+  document.querySelectorAll('.doc-type-btn').forEach(function(b){
+    b.classList.remove('active');
+    b.style.background='var(--bg3)';
+    b.style.borderColor='var(--bdr)';
+    b.querySelector('div:last-child').style.color='var(--mute)';
+  });
+  el.classList.add('active');
+  el.style.background='rgba(0,135,90,.15)';
+  el.style.borderColor='var(--g)';
+  el.querySelector('div:last-child').style.color='var(--g)';
+
+  var label=document.getElementById('ob-doc-label');
+  var hint=document.getElementById('ob-doc-hint');
+  var input=document.getElementById('ob-doc-no');
+  if(type==='mykad'){
+    label.textContent='No. MyKad (12 digit)';
+    hint.textContent='Format: DDMMYY-SS-XXXX (12 digit tanpa sempang)';
+    input.placeholder='e.g. 761927051234';
+    input.maxLength=12;
+  } else if(type==='passport'){
+    label.textContent='No. Passport Asing';
+    hint.textContent='Format: Huruf + 7-8 digit (e.g. A12345678)';
+    input.placeholder='e.g. A12345678';
+    input.maxLength=9;
+  } else {
+    label.textContent='No. Kad Merah (12 digit)';
+    hint.textContent='Format sama dengan MyKad (12 digit)';
+    input.placeholder='e.g. 761927051234';
+    input.maxLength=12;
+  }
+  input.value='';
+  validateDocNo();
+}
+
+function validateDocNo(){
+  var val=document.getElementById('ob-doc-no').value.replace(/[-\s]/g,'');
+  var err=document.getElementById('ob-doc-err');
+  var ok=document.getElementById('ob-doc-ok');
+  var btn=document.getElementById('ob-btn1');
+  var preview=document.getElementById('ob-preview');
+  var valid=false;
+
+  err.style.display='none';
+  ok.style.display='none';
+  preview.style.display='none';
+  btn.disabled=true;
+  btn.style.opacity='.5';
+
+  if(!val){return;}
+
+  if(_obDocType==='mykad'||_obDocType==='redcard'){
+    var digits=val.replace(/[^0-9]/g,'');
+    if(digits.length!==12){
+      err.textContent='❌ Mesti 12 digit';
+      err.style.display='block';
+      return;
+    }
+    // Validate tarikh lahir dari 6 digit pertama
+    var dd=parseInt(digits.substring(0,2));
+    var mm=parseInt(digits.substring(2,4));
+    var yy=parseInt(digits.substring(4,6));
+    if(dd<1||dd>31||mm<1||mm>12){
+      err.textContent='❌ Tarikh lahir tidak sah dalam IC';
+      err.style.display='block';
+      return;
+    }
+    var stateDigits=digits.substring(6,8);
+    var stateName=STATE_NAMES_OB[stateDigits]||'Tidak diketahui';
+    var yyyy=yy>parseInt(new Date().getFullYear().toString().substring(2))?(1900+yy):(2000+yy);
+    _obDOB=yyyy+'-'+String(mm).padStart(2,'0')+'-'+String(dd).padStart(2,'0');
+    _obStateCode=stateDigits;
+    _obDocNo=digits;
+    valid=true;
+
+    document.getElementById('ob-dob-preview').textContent=dd+'/'+mm+'/'+yyyy;
+    document.getElementById('ob-state-preview').textContent=stateName+' ('+stateDigits+')';
+    updateFPPreview();
+    preview.style.display='block';
+  } else {
+    // Passport asing
+    var passportRegex=/^[A-Z][0-9]{7,8}$/i;
+    if(!passportRegex.test(val)){
+      err.textContent='❌ Format: 1 huruf + 7-8 digit (e.g. A12345678)';
+      err.style.display='block';
+      return;
+    }
+    _obDocNo=val.toUpperCase();
+    _obStateCode='98';
+    _obDOB=null;
+    valid=true;
+    preview.style.display='none';
+  }
+
+  if(valid){
+    ok.style.display='block';
+    btn.disabled=false;
+    btn.style.opacity='1';
+  }
+}
+
+function updateFPPreview(){
+  if(!_u||!_obDOB) return;
+  var name=_u.user_metadata?.full_name||'PEMAIN';
+  var fp=generateFPNo(_obDOB,_obStateCode,name);
+  document.getElementById('ob-fp-preview').textContent=fp;
+}
+
+function generateFPNo(dob,stateCode,fullName){
+  var d=new Date(dob);
+  var dd=String(d.getDate()).padStart(2,'0');
+  var mm=String(d.getMonth()+1).padStart(2,'0');
+  var yyyy=d.getFullYear();
+  var dateStr=dd+mm+yyyy;
+  var words=fullName.toUpperCase().replace(/[^A-Z ]/g,'').split(' ').filter(Boolean);
+  var code='';
+  for(var i=0;i<words.length&&code.length<4;i++){code+=words[i][0]||'';}
+  if(code.length<4){
+    var consonants=(words[0]||'').replace(/[AEIOU]/g,'');
+    code=(code+consonants).substring(0,4);
+  }
+  code=code.padEnd(4,'X').substring(0,4);
+  return dateStr+'-'+stateCode+'-'+code;
+}
+
+async function obNext(){
+  document.getElementById('ob-step1').style.display='none';
+  document.getElementById('ob-step2').style.display='block';
+}
+
+async function obSkip(){
+  await saveOnboardingStep1();
+  hideOnboarding();
+  toast('✅ Football Passport dicipta! Lengkapkan profil kemudian.');
+  if(_tab==='profile'||true) loadProfile();
+}
+
+async function obComplete(){
+  const btn=document.getElementById('ob-btn2');
+  btn.disabled=true;
+  btn.textContent='Menyimpan...';
+  await saveOnboardingStep1();
+  await saveOnboardingStep2();
+  hideOnboarding();
+  toast('✅ Profil disimpan! Selamat datang ke PlayPro!');
+  go('profile');
+}
+
+async function saveOnboardingStep1(){
+  if(!_u) return;
+  var name=_u.user_metadata?.full_name||'Pemain';
+  var fp=_obDOB?generateFPNo(_obDOB,_obStateCode,name):null;
+  try{
+    await SB.from('players').upsert({
+      profile_id:_u.id,
+      full_name:name,
+      preferred_name:name,
+      nationality:'Malaysian',
+      ic_number:_obDocType!=='passport'?_obDocNo:null,
+      date_of_birth:_obDOB,
+      passport_number:fp,
+      kyc_status:'unverified',
+      passport_frame:'unverified',
+      is_active:true,
+      is_passport_public:true,
+    },{onConflict:'profile_id'});
+  }catch(e){console.error('ob1:',e);}
+}
+
+async function saveOnboardingStep2(){
+  if(!_u) return;
+  var pos=document.getElementById('ob-position').value;
+  var foot=document.getElementById('ob-foot').value;
+  var jersey=document.getElementById('ob-jersey').value;
+  var height=document.getElementById('ob-height').value;
+  var weight=document.getElementById('ob-weight').value;
+  var nick=document.getElementById('ob-nickname').value.trim();
+  var update={};
+  if(pos) update.position=pos;
+  if(pos) update.best_position=pos.toUpperCase();
+  if(foot) update.preferred_foot=foot;
+  if(jersey) update.jersey_number=parseInt(jersey);
+  if(height) update.height_cm=parseInt(height);
+  if(weight) update.weight_kg=parseInt(weight);
+  if(nick) update.nickname=nick;
+  if(Object.keys(update).length===0) return;
+  try{
+    await SB.from('players').update(update).eq('profile_id',_u.id);
+  }catch(e){console.error('ob2:',e);}
+}
+
 /* ── FEED ── */
 /* ── FEED DATA ── */
 const FEED=[
