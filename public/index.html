@@ -1,4 +1,243 @@
-<!-- Bahagian Login Sheet yang telah dikemas kini -->
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liga 1 Seremban U21 | Rasmi</title>
+    <!-- Menggunakan Tailwind CSS untuk rekaan moden & profesional -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .bg-navy { background-color: #0B192C; }
+        .text-gold { color: #FFD700; }
+        .bg-gold { background-color: #FFD700; }
+        .border-gold { border-color: #FFD700; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800">
+
+    <!-- NAVBAR -->
+    <nav class="bg-navy text-white sticky top-0 z-50 shadow-md border-b-2 border-gold">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <!-- Placeholder Logo Perisai -->
+                <div class="w-10 h-12 bg-gold flex items-center justify-center rounded-b-lg font-bold text-navy shadow-inner text-xs text-center">
+                    L1S U21
+                </div>
+                <div>
+                    <span class="font-extrabold text-lg block tracking-wider">LIGA 1 SEREMBAN</span>
+                    <span class="text-xs text-gold uppercase tracking-widest font-semibold block -mt-1">Taman Bukit Kepayang</span>
+                </div>
+            </div>
+            <div class="hidden md:flex space-x-6 text-sm font-semibold uppercase tracking-wider">
+                <a href="#utama" class="hover:text-gold transition">Utama</a>
+                <a href="#kedudukan" class="hover:text-gold transition">Kedudukan</a>
+                <a href="#jadual" class="hover:text-gold transition">Jadual</a>
+                <a href="#penajaan" class="hover:text-gold transition">Penajaan</a>
+            </div>
+            <a href="#daftar" class="bg-gold text-navy px-4 py-2 rounded font-bold text-xs uppercase tracking-wider hover:bg-white hover:text-navy transition shadow">
+                Hubungi Liga
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header id="utama" class="bg-navy text-white relative overflow-hidden py-20 px-4 border-b">
+        <div class="absolute inset-0 bg-opacity-20 bg-[url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center mix-blend-overlay"></div>
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <span class="bg-gold text-navy text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest inline-block mb-4 shadow">
+                Pembangunan Belia & Komuniti
+            </span>
+            <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-4">
+                Bukan Sekadar Bola Sepak. <br><span class="text-gold">Ini Pentas Kami.</span>
+            </h1>
+            <p class="text-slate-300 text-base md:text-lg max-w-2xl mx-auto mb-8">
+                Platform kompetitif rasmi u21 berpangkalan di Taman Bukit Kepayang, Seremban. Membina disiplin, menyatukan komuniti, dan mengetengahkan bakat lokal.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#kedudukan" class="bg-gold text-navy px-6 py-3 rounded font-bold text-sm tracking-wide shadow-lg hover:bg-white transition text-center">
+                    Lihat Carta Liga
+                </a>
+                <a href="#penajaan" class="border-2 border-white text-white px-6 py-3 rounded font-bold text-sm tracking-wide hover:bg-white hover:text-navy transition text-center">
+                    Sertai Sebagai Penaja
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- PAPAN MARKAH & KEDUDUKAN (5 PASUKAN) -->
+    <section id="kedudukan" class="py-16 px-4 max-w-5xl mx-auto">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-extrabold text-navy tracking-tight">KEDUDUKAN SEMASA LIGA</h2>
+            <p class="text-slate-500 text-sm mt-1">Data dikemaskini secara digital setiap minggu perlawanan</p>
+            <div class="h-1 w-16 bg-gold mx-auto mt-3 rounded-full"></div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-navy text-white text-xs uppercase tracking-wider">
+                            <th class="py-4 px-4 text-center w-12">Pos</th>
+                            <th class="py-4 px-4">Pasukan</th>
+                            <th class="py-4 px-3 text-center">P</th>
+                            <th class="py-4 px-3 text-center">M</th>
+                            <th class="py-4 px-3 text-center">S</th>
+                            <th class="py-4 px-3 text-center">K</th>
+                            <th class="py-4 px-3 text-center hidden sm:table-cell">JG</th>
+                            <th class="py-4 px-3 text-center hidden sm:table-cell">GB</th>
+                            <th class="py-4 px-3 text-center">DG</th>
+                            <th class="py-4 px-4 text-center font-bold bg-slate-800 text-gold w-16">Mata</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm font-medium text-slate-700 divide-y divide-slate-100">
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-4 px-4 text-center font-bold text-navy bg-amber-50">1</td>
+                            <td class="py-4 px-4 font-bold text-navy flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                                <span>Bukit Kepayang United</span>
+                            </td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center hidden sm:table-cell">0</td>
+                            <td class="py-4 px-3 text-center hidden sm:table-cell">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-4 text-center font-bold bg-slate-50 text-navy">0</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-4 px-4 text-center font-bold text-navy">2</td>
+                            <td class="py-4 px-4 font-bold text-navy flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
+                                <span>Seremban City FC</span>
+                            </td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center hidden sm:table-cell">0</td>
+                            <td class="py-4 px-3 text-center hidden sm:table-cell">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-4 text-center font-bold bg-slate-50 text-navy">0</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-4 px-4 text-center font-bold text-navy">3</td>
+                            <td class="py-4 px-4 font-bold text-navy flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full bg-slate-300 inline-block"></span>
+                                <span>Kepayang Rovers</span>
+                            </td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center hidden sm:table-cell">0</td>
+                            <td class="py-4 px-3 text-center hidden sm:table-cell">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-4 text-center font-bold bg-slate-50 text-navy">0</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-4 px-4 text-center font-bold text-navy">4</td>
+                            <td class="py-4 px-4 font-bold text-navy flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full bg-slate-300 inline-block"></span>
+                                <span>Anak Seremban FC</span>
+                            </td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center hidden sm:table-cell">0</td>
+                            <td class="py-4 px-3 text-center hidden sm:table-cell">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-4 text-center font-bold bg-slate-50 text-navy">0</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-4 px-4 text-center font-bold text-navy">5</td>
+                            <td class="py-4 px-4 font-bold text-navy flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
+                                <span>KRT Kepayang Jaya</span>
+                            </td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-3 text-center hidden sm:table-cell">0</td>
+                            <td class="py-4 px-3 text-center hidden sm:table-cell">0</td>
+                            <td class="py-4 px-3 text-center">0</td>
+                            <td class="py-4 px-4 text-center font-bold bg-slate-50 text-navy">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- JADUAL MINGGU PERLAWANAN & BYE -->
+    <section id="jadual" class="bg-white py-16 px-4">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-extrabold text-navy tracking-tight">PUSAT PERLAWANAN (MATCH CENTER)</h2>
+                <p class="text-slate-500 text-sm mt-1">Sistem Jadual Adil: 2 Perlawanan Seminggu, 1 Pasukan Rehat (*Bye*)</p>
+                <div class="h-1 w-16 bg-gold mx-auto mt-3 rounded-full"></div>
+            </div>
+
+            <div class="max-w-3xl mx-auto bg-slate-50 rounded-xl p-6 border border-slate-100 shadow-sm">
+                <div class="flex justify-between items-center border-b pb-3 mb-6">
+                    <span class="font-bold text-navy uppercase text-sm tracking-wider">Minggu Perlawanan 1</span>
+                    <span class="bg-navy text-white text-xs font-bold px-2.5 py-1 rounded">Padang Komuniti</span>
+                </div>
+
+                <!-- Kad Perlawanan 1 -->
+                <div class="bg-white rounded-lg p-4 shadow-sm border border-slate-100 flex justify-between items-center mb-4">
+                    <div class="w-5/12 text-right font-bold text-sm text-navy">Bukit Kepayang United</div>
+                    <div class="w-2/12 text-center text-xs font-extrabold bg-slate-100 text-slate-500 py-1 rounded">VS</div>
+                    <div class="w-5/12 text-left font-bold text-sm text-navy">Seremban City FC</div>
+                </div>
+
+                <!-- Kad Perlawanan 2 -->
+                <div class="bg-white rounded-lg p-4 shadow-sm border border-slate-100 flex justify-between items-center mb-6">
+                    <div class="w-5/12 text-right font-bold text-sm text-navy">Kepayang Rovers</div>
+                    <div class="w-2/12 text-center text-xs font-extrabold bg-slate-100 text-slate-500 py-1 rounded">VS</div>
+                    <div class="w-5/12 text-left font-bold text-sm text-navy">Anak Seremban FC</div>
+                </div>
+
+                <!-- Notifikasi Pasukan Rehat (Bye) -->
+                <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-3 text-center text-xs font-semibold">
+                    ⚠️ Pasukan Cuti (*Bye Week*): <span class="font-bold underline">KRT Kepayang Jaya</span> (Tiada perlawanan minggu ini)
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- KAWASAN RAKAN PENAJA -->
+    <section id="penajaan" class="py-16 px-4 max-w-5xl mx-auto text-center">
+        <h2 class="text-2xl font-extrabold text-navy tracking-tight mb-2">RAKAN STRATEGIK & PENAJA LIGA</h2>
+        <p class="text-slate-500 text-sm max-w-md mx-auto mb-8">Disokong kuat oleh badan kepimpinan komuniti tempatan dan perniagaan Seremban.</p>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 items-center opacity-70">
+            <div class="p-6 bg-white rounded-xl border border-dashed border-slate-300 font-bold text-slate-400 text-sm">
+                KRT Taman Bukit Kepayang
+            </div>
+            <div class="p-6 bg-white rounded-xl border border-dashed border-slate-300 font-bold text-slate-400 text-sm">
+                [ Slot Penaja Perak ]
+            </div>
+            <div class="p-6 bg-white rounded-xl border border-dashed border-slate-300 font-bold text-slate-400 text-sm">
+                [ Slot Rakan Komuniti ]
+            </div>
+            <div class="p-6 bg-white rounded-xl border border-dashed border-slate-300 font-bold text-slate-400 text-sm">
+                [ Slot Rakan Komuniti ]
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-navy text-slate-400 text-xs py-8 border-t border-slate-800 text-center">
+        <p class="font-bold text-white mb-2">LIGA 1 SEREMBAN U21</p>
+        <p class="max-w-md mx-auto px-4 mb-4">Projek Bola Sepak Komuniti Lestari berpangkalan di Taman Bukit Kepayang, Seremban, Negeri Sembilan.</p>
+        <p>&copy; 2026 Liga 1 Seremban U21. Diuruskan bersama KRT Taman Bukit Kepayang. Hak Cipta Terpelihara.</p>
+    </footer>
+
+</body>
+</html><!-- Bahagian Login Sheet yang telah dikemas kini -->
 <div id="lsheet">
   <div class="ls-bar"></div>
   
