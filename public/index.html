@@ -1554,13 +1554,26 @@ async function doRegister(){
   if(!name||!em||!pw){setMsg('d-msg','⚠️ Sila isi semua maklumat','err');return}
   if(pw.length<8){setMsg('d-msg','⚠️ Kata laluan mesti 8 aksara ke atas','err');return}
   btn.disabled=true;btn.innerHTML='<span class="spin"></span>Mendaftar...';
-  const{data,error}=await SB.auth.signUp({email:em,password:pw,options:{data:{full_name:name,role,phone:fullPhone}}});
+  const{data,error}=await SB.auth.signUp({email:em,password:pw,options:{data:{full_name:name,role:role,phone:fullPhone}}});
   btn.disabled=false;btn.textContent='Buat Akaun →';
   if(error){setMsg('d-msg','❌ '+error.message,'err');return}
-  if(data?.user&&fullPhone){
-    await SB.from('profiles').upsert({id:data.user.id,full_name:name,phone:fullPhone,role},{onConflict:'id'});
-  }
+  // Metadata disimpan dalam Supabase Auth user_metadata
+  // Profiles table akan dikemaskini bila onboarding selesai
   setMsg('d-msg','✅ Akaun dibuat! Semak emel '+em+' untuk pengesahan.','ok');
+  // Terus ke onboarding selepas daftar
+  setTimeout(function(){
+    if(data?.user){
+      _u=data.user;
+      updateUI();
+      closeLogin();
+      var userRole=role||'player';
+      if(userRole==='player'||userRole==='coach'||userRole==='referee'){
+        showOnboarding();
+      } else {
+        toast('✅ Akaun dibuat! Selamat datang ke PlayPro!');
+      }
+    }
+  },1500);
 }
 
 async function doLogout(){
