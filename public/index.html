@@ -1987,6 +1987,8 @@ function showPlayerModal(p){
     ? '<div style="margin-bottom:.4rem"><div style="font-size:.5rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Tinggi</div><div style="font-size:.8rem;font-weight:600;color:#fff">'+p.height_cm+'cm</div></div>'
     : '';
 
+  const footStr=p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'';
+  const ageFootStr=(age!=='—'?age+' thn · ':'')+footStr;
   const msgBtn = _u
     ? '<button onclick="startConvoWith(''+p.id+'',''+dn+'')" style="width:100%;padding:.72rem;background:'+lv.color+';color:#000;border:none;border-radius:10px;font-size:.82rem;font-weight:800;cursor:pointer;font-family:inherit">Hantar Mesej kepada '+dn+'</button>'
     : '<button onclick="closePlayerModal();showLogin();" style="width:100%;padding:.72rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.12);border-radius:10px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit">Log Masuk untuk Hantar Mesej</button>';
@@ -2005,7 +2007,7 @@ function showPlayerModal(p){
             +'<span style="background:rgba(255,255,255,.15);padding:.08rem .4rem;border-radius:5px;color:#fff;font-size:.65rem;font-weight:700">'+posCode2(posVal)+'</span>'
             +'<span style="color:rgba(255,255,255,.4);font-size:.58rem">'+(p.clubs&&p.clubs.name?p.clubs.name:'—')+'</span>'
           +'</div>'
-          +'<div style="font-size:.58rem;color:rgba(255,255,255,.4);margin-top:.1rem">'+(age!=='—'?age+' thn · ':'')+' '+(p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'')+'</div>'
+          +'<div style="font-size:.58rem;color:rgba(255,255,255,.4);margin-top:.1rem">'+ageFootStr+'</div>'
         +'</div>'
         +'<div style="text-align:center;flex-shrink:0">'
           +'<div style="width:52px;height:52px;border-radius:50%;border:3px solid '+lv.color+';background:rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 12px '+lv.color+'55">'
