@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>PlayPro — Developer Panel</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+window.PLAYPRO_SUPABASE_URL='https://wxalcnpsbijxfmnzswxd.supabase.co';
+window.PLAYPRO_SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4YWxjbnBzYmlqeGZtbnpzd3hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzI1NzksImV4cCI6MjA5NjcwODU3OX0.wLDtBus_rM_Yk0wXlb-Gqbv_nBWnwcxTAFZAwwcIxH8';
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0f0d;--bg2:#111815;--bg3:#1a2420;
+  --g:#00875a;--g2:#00c97a;--gold:#f0c040;
+  --txt:#e8f0ec;--dim:rgba(232,240,236,.5);--mute:rgba(232,240,236,.3);
+  --bdr:rgba(255,255,255,.08);--red:#ef4444;--yellow:#f59e0b;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+
+/* LOGIN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem}
+.login-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:16px;padding:2rem;width:100%;max-width:380px}
+.login-logo{text-align:center;margin-bottom:1.5rem}
+.login-logo-title{font-size:1.4rem;font-weight:900;color:var(--g2);letter-spacing:-.02em}
+.login-logo-sub{font-size:.72rem;color:var(--dim);margin-top:.2rem}
+.dev-badge{display:inline-block;background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:.2rem .6rem;font-size:.65rem;font-weight:700;letter-spacing:.08em;margin-top:.4rem}
+.fi{width:100%;padding:.72rem .85rem;background:var(--bg3);border:1.5px solid var(--bdr);border-radius:10px;color:var(--txt);font-size:.85rem;font-family:inherit;outline:none;margin-bottom:.65rem}
+.fi:focus{border-color:var(--g)}
+.fb{width:100%;padding:.75rem;background:var(--g);color:#fff;border:none;border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit}
+.fb:hover{background:var(--g2)}
+.err{color:var(--red);font-size:.72rem;margin-top:.5rem;text-align:center}
+
+/* MAIN PANEL */
+#panel{display:none;min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--bdr);padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:10}
+.topbar-logo{font-size:1rem;font-weight:900;color:var(--g2)}
+.topbar-title{font-size:.8rem;color:var(--dim);flex:1}
+.topbar-user{font-size:.72rem;color:var(--txt);background:var(--bg3);padding:.3rem .75rem;border-radius:8px}
+.logout-btn{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);padding:.3rem .75rem;border-radius:8px;cursor:pointer;font-size:.72rem;font-family:inherit}
+
+/* SIDEBAR + CONTENT */
+.layout{display:flex;min-height:calc(100vh - 53px)}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--bdr);padding:1rem 0;flex-shrink:0}
+.nav-item{display:flex;align-items:center;gap:.65rem;padding:.65rem 1.2rem;font-size:.8rem;color:var(--dim);cursor:pointer;transition:.15s;border-left:3px solid transparent}
+.nav-item:hover{color:var(--txt);background:rgba(255,255,255,.03)}
+.nav-item.on{color:var(--g2);background:rgba(0,200,120,.06);border-left-color:var(--g2);font-weight:700}
+.nav-ic{font-size:1rem;width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;border-radius:999px;padding:.08rem .4rem;font-size:.6rem;font-weight:700}
+.content{flex:1;padding:1.5rem;overflow-y:auto}
+
+/* STATS CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem}
+.stat-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:1.1rem 1.2rem}
+.stat-val{font-size:1.8rem;font-weight:900;color:var(--g2);letter-spacing:-.03em}
+.stat-lbl{font-size:.7rem;color:var(--dim);margin-top:.2rem}
+.stat-card.red .stat-val{color:var(--red)}
+.stat-card.yellow .stat-val{color:var(--yellow)}
+.stat-card.gold .stat-val{color:var(--gold)}
+
+/* SECTION */
+.section-title{font-size:.85rem;font-weight:700;color:var(--txt);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.section-title span{font-size:.65rem;color:var(--dim);font-weight:400}
+
+/* TABLE */
+.table-wrap{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{background:var(--bg3);padding:.65rem 1rem;text-align:left;font-size:.7rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bdr)}
+td{padding:.65rem 1rem;font-size:.78rem;color:var(--txt);border-bottom:1px solid var(--bdr)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:.15rem .5rem;border-radius:6px;font-size:.62rem;font-weight:700;letter-spacing:.05em}
+.badge-verified{background:rgba(0,135,90,.15);color:var(--g2);border:1px solid rgba(0,135,90,.2)}
+.badge-pending{background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.2)}
+.badge-unverified{background:rgba(150,150,150,.1);color:var(--mute);border:1px solid var(--bdr)}
+.badge-rejected{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.badge-player{background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.2)}
+.badge-coach{background:rgba(139,92,246,.12);color:#a78bfa;border:1px solid rgba(139,92,246,.2)}
+.badge-referee{background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.2)}
+.badge-club_admin{background:rgba(0,135,90,.12);color:var(--g2);border:1px solid rgba(0,135,90,.2)}
+.badge-league_founder{background:rgba(249,168,37,.12);color:var(--gold);border:1px solid rgba(249,168,37,.2)}
+
+/* ACTION BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .75rem;border-radius:7px;font-size:.72rem;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:.15s}
+.btn-approve{background:rgba(0,135,90,.15);color:var(--g2);border:1px solid rgba(0,135,90,.2)}
+.btn-approve:hover{background:var(--g);color:#fff}
+.btn-reject{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.btn-reject:hover{background:var(--red);color:#fff}
+.btn-view{background:rgba(255,255,255,.06);color:var(--txt);border:1px solid var(--bdr)}
+.btn-view:hover{background:rgba(255,255,255,.1)}
+
+/* MODAL */
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem}
+#modal-overlay.on{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--bdr);border-radius:16px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:1.1rem 1.2rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:.92rem;font-weight:700;color:var(--txt)}
+.modal-close{background:none;border:none;color:var(--dim);cursor:pointer;font-size:1.1rem;padding:.2rem}
+.modal-body{padding:1.2rem}
+.modal-field{margin-bottom:.85rem}
+.modal-label{font-size:.65rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem}
+.modal-val{font-size:.82rem;color:var(--txt)}
+.modal-footer{padding:1rem 1.2rem;border-top:1px solid var(--bdr);display:flex;gap:.65rem;justify-content:flex-end}
+
+/* TOAST */
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--bdr);color:var(--txt);padding:.65rem 1.2rem;border-radius:10px;font-size:.8rem;opacity:0;transition:.25s;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:3rem;color:var(--mute)}
+.empty-ic{font-size:2.5rem;margin-bottom:.75rem}
+.empty-txt{font-size:.82rem}
+
+/* TABS */
+.tab-row{display:flex;border-bottom:2px solid var(--bdr);margin-bottom:1.25rem}
+.tab{padding:.6rem 1rem;font-size:.78rem;font-weight:600;cursor:pointer;color:var(--dim);border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:.15s}
+.tab.on{color:var(--g2);border-bottom-color:var(--g2)}
+
+/* SEARCH */
+.search-row{display:flex;gap:.65rem;margin-bottom:1rem}
+.search-input{flex:1;padding:.6rem .85rem;background:var(--bg3);border:1.5px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:.8rem;font-family:inherit;outline:none}
+.search-input:focus{border-color:var(--g)}
+.filter-select{padding:.6rem .85rem;background:var(--bg3);border:1.5px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:.8rem;font-family:inherit;outline:none;cursor:pointer}
+
+/* BROADCAST */
+.broadcast-box{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:1.2rem;margin-bottom:1rem}
+textarea.fi{resize:vertical;min-height:80px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-title">▶ PlayPro</div>
+      <div class="login-logo-sub">Platform Bola Sepak Malaysia</div>
+      <div class="dev-badge">🔐 DEVELOPER PANEL</div>
+    </div>
+    <input class="fi" id="dev-email" type="email" placeholder="Email Developer"/>
+    <input class="fi" id="dev-pw" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')devLogin()"/>
+    <button class="fb" onclick="devLogin()" id="dev-login-btn">Log Masuk →</button>
+    <div class="err" id="dev-err"></div>
+  </div>
+</div>
+
+<!-- MAIN PANEL -->
+<div id="panel">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">▶ PlayPro</div>
+    <div class="topbar-title">Developer Panel</div>
+    <div class="topbar-user" id="dev-user-name">Developer</div>
+    <button class="logout-btn" onclick="devLogout()">Log Keluar</button>
+  </div>
+
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="nav-item on" onclick="showSection('dashboard',this)"><span class="nav-ic">📊</span>Dashboard</div>
+      <div class="nav-item" onclick="showSection('kyc',this)"><span class="nav-ic">🪪</span>KYC Pending<span class="nav-badge" id="kyc-badge">0</span></div>
+      <div class="nav-item" onclick="showSection('users',this)"><span class="nav-ic">👥</span>Semua Pengguna</div>
+      <div class="nav-item" onclick="showSection('players',this)"><span class="nav-ic">⚽</span>Pemain</div>
+      <div class="nav-item" onclick="showSection('clubs',this)"><span class="nav-ic">🛡️</span>Kelab</div>
+      <div class="nav-item" onclick="showSection('leagues',this)"><span class="nav-ic">🏆</span>Liga</div>
+      <div class="nav-item" onclick="showSection('broadcast',this)"><span class="nav-ic">📢</span>Broadcast</div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div id="sec-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-val" id="st-players">—</div><div class="stat-lbl">⚽ Jumlah Pemain</div></div>
+          <div class="stat-card yellow"><div class="stat-val" id="st-kyc">—</div><div class="stat-lbl">🪪 KYC Pending</div></div>
+          <div class="stat-card"><div class="stat-val" id="st-clubs">—</div><div class="stat-lbl">🛡️ Kelab</div></div>
+          <div class="stat-card gold"><div class="stat-val" id="st-leagues">—</div><div class="stat-lbl">🏆 Liga</div></div>
+          <div class="stat-card"><div class="stat-val" id="st-verified">—</div><div class="stat-lbl">✅ Pemain Verified</div></div>
+          <div class="stat-card red"><div class="stat-val" id="st-unverified">—</div><div class="stat-lbl">❌ Belum Verified</div></div>
+        </div>
+        <div class="section-title">🕐 Aktiviti Terkini</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Pemain</th><th>Peranan</th><th>KYC</th><th>DNA</th><th>Tarikh Daftar</th></tr></thead>
+            <tbody id="recent-table"><tr><td colspan="5" class="empty"><div class="empty-ic">⏳</div><div class="empty-txt">Memuatkan...</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KYC PENDING -->
+      <div id="sec-kyc" style="display:none">
+        <div class="section-title">🪪 KYC Pending — Perlu Tindakan <span>Semak dan approve/reject permohonan KYC</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Pemain</th><th>No. IC/Passport</th><th>Jenis Dokumen</th><th>Tarikh Submit</th><th>Tindakan</th></tr></thead>
+            <tbody id="kyc-table"><tr><td colspan="5"><div class="empty"><div class="empty-ic">✅</div><div class="empty-txt">Tiada KYC pending</div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SEMUA USERS -->
+      <div id="sec-users" style="display:none">
+        <div class="section-title">👥 Semua Pengguna</div>
+        <div class="search-row">
+          <input class="search-input" id="user-search" placeholder="Cari nama atau email..." oninput="filterUsers()"/>
+          <select class="filter-select" id="user-role-filter" onchange="filterUsers()">
+            <option value="">Semua Peranan</option>
+            <option value="player">Pemain</option>
+            <option value="coach">Jurulatih</option>
+            <option value="club_admin">Pengurus Kelab</option>
+            <option value="league_founder">Penganjur Liga</option>
+            <option value="referee">Pengadil</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nama</th><th>Email</th><th>Peranan</th><th>KYC</th><th>DNA</th><th>Tindakan</th></tr></thead>
+            <tbody id="users-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PEMAIN -->
+      <div id="sec-players" style="display:none">
+        <div class="section-title">⚽ Senarai Pemain</div>
+        <div class="search-row">
+          <input class="search-input" id="player-search" placeholder="Cari nama pemain..." oninput="filterPlayers()"/>
+          <select class="filter-select" id="player-kyc-filter" onchange="filterPlayers()">
+            <option value="">Semua Status KYC</option>
+            <option value="verified">Verified</option>
+            <option value="submitted">Submitted</option>
+            <option value="unverified">Unverified</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nama</th><th>FP No.</th><th>Posisi</th><th>DNA</th><th>Level</th><th>KYC</th><th>Tindakan</th></tr></thead>
+            <tbody id="players-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KELAB -->
+      <div id="sec-clubs" style="display:none">
+        <div class="section-title">🛡️ Senarai Kelab</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nama Kelab</th><th>Bandar</th><th>Jumlah Pemain</th><th>Status</th></tr></thead>
+            <tbody id="clubs-table"><tr><td colspan="4"><div class="empty"><div class="empty-ic">🛡️</div><div class="empty-txt">Tiada kelab lagi</div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- LIGA -->
+      <div id="sec-leagues" style="display:none">
+        <div class="section-title">🏆 Senarai Liga</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nama Liga</th><th>Status</th><th>Jumlah Kelab</th><th>Musim</th></tr></thead>
+            <tbody id="leagues-table"><tr><td colspan="4"><div class="empty"><div class="empty-ic">🏆</div><div class="empty-txt">Tiada liga lagi</div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- BROADCAST -->
+      <div id="sec-broadcast" style="display:none">
+        <div class="section-title">📢 Broadcast Mesej kepada Pengguna</div>
+        <div class="broadcast-box">
+          <div class="modal-field">
+            <div class="modal-label">Penerima</div>
+            <select class="filter-select" id="bc-target" style="width:100%;margin-top:.3rem">
+              <option value="all">Semua Pengguna</option>
+              <option value="player">Pemain Sahaja</option>
+              <option value="coach">Jurulatih Sahaja</option>
+              <option value="verified">Verified Sahaja</option>
+              <option value="unverified">Belum Verified</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <div class="modal-label">Tajuk</div>
+            <input class="fi" id="bc-title" placeholder="Tajuk mesej..." style="margin-bottom:0;margin-top:.3rem"/>
+          </div>
+          <div class="modal-field">
+            <div class="modal-label">Mesej</div>
+            <textarea class="fi" id="bc-body" placeholder="Tulis mesej broadcast..." style="margin-bottom:0;margin-top:.3rem"></textarea>
+          </div>
+          <button class="fb" onclick="sendBroadcast()" style="margin-top:.5rem">📢 Hantar Broadcast</button>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /layout -->
+</div><!-- /panel -->
+
+<!-- MODAL: Detail Pemain -->
+<div id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Detail Pemain</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+const SB = supabase.createClient(
+  window.PLAYPRO_SUPABASE_URL,
+  window.PLAYPRO_SUPABASE_ANON_KEY,
+  {auth:{persistSession:true,autoRefreshToken:true}}
+);
+
+let _devUser = null;
+let _allUsers = [];
+let _allPlayers = [];
+
+// ── DEVELOPER EMAILS (yang dibenarkan) ──
+const DEV_EMAILS = [
+  'azlanmohd076@gmail.com',
+  'developer@playpro.my',
+  'admin@playpro.my'
+];
+
+// ══════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════
+async function devLogin(){
+  const em = document.getElementById('dev-email').value.trim();
+  const pw = document.getElementById('dev-pw').value;
+  const btn = document.getElementById('dev-login-btn');
+  const err = document.getElementById('dev-err');
+
+  if(!em||!pw){err.textContent='⚠️ Isi email dan password';return;}
+
+  btn.disabled=true;
+  btn.textContent='Mengesahkan...';
+  err.textContent='';
+
+  const{data,error}=await SB.auth.signInWithPassword({email:em,password:pw});
+
+  btn.disabled=false;
+  btn.textContent='Log Masuk →';
+
+  if(error){err.textContent='❌ '+error.message;return;}
+
+  // Check sama ada developer
+  if(!DEV_EMAILS.includes(data.user.email)){
+    await SB.auth.signOut();
+    err.textContent='❌ Akses ditolak. Bukan Developer.';
+    return;
+  }
+
+  _devUser = data.user;
+  enterPanel();
+}
+
+async function checkSession(){
+  const{data:{session}}=await SB.auth.getSession();
+  if(session&&DEV_EMAILS.includes(session.user.email)){
+    _devUser=session.user;
+    enterPanel();
+  }
+}
+
+function enterPanel(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('panel').style.display='block';
+  const name=_devUser.user_metadata?.full_name||_devUser.email.split('@')[0];
+  document.getElementById('dev-user-name').textContent=name;
+  loadDashboard();
+  loadKYC();
+  loadAllUsers();
+  loadAllPlayers();
+}
+
+async function devLogout(){
+  await SB.auth.signOut();
+  _devUser=null;
+  document.getElementById('panel').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  toast('👋 Log keluar berjaya');
+}
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function showSection(sec, el){
+  document.querySelectorAll('[id^="sec-"]').forEach(function(s){s.style.display='none';});
+  document.getElementById('sec-'+sec).style.display='block';
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('on');});
+  if(el) el.classList.add('on');
+}
+
+// ══════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════
+async function loadDashboard(){
+  try{
+    const[
+      {count:players},
+      {count:verified},
+      {count:kyc_pending},
+      {count:clubs},
+      {count:leagues}
+    ]=await Promise.all([
+      SB.from('players').select('*',{count:'exact',head:true}).eq('is_active',true),
+      SB.from('players').select('*',{count:'exact',head:true}).eq('kyc_status','verified'),
+      SB.from('players').select('*',{count:'exact',head:true}).eq('kyc_status','submitted'),
+      SB.from('clubs').select('*',{count:'exact',head:true}),
+      SB.from('leagues').select('*',{count:'exact',head:true}),
+    ]);
+
+    document.getElementById('st-players').textContent=players||0;
+    document.getElementById('st-verified').textContent=verified||0;
+    document.getElementById('st-kyc').textContent=kyc_pending||0;
+    document.getElementById('st-clubs').textContent=clubs||0;
+    document.getElementById('st-leagues').textContent=leagues||0;
+    document.getElementById('st-unverified').textContent=(players||0)-(verified||0);
+
+    // Update KYC badge
+    const badge=document.getElementById('kyc-badge');
+    badge.textContent=kyc_pending||0;
+    badge.style.display=kyc_pending>0?'inline':'none';
+
+    // Recent players
+    const{data:recent}=await SB.from('players')
+      .select('full_name,preferred_name,dna_overall,dna_band,kyc_status,created_at,profiles(role)')
+      .order('created_at',{ascending:false})
+      .limit(10);
+
+    const tb=document.getElementById('recent-table');
+    if(!recent||!recent.length){
+      tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="empty-ic">📊</div><div class="empty-txt">Tiada data lagi</div></div></td></tr>';
+      return;
+    }
+    tb.innerHTML=recent.map(function(p){
+      return '<tr>'
+        +'<td><strong>'+(p.preferred_name||p.full_name||'—')+'</strong></td>'
+        +'<td><span class="badge badge-'+(p.profiles?.role||'player')+'">'+(p.profiles?.role||'player')+'</span></td>'
+        +'<td><span class="badge badge-'+p.kyc_status+'">'+p.kyc_status+'</span></td>'
+        +'<td style="color:var(--g2);font-weight:700">'+(p.dna_overall||'—')+'</td>'
+        +'<td style="color:var(--dim)">'+new Date(p.created_at).toLocaleDateString('ms-MY')+'</td>'
+        +'</tr>';
+    }).join('');
+  }catch(e){console.error('dashboard:',e);}
+}
+
+// ══════════════════════════════════════
+// KYC
+// ══════════════════════════════════════
+async function loadKYC(){
+  try{
+    const{data}=await SB.from('players')
+      .select('id,full_name,preferred_name,ic_number,passport_number,kyc_status,kyc_submitted_at,date_of_birth,dna_overall')
+      .eq('kyc_status','submitted')
+      .order('kyc_submitted_at',{ascending:true});
+
+    const tb=document.getElementById('kyc-table');
+    if(!data||!data.length){
+      tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="empty-ic">✅</div><div class="empty-txt">Tiada KYC pending</div></div></td></tr>';
+      return;
+    }
+
+    tb.innerHTML=data.map(function(p){
+      const docType = p.ic_number ? (p.ic_number.length===12?'MyKad':'Passport/Kad Merah') : '—';
+      const submitted = p.kyc_submitted_at ? new Date(p.kyc_submitted_at).toLocaleDateString('ms-MY') : '—';
+      return '<tr>'
+        +'<td><strong>'+(p.preferred_name||p.full_name||'—')+'</strong></td>'
+        +'<td style="font-family:monospace;font-size:.72rem">'+(p.ic_number||'—')+'</td>'
+        +'<td>'+docType+'</td>'
+        +'<td style="color:var(--dim)">'+submitted+'</td>'
+        +'<td style="display:flex;gap:.4rem">'
+          +'<button class="btn btn-approve" onclick="approveKYC(\''+p.id+'\',\''+( p.full_name||'')+'\')" >✅ Approve</button>'
+          +'<button class="btn btn-reject" onclick="rejectKYC(\''+p.id+'\')">❌ Reject</button>'
+          +'<button class="btn btn-view" onclick="viewPlayer(\''+p.id+'\')">👁 Lihat</button>'
+        +'</td>'
+        +'</tr>';
+    }).join('');
+  }catch(e){console.error('kyc:',e);}
+}
+
+async function approveKYC(playerId, playerName){
+  if(!confirm('Approve KYC untuk '+playerName+'?')) return;
+  try{
+    // Generate passport number jika belum ada
+    const{data:player}=await SB.from('players')
+      .select('full_name,preferred_name,date_of_birth,ic_number,passport_number')
+      .eq('id',playerId).single();
+
+    let passportNo = player.passport_number;
+    if(!passportNo && player.date_of_birth && player.ic_number){
+      passportNo = generatePassportNo(player.date_of_birth, player.ic_number, player.full_name||player.preferred_name||'PLYR');
+    }
+
+    const{error}=await SB.from('players').update({
+      kyc_status:'verified',
+      kyc_verified_at:new Date().toISOString(),
+      passport_number:passportNo,
+      passport_frame:'silver'
+    }).eq('id',playerId);
+
+    if(error) throw error;
+    toast('✅ KYC approved untuk '+playerName);
+    loadKYC();
+    loadDashboard();
+  }catch(e){toast('❌ Gagal: '+e.message);console.error(e);}
+}
+
+async function rejectKYC(playerId){
+  const reason=prompt('Sebab rejection (optional):');
+  try{
+    const{error}=await SB.from('players').update({
+      kyc_status:'rejected',
+      kyc_reject_reason:reason||'Dokumen tidak sah'
+    }).eq('id',playerId);
+    if(error) throw error;
+    toast('❌ KYC rejected');
+    loadKYC();
+    loadDashboard();
+  }catch(e){toast('❌ Gagal: '+e.message);}
+}
+
+// ══════════════════════════════════════
+// PASSPORT NUMBER GENERATOR
+// ══════════════════════════════════════
+function generatePassportNo(dob, ic, fullName){
+  // Format: DDMMYYYY-KK-XXXX
+  const d=new Date(dob);
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  const yyyy=d.getFullYear();
+  const dateStr=dd+mm+yyyy;
+
+  // Extract kod negeri dari IC (digit 7-8)
+  const icClean=ic.replace(/\D/g,'');
+  const stateCode=icClean.substring(6,8)||'99';
+
+  // 4 huruf dari nama
+  const words=fullName.toUpperCase().replace(/[^A-Z ]/g,'').split(' ').filter(Boolean);
+  let code='';
+  for(var i=0;i<words.length&&code.length<4;i++){
+    code+=words[i][0]||'';
+  }
+  // Ambil konsonan dari nama pertama kalau kurang 4 huruf
+  if(code.length<4){
+    const consonants=(words[0]||'').replace(/[AEIOU]/g,'');
+    code=(code+consonants).substring(0,4);
+  }
+  code=code.padEnd(4,'X').substring(0,4);
+
+  return dateStr+'-'+stateCode+'-'+code;
+}
+
+// ══════════════════════════════════════
+// USERS
+// ══════════════════════════════════════
+async function loadAllUsers(){
+  try{
+    const{data}=await SB.from('players')
+      .select('id,full_name,preferred_name,kyc_status,dna_overall,dna_band,created_at,profiles(role,email,phone)')
+      .order('created_at',{ascending:false});
+    _allUsers=data||[];
+    renderUsers(_allUsers);
+  }catch(e){console.error('users:',e);}
+}
+
+function filterUsers(){
+  const q=document.getElementById('user-search').value.toLowerCase();
+  const role=document.getElementById('user-role-filter').value;
+  const filtered=_allUsers.filter(function(u){
+    const name=(u.preferred_name||u.full_name||'').toLowerCase();
+    const email=(u.profiles?.email||'').toLowerCase();
+    const matchQ=!q||name.includes(q)||email.includes(q);
+    const matchRole=!role||u.profiles?.role===role;
+    return matchQ&&matchRole;
+  });
+  renderUsers(filtered);
+}
+
+function renderUsers(users){
+  const tb=document.getElementById('users-table');
+  if(!users.length){
+    tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-ic">👥</div><div class="empty-txt">Tiada pengguna</div></div></td></tr>';
+    return;
+  }
+  tb.innerHTML=users.map(function(u){
+    return '<tr>'
+      +'<td><strong>'+(u.preferred_name||u.full_name||'—')+'</strong></td>'
+      +'<td style="color:var(--dim);font-size:.72rem">'+(u.profiles?.email||'—')+'</td>'
+      +'<td><span class="badge badge-'+(u.profiles?.role||'player')+'">'+(u.profiles?.role||'player')+'</span></td>'
+      +'<td><span class="badge badge-'+u.kyc_status+'">'+u.kyc_status+'</span></td>'
+      +'<td style="color:var(--g2);font-weight:700">'+(u.dna_overall||'—')+'</td>'
+      +'<td><button class="btn btn-view" onclick="viewPlayer(\''+u.id+'\')">👁 Lihat</button></td>'
+      +'</tr>';
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// PLAYERS
+// ══════════════════════════════════════
+async function loadAllPlayers(){
+  try{
+    const{data}=await SB.from('players')
+      .select('id,full_name,preferred_name,best_position,position,passport_number,dna_overall,dna_band,kyc_status,created_at')
+      .eq('is_active',true)
+      .order('dna_overall',{ascending:false,nullsFirst:false});
+    _allPlayers=data||[];
+    renderPlayers(_allPlayers);
+  }catch(e){console.error('players:',e);}
+}
+
+function filterPlayers(){
+  const q=document.getElementById('player-search').value.toLowerCase();
+  const kyc=document.getElementById('player-kyc-filter').value;
+  const filtered=_allPlayers.filter(function(p){
+    const name=(p.preferred_name||p.full_name||'').toLowerCase();
+    const matchQ=!q||name.includes(q);
+    const matchKyc=!kyc||p.kyc_status===kyc;
+    return matchQ&&matchKyc;
+  });
+  renderPlayers(filtered);
+}
+
+function renderPlayers(players){
+  const tb=document.getElementById('players-table');
+  if(!players.length){
+    tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-ic">⚽</div><div class="empty-txt">Tiada pemain</div></div></td></tr>';
+    return;
+  }
+  tb.innerHTML=players.map(function(p){
+    const pos=p.best_position||p.position||'—';
+    return '<tr>'
+      +'<td><strong>'+(p.preferred_name||p.full_name||'—')+'</strong></td>'
+      +'<td style="font-family:monospace;font-size:.7rem;color:var(--g2)">'+(p.passport_number||'—')+'</td>'
+      +'<td>'+(pos)+'</td>'
+      +'<td style="color:var(--g2);font-weight:700">'+(p.dna_overall||'—')+'</td>'
+      +'<td style="font-size:.7rem">'+(p.dna_band||'—')+'</td>'
+      +'<td><span class="badge badge-'+p.kyc_status+'">'+p.kyc_status+'</span></td>'
+      +'<td style="display:flex;gap:.4rem">'
+        +'<button class="btn btn-view" onclick="viewPlayer(\''+p.id+'\')">👁 Lihat</button>'
+        +(p.kyc_status==='submitted'?'<button class="btn btn-approve" onclick="approveKYC(\''+p.id+'\',\''+(p.full_name||'')+'\')">✅</button>':'')
+      +'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// VIEW PLAYER DETAIL
+// ══════════════════════════════════════
+async function viewPlayer(playerId){
+  try{
+    const{data:p}=await SB.from('players')
+      .select('*,profiles(role,email,phone),clubs(name)')
+      .eq('id',playerId).single();
+    if(!p) return;
+
+    const dn=p.preferred_name||p.full_name||'—';
+    document.getElementById('modal-title').textContent='Detail: '+dn;
+
+    document.getElementById('modal-body').innerHTML=
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem">'
+      +'<div><div class="modal-label">Nama Penuh</div><div class="modal-val">'+(p.full_name||'—')+'</div></div>'
+      +'<div><div class="modal-label">Nickname</div><div class="modal-val">'+(p.nickname||'—')+'</div></div>'
+      +'<div><div class="modal-label">Peranan</div><div class="modal-val">'+(p.profiles?.role||'—')+'</div></div>'
+      +'<div><div class="modal-label">Email</div><div class="modal-val" style="font-size:.72rem">'+(p.profiles?.email||'—')+'</div></div>'
+      +'<div><div class="modal-label">No. Telefon</div><div class="modal-val">'+(p.phone||p.profiles?.phone||'—')+'</div></div>'
+      +'<div><div class="modal-label">No. IC</div><div class="modal-val" style="font-family:monospace">'+(p.ic_number||'—')+'</div></div>'
+      +'<div><div class="modal-label">FP No.</div><div class="modal-val" style="font-family:monospace;color:var(--g2)">'+(p.passport_number||'—')+'</div></div>'
+      +'<div><div class="modal-label">KYC Status</div><div class="modal-val"><span class="badge badge-'+p.kyc_status+'">'+p.kyc_status+'</span></div></div>'
+      +'<div><div class="modal-label">DNA Overall</div><div class="modal-val" style="color:var(--g2);font-weight:700">'+(p.dna_overall||'—')+'</div></div>'
+      +'<div><div class="modal-label">DNA Level</div><div class="modal-val">'+(p.dna_band||'—')+'</div></div>'
+      +'<div><div class="modal-label">Posisi</div><div class="modal-val">'+(p.best_position||p.position||'—')+'</div></div>'
+      +'<div><div class="modal-label">Kelab</div><div class="modal-val">'+(p.clubs?.name||'—')+'</div></div>'
+      +'<div><div class="modal-label">Tarikh Lahir</div><div class="modal-val">'+(p.date_of_birth||'—')+'</div></div>'
+      +'<div><div class="modal-label">Tinggi/Berat</div><div class="modal-val">'+(p.height_cm?p.height_cm+'cm':' —')+(p.weight_kg?' · '+p.weight_kg+'kg':'')+'</div></div>'
+      +'</div>';
+
+    const footer=document.getElementById('modal-footer');
+    if(p.kyc_status==='submitted'){
+      footer.innerHTML=
+        '<button class="btn btn-reject" onclick="rejectKYC(\''+p.id+'\');closeModal()">❌ Reject KYC</button>'
+        +'<button class="btn btn-approve" style="padding:.45rem 1.1rem;background:var(--g);color:#fff" onclick="approveKYC(\''+p.id+'\',\''+dn+'\');closeModal()">✅ Approve KYC</button>';
+    } else {
+      footer.innerHTML='<button class="btn btn-view" onclick="closeModal()">Tutup</button>';
+    }
+
+    document.getElementById('modal-overlay').classList.add('on');
+  }catch(e){toast('❌ Gagal muatkan data');console.error(e);}
+}
+
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('on');
+}
+
+// ══════════════════════════════════════
+// BROADCAST
+// ══════════════════════════════════════
+async function sendBroadcast(){
+  const title=document.getElementById('bc-title').value.trim();
+  const body=document.getElementById('bc-body').value.trim();
+  if(!title||!body){toast('⚠️ Isi tajuk dan mesej');return;}
+  // TODO: implement broadcast via messages table
+  toast('📢 Broadcast dihantar! (Demo)');
+  document.getElementById('bc-title').value='';
+  document.getElementById('bc-body').value='';
+}
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+let _tt;
+function toast(m){
+  const t=document.getElementById('toast');
+  t.textContent=m;
+  t.classList.add('on');
+  clearTimeout(_tt);
+  _tt=setTimeout(function(){t.classList.remove('on');},2800);
+}
+
+// INIT
+checkSession();
+</script>
+</body>
+</html>
