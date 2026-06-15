@@ -1458,61 +1458,40 @@ function updateUI(){
 
 /* ── STATS STRIP ── */
 async function loadTopScorers(){
-  const el=document.getElementById('top-scorers-home');
-  if(!el)return;
+  const el=document.getElementById('top-scorers-home');if(!el)return;
   try{
     const{data}=await SB.from('players')
-      .select('full_name,preferred_name,position,passport_score,dna_overall,clubs(name)')
-      .not('passport_score','is',null)
-      .eq('is_active',true)
-      .order('passport_score',{ascending:false})
-      .limit(5);
-    if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--mute);font-size:.78rem">Tiada data lagi</div>';return;}
+      .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,clubs(name)')
+      .not('dna_overall','is',null).eq('is_active',true)
+      .order('dna_overall',{ascending:false}).limit(5);
+    if(!data||!data.length){el.innerHTML='';return;}
+    
+    el.innerHTML='';
     const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
-    el.innerHTML=data.map((p,i)=>`
-      <div style="display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.45rem;box-shadow:var(--sh)">
+    data.forEach((p,i)=>{
+      const lv=dnaLevel2(p.dna_overall||0);
+      const pos=p.best_position||p.position||'';
+      const div=document.createElement('div');
+      div.style.cssText='display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.45rem;box-shadow:var(--sh);cursor:pointer;transition:.15s';
+      div.innerHTML=`
         <span style="font-size:1.1rem;width:28px;text-align:center">${medals[i]}</span>
-        <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.88rem;flex-shrink:0">${(p.preferred_name||p.full_name||'?')[0]}</div>
+        <div style="width:36px;height:36px;border-radius:9px;border:2px solid ${lv.color};background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.88rem">${(p.preferred_name||p.full_name||'?')[0]}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:.81rem;font-weight:700;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.preferred_name||p.full_name||'—'}</div>
-          <div style="font-size:.62rem;color:var(--mute);margin-top:1px">${posLbl(p.position)} · ${p.clubs?.name||'—'}</div>
+          <div style="font-size:.62rem;color:var(--mute)">${posCode2(pos)} · ${p.clubs?.name||'—'}</div>
         </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:1.2rem;font-weight:900;color:var(--g);line-height:1;letter-spacing:-.03em">${p.passport_score||p.dna_overall||'—'}</div>
-          <div style="font-size:.55rem;color:var(--mute);font-weight:600;letter-spacing:.04em">SKOR</div>
-        </div>
-      </div>
-    `).join('');
-  }catch(e){el.innerHTML='';}
-}
-
-async function loadStats_strip(){
-  try{
-    const[{count:l},{count:c},{count:p},{count:m}]=await Promise.all([
-      SB.from('leagues').select('*',{count:'exact',head:true}).eq('is_active',true),
-      SB.from('clubs').select('*',{count:'exact',head:true}).eq('is_active',true),
-      SB.from('players').select('*',{count:'exact',head:true}).eq('is_active',true),
-      SB.from('fixtures').select('*',{count:'exact',head:true}).eq('status','completed'),
-    ]);
-    document.getElementById('ss-liga').textContent=l||'0';
-    document.getElementById('ss-kelab').textContent=c||'0';
-    document.getElementById('ss-pemain').textContent=p||'0';
-    document.getElementById('ss-match').textContent=m||'0';
-  }catch(e){
-    ['ss-liga','ss-kelab','ss-pemain','ss-match'].forEach(id=>{
-      document.getElementById(id).textContent='—';
+        <div style="text-align:right">
+          <div style="font-size:1.2rem;font-weight:900;color:${lv.color}">${p.dna_overall||'—'}</div>
+          <div style="font-size:.55rem;font-weight:700;color:${lv.color}">${p.dna_band||'—'}</div>
+        </div>`;
+      div.addEventListener('mouseover',()=>div.style.background='var(--bg3)');
+      div.addEventListener('mouseout',()=>div.style.background='var(--card)');
+      div.addEventListener('click',()=>viewPlayerProfile(p.id));
+      el.appendChild(div);
     });
-  }
+  }catch(e){el.innerHTML='';console.error('loadTS:',e);}
 }
 
-/* ── SEARCH ── */
-function doSearch(){
-  const q=document.getElementById('search-input').value.trim();
-  if(!q)return;
-  toast('🔍 Carian: "'+q+'" — akan datang!');
-}
-
-/* ── PROFILE ── */
 
 const POS_MAP2 = {
   gk:'GK|Goalkeeper',cb:'CB|Center-Back',lb:'LB|Left-Back',rb:'RB|Right-Back',
@@ -1523,8 +1502,9 @@ const POS_MAP2 = {
   midfielder:'CM|Central Midfielder',forward:'ST|Striker',
   defender:'CB|Center-Back',goalkeeper:'GK|Goalkeeper',
 };
-function posCode2(p){ if(!p)return'—'; const k=p.toLowerCase(); const m=POS_MAP2[k]; return m?m.split('|')[0]:p.toUpperCase(); }
-function posFull2(p){ if(!p)return''; const k=p.toLowerCase(); const m=POS_MAP2[k]; return m?m.split('|')[1]:''; }
+function posCode2(p){if(!p)return'—';const k=p.toLowerCase();const m=POS_MAP2[k];return m?m.split('|')[0]:p.toUpperCase();}
+function posFull2(p){if(!p)return'';const k=p.toLowerCase();const m=POS_MAP2[k];return m?m.split('|')[1]:'';}
+function posLbl(p){return posFull2(p)||p||'—';}
 
 function dnaLevel2(s){
   if(!s||s===0) return{title:'—',stars:0,color:'#9ca3af'};
@@ -1534,6 +1514,22 @@ function dnaLevel2(s){
   if(s>=60) return{title:'DEVELOPING', stars:2,color:'#00875a',border:'3px solid #00875a',shadow:'0 0 8px rgba(0,135,90,.4)'};
   if(s>=50) return{title:'FOUNDATION', stars:1,color:'#cd7f32',border:'2px solid #cd7f32',shadow:'0 0 6px rgba(205,127,50,.3)'};
   return{title:'STARTER',stars:0,color:'#9ca3af',border:'2px solid #6b7280',shadow:'none'};
+}
+
+// ── FRAME MAP — image URLs ──
+const FRAME_URL = {
+  'black_gold': 'https://raw.githubusercontent.com/azlanmohd076-cmyk/playpro-platform/main/public/frames/frame_elite.png',
+  'gold':       'https://raw.githubusercontent.com/azlanmohd076-cmyk/playpro-platform/main/public/frames/frame_advanced.png',
+  'purple':     'https://raw.githubusercontent.com/azlanmohd076-cmyk/playpro-platform/main/public/frames/frame_advanced.png',
+  'blue':       'https://raw.githubusercontent.com/azlanmohd076-cmyk/playpro-platform/main/public/frames/frame_developed.png',
+  'green':      'https://raw.githubusercontent.com/azlanmohd076-cmyk/playpro-platform/main/public/frames/frame_developing.png',
+  'bronze':     'https://raw.githubusercontent.com/azlanmohd076-cmyk/playpro-platform/main/public/frames/frame_foundation.png',
+  'silver':     'https://raw.githubusercontent.com/azlanmohd076-cmyk/playpro-platform/main/public/frames/frame_starter.png',
+  'unverified': 'https://raw.githubusercontent.com/azlanmohd076-cmyk/playpro-platform/main/public/frames/frame_starter.png',
+};
+
+function getFrameB64(passportFrame){
+  return FRAME_URL[passportFrame||'unverified']||FRAME_URL['unverified'];
 }
 
 function attrRating2(v){
@@ -1896,34 +1892,49 @@ async function loadLB(){
   const el=document.getElementById('pp-lb');if(!el)return;
   try{
     const{data}=await SB.from('players')
-      .select('id,full_name,preferred_name,position,dna_overall,passport_score,dna_band,passport_frame,clubs(name)')
+      .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,passport_frame,clubs(name)')
       .not('dna_overall','is',null).eq('is_active',true)
       .order('dna_overall',{ascending:false,nullsFirst:false}).limit(8);
     if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Tiada data pemain lagi</div>';return;}
-    el.innerHTML=data.map((p,i)=>{
+    
+    el.innerHTML='';
+    data.forEach((p,i)=>{
       const lv=dnaLevel2(p.dna_overall||0);
-      return `<div onclick="viewPlayerProfile('${p.id}')" style="display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.42rem;box-shadow:var(--sh);cursor:pointer;transition:.15s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--card)'">
-        <span style="font-size:.95rem;width:26px;text-align:center">${['🥇','🥈','🥉'][i]||i+1}</span>
+      const pos=p.best_position||p.position||'';
+      const medals=['🥇','🥈','🥉'];
+      const div=document.createElement('div');
+      div.style.cssText='display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.42rem;box-shadow:var(--sh);cursor:pointer;transition:.15s';
+      div.innerHTML=`
+        <span style="font-size:.95rem;width:26px;text-align:center">${medals[i]||i+1}</span>
         <div style="width:34px;height:34px;border-radius:9px;border:2px solid ${lv.color};background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.85rem">${(p.preferred_name||p.full_name||'?')[0]}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:.78rem;font-weight:700;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.preferred_name||p.full_name||'—'}</div>
-          <div style="font-size:.6rem;color:var(--mute)">${posCode2(p.position)} · ${p.clubs?.name||'—'}</div>
+          <div style="font-size:.6rem;color:var(--mute)">${posCode2(pos)} · ${p.clubs?.name||'—'}</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:1rem;font-weight:900;color:${lv.color}">${p.dna_overall||'—'}</div>
           <div style="font-size:.52rem;font-weight:700;color:${lv.color}">${p.dna_band||'—'}</div>
-        </div>
-      </div>`;
-    }).join('');
-  }catch(e){el.innerHTML='';}
+        </div>`;
+      div.addEventListener('mouseover',()=>div.style.background='var(--bg3)');
+      div.addEventListener('mouseout',()=>div.style.background='var(--card)');
+      div.addEventListener('click',()=>{
+        toast('🔍 Loading '+p.preferred_name+'...');
+        viewPlayerProfile(p.id);
+      });
+      el.appendChild(div);
+    });
+  }catch(e){el.innerHTML='';console.error('loadLB:',e);}
 }
 
 // Tengok profile pemain lain
-async function viewPlayerProfile(playerId){
+async function viewPlayerProfile(elOrId){
+  const playerId = typeof elOrId === 'string' ? elOrId : elOrId.dataset?.pid || elOrId;
+  toast('🔍 Loading: '+playerId);
+  if(!playerId){toast('❌ ID pemain tidak ditemui');return;}
   try{
     const{data:p}=await SB.from('players')
       .select('id,full_name,preferred_name,nickname,position,best_position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,nationality,phone,clubs(name)')
-      .eq('id',playerId).eq('is_passport_public',true).single();
+      .eq('id',playerId).maybeSingle();
     if(!p){toast('❌ Profil tidak dijumpai atau tidak awam');return;}
 
     // Simpan player yang ditengok
@@ -1937,13 +1948,13 @@ async function viewPlayerProfile(playerId){
 let _viewingPlayer = null;
 
 function showPlayerModal(p){
-  let modal = document.getElementById('player-modal');
-  if(!modal){
-    modal = document.createElement('div');
-    modal.id = 'player-modal';
-    modal.style.cssText = 'position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:1rem';
-    modal.onclick = function(e){if(e.target===this)closePlayerModal();};
-    document.body.appendChild(modal);
+  // Buka full passport panel
+  let panel = document.getElementById('passport-panel');
+  if(!panel){
+    panel = document.createElement('div');
+    panel.id = 'passport-panel';
+    panel.style.cssText = 'position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)';
+    document.body.appendChild(panel);
   }
 
   const dn = p.preferred_name||p.full_name||'Pemain';
@@ -1951,62 +1962,172 @@ function showPlayerModal(p){
   const lv = dnaLevel2(dna);
   const posVal = p.best_position||p.position||'';
   const age = p.date_of_birth ? Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)) : '—';
+  const frameImg = getFrameB64(p.passport_frame||'unverified');
+  const tc = {'ELITE':'#f9a825','ADVANCED':'#c4b5fd','DEVELOPED':'#93c5fd','DEVELOPING':'#6ee7b7','FOUNDATION':'#fbbf24','STARTER':'#d1d5db'}[lv.title]||'#fff';
 
-  const cardGrad = {
-    'ELITE':     'linear-gradient(145deg,#1a1008,#3d2800,#f9a825,#3d2800,#1a1008)',
-    'ADVANCED':  'linear-gradient(145deg,#0d0820,#2d1f5e,#8b5cf6,#2d1f5e,#0d0820)',
-    'DEVELOPED': 'linear-gradient(145deg,#080d20,#0f2060,#3b82f6,#0f2060,#080d20)',
-    'DEVELOPING':'linear-gradient(145deg,#081508,#0d3010,#00875a,#0d3010,#081508)',
-    'FOUNDATION':'linear-gradient(145deg,#15080a,#3d1200,#cd7f32,#3d1200,#15080a)',
-    'STARTER':   'linear-gradient(145deg,#101010,#282828,#6b7280,#282828,#101010)',
-  };
-  const txtCol = {
-    'ELITE':'#f9a825','ADVANCED':'#c4b5fd','DEVELOPED':'#93c5fd',
-    'DEVELOPING':'#6ee7b7','FOUNDATION':'#fbbf24','STARTER':'#d1d5db'
-  };
-  const bg = cardGrad[lv.title]||cardGrad['STARTER'];
-  const tc = txtCol[lv.title]||'#fff';
-  const stats = [
-    {lbl:'TEC',val:p.dna_technical||0},
-    {lbl:'FIZ',val:p.dna_physical||0},
-    {lbl:'MEN',val:p.dna_mental||0},
-    {lbl:'TAK',val:p.dna_tactical||0},
-  ];
+  panel.innerHTML = `
+    <div style="position:relative;min-height:200px;overflow:hidden">
+      <!-- Frame image sebagai background -->
+      <img src="${frameImg}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top" onerror="this.style.display='none'"/>
+      <!-- Dark overlay -->
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.4) 0%,rgba(0,0,0,.75) 100%)"></div>
+      <!-- Back button -->
+      <button onclick="closePlayerModal()" style="position:absolute;top:.75rem;left:.75rem;background:rgba(0,0,0,.5);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1.1rem;z-index:10;display:flex;align-items:center;justify-content:center">←</button>
+      <!-- Content -->
+      <div style="position:relative;z-index:2;padding:3rem 1rem 1rem">
+        <div style="display:flex;align-items:center;gap:.85rem">
+          <div style="width:68px;height:68px;border-radius:50%;background:${lv.color}44;border:3px solid ${lv.color};box-shadow:0 0 20px ${lv.color}88;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#fff;flex-shrink:0">${dn[0].toUpperCase()}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:1.1rem;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.06em">${dn}</div>
+            ${p.nickname&&p.nickname!==dn?`<div style="font-size:.62rem;color:${tc};font-style:italic;margin-bottom:.1rem">Dikenali: ${p.nickname}</div>`:''}
+            <div style="margin:.2rem 0"><span style="background:rgba(255,255,255,.15);padding:.1rem .45rem;border-radius:5px;color:#fff;font-size:.68rem;font-weight:700">${posCode2(posVal)}</span> <span style="color:rgba(255,255,255,.5);font-size:.62rem">— ${posFull2(posVal)}</span></div>
+            <div style="font-size:.6rem;color:rgba(255,255,255,.55)">🛡️ ${p.clubs?.name||'—'} · 🇲🇾 · ${age} thn</div>
+          </div>
+          <div style="text-align:center;flex-shrink:0">
+            <div style="width:54px;height:54px;border-radius:50%;border:3px solid ${lv.color};background:rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 15px ${lv.color}66">
+              <div style="font-size:1.2rem;font-weight:900;color:${lv.color};line-height:1">${dna}</div>
+              <div style="font-size:.4rem;color:rgba(255,255,255,.4);letter-spacing:.05em">DNA</div>
+            </div>
+            <div style="font-size:.5rem;font-weight:800;color:${lv.color};margin-top:.2rem;letter-spacing:.05em">${lv.title}</div>
+          </div>
+        </div>
+        <!-- Passport bar -->
+        <div style="margin-top:.65rem;padding:.35rem .65rem;background:rgba(0,0,0,.45);border-radius:8px;display:flex;align-items:center;gap:.5rem;border:1px solid rgba(255,255,255,.08)">
+          <span style="font-size:.58rem;color:rgba(255,255,255,.4)">🪪</span>
+          <span style="font-size:.62rem;font-family:monospace;color:${tc};font-weight:700">${p.passport_number||'—'}</span>
+          <span style="margin-left:auto;font-size:.6rem;font-weight:700;color:${p.kyc_status==='verified'?'#4ade80':'rgba(255,255,255,.3)'}">${p.kyc_status==='verified'?'✅ Verified':'—'}</span>
+        </div>
+      </div>
+    </div>
 
-  modal.innerHTML = '<div style="position:relative;width:100%;max-width:320px">'
-    + '<button onclick="closePlayerModal()" style="position:absolute;top:-14px;right:-14px;z-index:10;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem">✕</button>'
-    + '<div style="background:'+bg+';border-radius:16px;padding:1.5rem 1.25rem 1.25rem;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px '+lv.color+'33;border:1.5px solid '+lv.color+'55">'
-    + '<div style="position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.05) 50%,transparent 60%);pointer-events:none"></div>'
-    // Top row
-    + '<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.85rem;position:relative">'
-    + '<div style="text-align:center;min-width:48px"><div style="font-size:2rem;font-weight:900;color:'+tc+';line-height:1;text-shadow:0 2px 8px rgba(0,0,0,.5)">'+dna+'</div><div style="font-size:.7rem;font-weight:800;color:'+tc+';letter-spacing:.05em;margin:.1rem 0">'+posCode2(posVal)+'</div><div style="font-size:.5rem;color:rgba(255,255,255,.45);font-weight:700">'+lv.title+'</div></div>'
-    + '<div style="flex:1;display:flex;justify-content:center"><div style="width:80px;height:80px;border-radius:50%;background:'+lv.color+'33;border:3px solid '+lv.color+';box-shadow:0 0 20px '+lv.color+'66;display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:900;color:#fff">'+dn[0].toUpperCase()+'</div></div>'
-    + '<div style="text-align:center;min-width:48px"><div style="font-size:.58rem;color:rgba(255,255,255,.4);font-weight:700">#'+(p.jersey_number||'—')+'</div><div style="margin-top:.3rem;font-size:.58rem;font-weight:700;color:'+(p.kyc_status==='verified'?'#4ade80':'rgba(255,255,255,.3)')+'">'+(p.kyc_status==='verified'?'✅ KYC':'—')+'</div></div>'
-    + '</div>'
-    // Name
-    + '<div style="text-align:center;margin-bottom:.75rem"><div style="font-size:1.1rem;font-weight:900;color:#fff;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 2px 8px rgba(0,0,0,.5)">'+dn+'</div>'+(p.nickname&&p.nickname!==dn?'<div style="font-size:.6rem;color:'+tc+';font-style:italic;margin-top:.1rem">'+p.nickname+'</div>':'')+'</div>'
-    // Divider
-    + '<div style="height:1px;background:linear-gradient(90deg,transparent,'+lv.color+'88,transparent);margin-bottom:.75rem"></div>'
-    // Stats
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.75rem">'
-    + stats.map(function(s){return '<div style="display:flex;align-items:center;gap:.45rem"><div style="font-size:1rem;font-weight:900;color:'+tc+';min-width:30px;text-align:center">'+s.val+'</div><div style="flex:1"><div style="font-size:.52rem;font-weight:800;color:rgba(255,255,255,.45);letter-spacing:.08em;margin-bottom:.18rem">'+s.lbl+'</div><div style="height:3px;background:rgba(255,255,255,.1);border-radius:2px"><div style="width:'+s.val+'%;height:100%;background:'+lv.color+';border-radius:2px;box-shadow:0 0 4px '+lv.color+'"></div></div></div></div>';}).join('')
-    + '</div>'
-    // Divider
-    + '<div style="height:1px;background:linear-gradient(90deg,transparent,'+lv.color+'88,transparent);margin-bottom:.65rem"></div>'
-    // Footer
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">'
-    + '<div style="font-size:.57rem;color:rgba(255,255,255,.4)"><div>🛡️ '+(p.clubs?.name||'—')+'</div><div style="margin-top:.12rem;font-family:monospace;color:'+tc+';font-size:.58rem">'+(p.passport_number||'—')+'</div></div>'
-    + '<div style="text-align:right;font-size:.55rem;color:rgba(255,255,255,.35)"><div>'+(age!=='—'?age+' tahun':'')+'</div><div>'+(p.preferred_foot==='left'?'👟 Kiri':p.preferred_foot==='right'?'👟 Kanan':'')+'</div></div>'
-    + '</div>'
-    // Buttons
-    + '<div style="display:flex;gap:.45rem">'
-    + (_u?'<button onclick="startConvoWith(''+p.id+'',''+dn+'')" style="flex:1;padding:.58rem;background:'+lv.color+';color:#000;border:none;border-radius:8px;font-size:.72rem;font-weight:800;cursor:pointer;font-family:inherit">💬 Hantar Mesej</button>'
-        :'<button onclick="closePlayerModal();showLogin();" style="flex:1;padding:.58rem;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">🔑 Log Masuk</button>')
-    + '<button onclick="closePlayerModal()" style="padding:.58rem .75rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:.72rem;cursor:pointer;font-family:inherit">✕</button>'
-    + '</div>'
-    + '</div></div>';
+    <!-- DNA SCORES -->
+    <div style="background:linear-gradient(135deg,#0d1f2d,#122218);padding:.85rem 1rem;border-bottom:1px solid rgba(255,255,255,.08)">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.5rem">
+        ${[{l:'⚙️ Teknikal',v:p.dna_technical||0,c:'#3b82f6'},{l:'💪 Fizikal',v:p.dna_physical||0,c:'#00875a'},{l:'🧠 Mental',v:p.dna_mental||0,c:'#8b5cf6'},{l:'🎯 Taktikal',v:p.dna_tactical||0,c:'#f59e0b'}].map(s=>`
+          <div style="text-align:center;background:rgba(255,255,255,.05);border-radius:8px;padding:.4rem .25rem">
+            <div style="font-size:1.15rem;font-weight:900;color:${s.c}">${s.v}</div>
+            <div style="font-size:.5rem;color:rgba(255,255,255,.4);margin-top:.1rem">${s.l}</div>
+            <div style="height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:.25rem"><div style="width:${s.v}%;height:100%;background:${s.c};border-radius:2px"></div></div>
+          </div>`).join('')}
+      </div>
+    </div>
 
-  modal.style.display = 'flex';
+    <!-- TABS -->
+    <div style="display:flex;border-bottom:2px solid var(--bdr);background:var(--bg2);overflow-x:auto;scrollbar-width:none">
+      <div class="vp-tab on" onclick="vpTab('dna',this)" style="flex-shrink:0;padding:.6rem .85rem;font-size:.7rem;font-weight:700;cursor:pointer;border-bottom:2.5px solid var(--g);color:var(--g);margin-bottom:-2px;white-space:nowrap">🧬 DNA</div>
+      <div class="vp-tab" onclick="vpTab('stats',this)" style="flex-shrink:0;padding:.6rem .85rem;font-size:.7rem;font-weight:600;cursor:pointer;color:var(--mute);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap">📊 Statistik</div>
+      <div class="vp-tab" onclick="vpTab('clubs',this)" style="flex-shrink:0;padding:.6rem .85rem;font-size:.7rem;font-weight:600;cursor:pointer;color:var(--mute);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap">🏟 Kelab</div>
+      <div class="vp-tab" onclick="vpTab('bio',this)" style="flex-shrink:0;padding:.6rem .85rem;font-size:.7rem;font-weight:600;cursor:pointer;color:var(--mute);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap">📋 Biodata</div>
+    </div>
+
+    <!-- DNA TAB -->
+    <div id="vp-dna" style="padding:.75rem .85rem">
+      <div id="vp-attr-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem">
+        <div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Memuatkan atribut...</div>
+      </div>
+    </div>
+
+    <!-- STATS TAB -->
+    <div id="vp-stats" style="display:none;padding:.75rem .85rem">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-bottom:.65rem">
+        <div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:10px;padding:.65rem .4rem;text-align:center"><div style="font-size:1.3rem;font-weight:900;color:#fff">${p.stats_apps||'—'}</div><div style="font-size:.58rem;color:rgba(255,255,255,.7)">Penampilan</div></div>
+        <div style="background:linear-gradient(135deg,#5b21b6,#8b5cf6);border-radius:10px;padding:.65rem .4rem;text-align:center"><div style="font-size:1.3rem;font-weight:900;color:#fff">${p.stats_goals||'—'}</div><div style="font-size:.58rem;color:rgba(255,255,255,.7)">Gol</div></div>
+        <div style="background:linear-gradient(135deg,#92400e,#f59e0b);border-radius:10px;padding:.65rem .4rem;text-align:center"><div style="font-size:1.3rem;font-weight:900;color:#fff">${p.stats_ast||'—'}</div><div style="font-size:.58rem;color:rgba(255,255,255,.7)">Assist</div></div>
+      </div>
+      <div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Data statistik dari perlawanan rasmi</div>
+    </div>
+
+    <!-- CLUBS TAB -->
+    <div id="vp-clubs" style="display:none;padding:.75rem .85rem">
+      <div id="vp-clubs-list"><div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Tiada rekod kelab</div></div>
+    </div>
+
+    <!-- BIO TAB -->
+    <div id="vp-bio" style="display:none;padding:.75rem .85rem .85rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem">
+        <div style="background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:.75rem">
+          <div style="font-size:.62rem;font-weight:700;color:var(--g);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">👤 Peribadi</div>
+          <div style="margin-bottom:.4rem"><div style="font-size:.55rem;color:var(--mute);font-weight:700;text-transform:uppercase">Umur</div><div style="font-size:.75rem;font-weight:600;color:var(--txt)">${age} tahun</div></div>
+          <div style="margin-bottom:.4rem"><div style="font-size:.55rem;color:var(--mute);font-weight:700;text-transform:uppercase">Kebangsaan</div><div style="font-size:.75rem;font-weight:600;color:var(--txt)">🇲🇾 Malaysian</div></div>
+          <div><div style="font-size:.55rem;color:var(--mute);font-weight:700;text-transform:uppercase">FP No.</div><div style="font-size:.62rem;font-weight:700;color:var(--g);font-family:monospace">${p.passport_number||'—'}</div></div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:.75rem">
+          <div style="font-size:.62rem;font-weight:700;color:var(--g);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">⚽ Fizikal</div>
+          <div style="margin-bottom:.4rem"><div style="font-size:.55rem;color:var(--mute);font-weight:700;text-transform:uppercase">Posisi</div><div style="font-size:.75rem;font-weight:600;color:var(--txt)">${posCode2(posVal)}</div></div>
+          <div style="margin-bottom:.4rem"><div style="font-size:.55rem;color:var(--mute);font-weight:700;text-transform:uppercase">Kaki</div><div style="font-size:.75rem;font-weight:600;color:var(--txt)">${p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—'}</div></div>
+          ${p.height_cm?`<div><div style="font-size:.55rem;color:var(--mute);font-weight:700;text-transform:uppercase">Tinggi</div><div style="font-size:.75rem;font-weight:600;color:var(--txt)">${p.height_cm}cm</div></div>`:''}
+        </div>
+      </div>
+      ${_u?`<div style="margin-top:.65rem"><button onclick="startConvoWith('${p.id}','${dn}')" style="width:100%;padding:.65rem;background:${lv.color};color:#000;border:none;border-radius:10px;font-size:.8rem;font-weight:800;cursor:pointer;font-family:inherit">💬 Hantar Mesej kepada ${dn}</button></div>`:`<div style="margin-top:.65rem"><button onclick="closePlayerModal();showLogin();" style="width:100%;padding:.65rem;background:rgba(0,0,0,.1);color:var(--mute);border:1px solid var(--bdr);border-radius:10px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit">🔑 Log Masuk untuk Hantar Mesej</button></div>`}
+    </div>`;
+
+  panel.style.transform='translateY(100%)';
+  panel.style.display='block';
+  setTimeout(()=>{ panel.style.transform='translateY(0)'; }, 10);
+
+  // Load attributes
+  loadViewerAttributes(p.id);
+}
+
+function vpTab(t, el){
+  ['dna','stats','bio'].forEach(x=>{
+    const d=document.getElementById('vp-'+x);
+    if(d) d.style.display=x===t?'block':'none';
+  });
+  document.querySelectorAll('.vp-tab').forEach(tab=>{
+    tab.style.color='rgba(255,255,255,.45)';
+    tab.style.borderBottomColor='transparent';
+    tab.style.fontWeight='600';
+  });
+  if(el){el.style.color='var(--g)';el.style.borderBottomColor='var(--g)';el.style.fontWeight='700';}
+}
+
+async function loadViewerAttributes(playerId){
+  const grid = document.getElementById('vp-attr-grid');
+  if(!grid) return;
+  try{
+    const{data}=await SB.from('player_attributes')
+      .select('attribute_code,current_value,attribute_definitions(label,category,display_order)')
+      .eq('player_id',playerId)
+      .eq('is_public',true);
+    if(!data||!data.length){
+      grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--mute);font-size:.75rem">🧬 Belum ada penilaian atribut</div>';
+      return;
+    }
+    const sc=Math.max(1,...data.map(r=>r.current_value||0))<=20?20:100;
+    const catColors={technical:'#3b82f6',physical:'#00875a',mental:'#8b5cf6',tactical:'#f59e0b'};
+    const catIcons={technical:'⚙️',physical:'💪',mental:'🧠',tactical:'🎯'};
+    const GK=new Set(['gk_handling','gk_contribution','gk_throwing','gk_dirtiness']);
+    const C=119.4;
+    const sorted=[...data].sort((a,b)=>{
+      const co={technical:1,physical:2,mental:3,tactical:4};
+      return (co[a.attribute_definitions?.category]||9)-(co[b.attribute_definitions?.category]||9);
+    });
+    grid.innerHTML=sorted.map(r=>{
+      const raw=r.current_value||0,cat=r.attribute_definitions?.category||'technical';
+      const label=r.attribute_definitions?.label||r.attribute_code;
+      const isGK=GK.has(r.attribute_code);
+      const col=isGK?'#f59e0b':(catColors[cat]||'#9ca3af');
+      const icon=isGK?'🥅':(catIcons[cat]||'');
+      const rt=attrRating2(raw);
+      const offset=C-(C*(raw/sc));
+      return `<div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:.65rem .45rem;text-align:center;box-shadow:var(--sh);display:flex;flex-direction:column;align-items:center;gap:.2rem">
+        <div style="position:relative;width:46px;height:46px;display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 46 46" width="46" height="46" style="position:absolute;inset:0;transform:rotate(-90deg)">
+            <circle cx="23" cy="23" r="19" fill="none" stroke="${col}22" stroke-width="3"/>
+            <circle cx="23" cy="23" r="19" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${offset}"/>
+          </svg>
+          <span style="font-size:.82rem;font-weight:900;color:${col};z-index:1;position:relative">${raw}</span>
+        </div>
+        <div style="font-size:.62rem;font-weight:700;color:var(--txt);line-height:1.2">${label}</div>
+        <div style="font-size:.56rem;color:var(--mute)">${icon} ${isGK?'GK':cat.charAt(0).toUpperCase()+cat.slice(1)}</div>
+        <div style="font-size:.56rem;font-weight:700;padding:.07rem .28rem;border-radius:4px" class="${rt.cls}">${rt.txt}</div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--mute);font-size:.75rem">Gagal muatkan atribut</div>';
+    console.error(e);
+  }
 }
 
 function closePlayerModal(){
@@ -2023,10 +2144,6 @@ function startConvoWith(playerId, playerName){
 function sharePassport(){
   navigator.clipboard?.writeText(window.location.origin+'/card?p='+(_pd?.passport_number||''));
   toast('📋 Link passport disalin!');
-}
-
-function posLbl(p){
-  return posFull2(p)||p||'—';
 }
 
 /* ── INBOX ── */
@@ -2177,6 +2294,19 @@ function sendMsg(){
   // TODO: dalam production — SB.from('messages').insert(...)
 }
 
+
+async function loadStats_strip(){
+  try{
+    const[{count:p},{count:m}]=await Promise.all([
+      SB.from('players').select('*',{count:'exact',head:true}).eq('is_active',true),
+      SB.from('fixtures').select('*',{count:'exact',head:true}).eq('status','completed'),
+    ]);
+    document.getElementById('ss-liga').textContent='0';
+    document.getElementById('ss-kelab').textContent='0';
+    document.getElementById('ss-pemain').textContent=p||'0';
+    document.getElementById('ss-match').textContent=m||'0';
+  }catch(e){}
+}
 /* ── FEED ── */
 /* ── FEED DATA ── */
 const FEED=[
@@ -2330,5 +2460,5 @@ SB.auth.onAuthStateChange((ev,session)=>{
 });
 init();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0bab5e6b827f8c6',t:'MTc4MTQ1NDUzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
