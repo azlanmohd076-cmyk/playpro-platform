@@ -1996,9 +1996,9 @@ function showPlayerModal(p){
     +'</div>'
     +'<div style="position:absolute;top:140px;left:0;right:0;background:#0f172a;padding:.55rem 1rem;display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem;border-bottom:1px solid rgba(255,255,255,.06);z-index:2">'+b+'</div>'
     +'<div style="position:absolute;top:208px;left:0;right:0;background:#0f172a;display:flex;border-bottom:2px solid rgba(255,255,255,.06);z-index:2">'
-      +'<button id="vb-dna" onclick="vpSwitch('dna')" style="flex-shrink:0;padding:.55rem .9rem;font-size:.68rem;font-weight:700;cursor:pointer;color:'+lv.color+';border-bottom:2.5px solid '+lv.color+';background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;margin-bottom:-2px">DNA</button>'
-      +'<button id="vb-stats" onclick="vpSwitch('stats')" style="flex-shrink:0;padding:.55rem .9rem;font-size:.68rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;margin-bottom:-2px">Statistik</button>'
-      +'<button id="vb-bio" onclick="vpSwitch('bio')" style="flex-shrink:0;padding:.55rem .9rem;font-size:.68rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;margin-bottom:-2px">Biodata</button>'
+      +'<button id="vb-dna" onclick="vpSwitch(this)" data-t="dna" style="flex-shrink:0;padding:.55rem .9rem;font-size:.68rem;font-weight:700;cursor:pointer;color:'+lv.color+';border-bottom:2.5px solid '+lv.color+';background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;margin-bottom:-2px">DNA</button>'
+      +'<button id="vb-stats" onclick="vpSwitch(this)" data-t="stats" style="flex-shrink:0;padding:.55rem .9rem;font-size:.68rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;margin-bottom:-2px">Statistik</button>'
+      +'<button id="vb-bio" onclick="vpSwitch(this)" data-t="bio" style="flex-shrink:0;padding:.55rem .9rem;font-size:.68rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;margin-bottom:-2px">Biodata</button>'
     +'</div>'
     +'<div id="vp-scroll" style="position:absolute;top:248px;left:0;right:0;bottom:0;overflow-y:auto;background:#0f172a;padding:.75rem .85rem">'
       +'<div id="vp-dna"><div id="vp-attr-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem"><div style="grid-column:1/-1;text-align:center;padding:2rem;color:rgba(255,255,255,.3)">Memuatkan...</div></div></div>'
@@ -2047,15 +2047,16 @@ function vpTab(el){
   var t=el.dataset?el.dataset.tab:el;
   vpSwitch(t);
 }
-function vpSwitch(t){
+function vpSwitch(el){
+  var t=el.dataset?el.dataset.t:el;
   ['dna','stats','bio'].forEach(function(x){
     var d=document.getElementById('vp-'+x);
     if(d) d.style.display=x===t?'block':'none';
     var b=document.getElementById('vb-'+x);
-    if(b){b.style.color='rgba(255,255,255,.4)';b.style.borderBottom='2.5px solid transparent';}
+    if(b){b.style.color='rgba(255,255,255,.4)';b.style.borderBottom='2.5px solid transparent';b.style.fontWeight='600';}
   });
   var ab=document.getElementById('vb-'+t);
-  if(ab){ab.style.color='var(--g)';ab.style.borderBottom='2.5px solid var(--g)';}
+  if(ab){ab.style.color=ab.style.color='var(--g)';ab.style.borderBottom='2.5px solid var(--g)';ab.style.fontWeight='700';}
 }
 
 async function loadViewerAttributes(playerId){
