@@ -4,6 +4,6 @@
     { "source": "/", "destination": "/index.html" },
     { "source": "/app", "destination": "/app.html" },
     { "source": "/card", "destination": "/player_card.html" },
-    { "source": "/ops", "destination": "/app.html" }
+    { "source": "/ops", "destination": "/dev_panel.html" }
   ]
 }
