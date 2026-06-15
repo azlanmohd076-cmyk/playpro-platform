@@ -1963,76 +1963,112 @@ function showPlayerModal(p){
   const tc={'ELITE':'#f9a825','ADVANCED':'#c4b5fd','DEVELOPED':'#93c5fd','DEVELOPING':'#6ee7b7','FOUNDATION':'#fbbf24','STARTER':'#d1d5db'}[lv.title]||'#fff';
   const bgMap={'ELITE':'#1a1008','ADVANCED':'#0d0820','DEVELOPED':'#080d20','DEVELOPING':'#081508','FOUNDATION':'#15080a','STARTER':'#101010'};
   const bg=bgMap[lv.title]||'#101010';
-  modal.innerHTML=`<div style="min-height:100vh">
-    <div style="background:${bg};padding:1rem;border-bottom:2px solid ${lv.color}55;position:sticky;top:0;z-index:10">
-      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">
-        <button onclick="closePlayerModal()" style="background:rgba(255,255,255,.12);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0">←</button>
-        <div style="width:58px;height:58px;border-radius:50%;background:${lv.color}33;border:3px solid ${lv.color};box-shadow:0 0 18px ${lv.color}88;display:flex;align-items:center;justify-content:center;font-size:1.7rem;font-weight:900;color:#fff;flex-shrink:0">${dn[0].toUpperCase()}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:1rem;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.05em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${dn}</div>
-          ${p.nickname&&p.nickname!==dn?`<div style="font-size:.6rem;color:${tc};font-style:italic">Dikenali: ${p.nickname}</div>`:''}
-          <div style="margin-top:.15rem;display:flex;align-items:center;gap:.35rem;flex-wrap:wrap">
-            <span style="background:rgba(255,255,255,.15);padding:.08rem .4rem;border-radius:5px;color:#fff;font-size:.65rem;font-weight:700">${posCode2(posVal)}</span>
-            <span style="color:rgba(255,255,255,.4);font-size:.58rem">${p.clubs?.name||'—'}</span>
-          </div>
-          <div style="font-size:.58rem;color:rgba(255,255,255,.4);margin-top:.1rem">${age!=='—'?age+' thn · ':''} ${p.preferred_foot==='left'?'👟 Kiri':p.preferred_foot==='right'?'👟 Kanan':''}</div>
-        </div>
-        <div style="text-align:center;flex-shrink:0">
-          <div style="width:52px;height:52px;border-radius:50%;border:3px solid ${lv.color};background:rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 12px ${lv.color}55">
-            <div style="font-size:1.2rem;font-weight:900;color:${lv.color};line-height:1">${dna}</div>
-            <div style="font-size:.38rem;color:rgba(255,255,255,.4)">DNA</div>
-          </div>
-          <div style="font-size:.48rem;font-weight:800;color:${lv.color};margin-top:.15rem;letter-spacing:.04em">${lv.title}</div>
-        </div>
-      </div>
-      <div style="padding:.3rem .6rem;background:rgba(0,0,0,.4);border-radius:7px;display:flex;align-items:center;gap:.5rem;border:1px solid rgba(255,255,255,.06)">
-        <span style="font-size:.6rem;font-family:monospace;color:${tc};font-weight:700">${p.passport_number||'Tiada FP No.'}</span>
-        <span style="margin-left:auto;font-size:.58rem;font-weight:700;color:${p.kyc_status==='verified'?'#4ade80':'rgba(255,255,255,.25)'}">${p.kyc_status==='verified'?'✅ KYC Verified':'—'}</span>
-      </div>
-    </div>
-    <div style="background:#0f172a;padding:.65rem 1rem;display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;border-bottom:1px solid rgba(255,255,255,.06)">
-      ${[{l:'⚙️ TEC',v:p.dna_technical||0,c:'#3b82f6'},{l:'💪 FIZ',v:p.dna_physical||0,c:'#00875a'},{l:'🧠 MEN',v:p.dna_mental||0,c:'#8b5cf6'},{l:'🎯 TAK',v:p.dna_tactical||0,c:'#f59e0b'}].map(s=>`<div style="text-align:center;background:rgba(255,255,255,.04);border-radius:7px;padding:.4rem .2rem;border:1px solid ${s.c}33"><div style="font-size:1.15rem;font-weight:900;color:${s.c}">${s.v}</div><div style="font-size:.46rem;color:rgba(255,255,255,.35);margin:.08rem 0">${s.l}</div><div style="height:2px;background:rgba(255,255,255,.08);border-radius:1px"><div style="width:${s.v}%;height:100%;background:${s.c}"></div></div></div>`).join('')}
-    </div>
-    <div style="display:flex;background:#0f172a;border-bottom:2px solid rgba(255,255,255,.06);overflow-x:auto;scrollbar-width:none;position:sticky;top:113px;z-index:9">
-      <div class="vp-tab on" onclick="vpTab('dna',this)" style="flex-shrink:0;padding:.58rem .9rem;font-size:.7rem;font-weight:700;cursor:pointer;color:${lv.color};border-bottom:2.5px solid ${lv.color};margin-bottom:-2px;white-space:nowrap">🧬 DNA Attributes</div>
-      <div class="vp-tab" onclick="vpTab('stats',this)" style="flex-shrink:0;padding:.58rem .9rem;font-size:.7rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap">📊 Statistik</div>
-      <div class="vp-tab" onclick="vpTab('bio',this)" style="flex-shrink:0;padding:.58rem .9rem;font-size:.7rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap">📋 Biodata</div>
-    </div>
-    <div id="vp-dna" style="padding:.75rem .85rem;background:#0f172a;min-height:60vh">
-      <div id="vp-attr-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem">
-        <div style="grid-column:1/-1;text-align:center;padding:2rem;color:rgba(255,255,255,.3);font-size:.78rem">Memuatkan atribut...</div>
-      </div>
-    </div>
-    <div id="vp-stats" style="display:none;padding:.75rem .85rem;background:#0f172a;min-height:60vh">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-bottom:.65rem">
-        <div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:10px;padding:.65rem .4rem;text-align:center"><div style="font-size:1.4rem;font-weight:900;color:#fff">—</div><div style="font-size:.58rem;color:rgba(255,255,255,.75)">Penampilan</div></div>
-        <div style="background:linear-gradient(135deg,#5b21b6,#8b5cf6);border-radius:10px;padding:.65rem .4rem;text-align:center"><div style="font-size:1.4rem;font-weight:900;color:#fff">—</div><div style="font-size:.58rem;color:rgba(255,255,255,.75)">Gol</div></div>
-        <div style="background:linear-gradient(135deg,#92400e,#f59e0b);border-radius:10px;padding:.65rem .4rem;text-align:center"><div style="font-size:1.4rem;font-weight:900;color:#fff">—</div><div style="font-size:.58rem;color:rgba(255,255,255,.75)">Assist</div></div>
-      </div>
-      <div style="text-align:center;padding:1.5rem;color:rgba(255,255,255,.25);font-size:.75rem">Data dari perlawanan rasmi</div>
-    </div>
-    <div id="vp-bio" style="display:none;padding:.75rem .85rem;background:#0f172a;min-height:60vh">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.65rem">
-        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.75rem">
-          <div style="font-size:.58rem;font-weight:700;color:${lv.color};text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">👤 Peribadi</div>
-          <div style="margin-bottom:.4rem"><div style="font-size:.5rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Umur</div><div style="font-size:.8rem;font-weight:600;color:#fff">${age} tahun</div></div>
-          <div style="margin-bottom:.4rem"><div style="font-size:.5rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Kebangsaan</div><div style="font-size:.8rem;font-weight:600;color:#fff">🇲🇾 Malaysian</div></div>
-          <div><div style="font-size:.5rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">FP No.</div><div style="font-size:.62rem;font-weight:700;color:${lv.color};font-family:monospace">${p.passport_number||'—'}</div></div>
-        </div>
-        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.75rem">
-          <div style="font-size:.58rem;font-weight:700;color:${lv.color};text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">⚽ Fizikal</div>
-          <div style="margin-bottom:.4rem"><div style="font-size:.5rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Posisi</div><div style="font-size:.8rem;font-weight:600;color:#fff">${posCode2(posVal)}</div></div>
-          <div style="margin-bottom:.4rem"><div style="font-size:.5rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Kaki</div><div style="font-size:.8rem;font-weight:600;color:#fff">${p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—'}</div></div>
-          ${p.height_cm?`<div><div style="font-size:.5rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Tinggi</div><div style="font-size:.8rem;font-weight:600;color:#fff">${p.height_cm}cm</div></div>`:''}
-        </div>
-      </div>
-      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.75rem;margin-bottom:.65rem">
-        <div style="font-size:.58rem;font-weight:700;color:${lv.color};text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem">🛡️ Kelab Semasa</div>
-        <div style="font-size:.85rem;font-weight:700;color:#fff">${p.clubs?.name||'—'}</div>
-      </div>
-      ${_u?`<button onclick="startConvoWith('${p.id}','${dn}')" style="width:100%;padding:.72rem;background:${lv.color};color:#000;border:none;border-radius:10px;font-size:.82rem;font-weight:800;cursor:pointer;font-family:inherit">💬 Hantar Mesej kepada ${dn}</button>`:`<button onclick="closePlayerModal();showLogin();" style="width:100%;padding:.72rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.12);border-radius:10px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit">🔑 Log Masuk untuk Hantar Mesej</button>`}
-    </div>
-  </div>`;
+
+  // Build stats bars
+  const statBars=[
+    {l:'TEC',v:p.dna_technical||0,c:'#3b82f6'},
+    {l:'FIZ',v:p.dna_physical||0,c:'#00875a'},
+    {l:'MEN',v:p.dna_mental||0,c:'#8b5cf6'},
+    {l:'TAK',v:p.dna_tactical||0,c:'#f59e0b'}
+  ];
+  const barsHtml=statBars.map(function(s){
+    return '<div style="text-align:center;background:rgba(255,255,255,.04);border-radius:7px;padding:.4rem .2rem;border:1px solid '+s.c+'33">'
+      +'<div style="font-size:1.15rem;font-weight:900;color:'+s.c+'">'+s.v+'</div>'
+      +'<div style="font-size:.46rem;color:rgba(255,255,255,.35);margin:.08rem 0">'+s.l+'</div>'
+      +'<div style="height:2px;background:rgba(255,255,255,.08);border-radius:1px">'
+      +'<div style="width:'+s.v+'%;height:100%;background:'+s.c+'"></div></div></div>';
+  }).join('');
+
+  const nicknameHtml = (p.nickname&&p.nickname!==dn)
+    ? '<div style="font-size:.6rem;color:'+tc+';font-style:italic">Dikenali: '+p.nickname+'</div>'
+    : '';
+
+  const heightHtml = p.height_cm
+    ? '<div style="margin-bottom:.4rem"><div style="font-size:.5rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Tinggi</div><div style="font-size:.8rem;font-weight:600;color:#fff">'+p.height_cm+'cm</div></div>'
+    : '';
+
+  const msgBtn = _u
+    ? '<button onclick="startConvoWith(''+p.id+'',''+dn+'')" style="width:100%;padding:.72rem;background:'+lv.color+';color:#000;border:none;border-radius:10px;font-size:.82rem;font-weight:800;cursor:pointer;font-family:inherit">Hantar Mesej kepada '+dn+'</button>'
+    : '<button onclick="closePlayerModal();showLogin();" style="width:100%;padding:.72rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.12);border-radius:10px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit">Log Masuk untuk Hantar Mesej</button>';
+
+  modal.innerHTML =
+    '<div style="min-height:100vh">'
+    // HEADER
+    +'<div style="background:'+bg+';padding:1rem;border-bottom:2px solid '+lv.color+'55;position:sticky;top:0;z-index:10">'
+      +'<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">'
+        +'<button onclick="closePlayerModal()" style="background:rgba(255,255,255,.12);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0">&#8592;</button>'
+        +'<div style="width:58px;height:58px;border-radius:50%;background:'+lv.color+'33;border:3px solid '+lv.color+';box-shadow:0 0 18px '+lv.color+'88;display:flex;align-items:center;justify-content:center;font-size:1.7rem;font-weight:900;color:#fff;flex-shrink:0">'+dn[0].toUpperCase()+'</div>'
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:1rem;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.05em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+dn+'</div>'
+          +nicknameHtml
+          +'<div style="margin-top:.15rem;display:flex;align-items:center;gap:.35rem">'
+            +'<span style="background:rgba(255,255,255,.15);padding:.08rem .4rem;border-radius:5px;color:#fff;font-size:.65rem;font-weight:700">'+posCode2(posVal)+'</span>'
+            +'<span style="color:rgba(255,255,255,.4);font-size:.58rem">'+(p.clubs&&p.clubs.name?p.clubs.name:'—')+'</span>'
+          +'</div>'
+          +'<div style="font-size:.58rem;color:rgba(255,255,255,.4);margin-top:.1rem">'+(age!=='—'?age+' thn · ':'')+' '+(p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'')+'</div>'
+        +'</div>'
+        +'<div style="text-align:center;flex-shrink:0">'
+          +'<div style="width:52px;height:52px;border-radius:50%;border:3px solid '+lv.color+';background:rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 12px '+lv.color+'55">'
+            +'<div style="font-size:1.2rem;font-weight:900;color:'+lv.color+';line-height:1">'+dna+'</div>'
+            +'<div style="font-size:.38rem;color:rgba(255,255,255,.4)">DNA</div>'
+          +'</div>'
+          +'<div style="font-size:.48rem;font-weight:800;color:'+lv.color+';margin-top:.15rem;letter-spacing:.04em">'+lv.title+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="padding:.3rem .6rem;background:rgba(0,0,0,.4);border-radius:7px;display:flex;align-items:center;gap:.5rem;border:1px solid rgba(255,255,255,.06)">'
+        +'<span style="font-size:.6rem;font-family:monospace;color:'+tc+';font-weight:700">'+(p.passport_number||'Tiada FP No.')+'</span>'
+        +'<span style="margin-left:auto;font-size:.58rem;font-weight:700;color:'+(p.kyc_status==='verified'?'#4ade80':'rgba(255,255,255,.25)')+'"> '+(p.kyc_status==='verified'?'Verified':'—')+'</span>'
+      +'</div>'
+    +'</div>'
+    // DNA BARS
+    +'<div style="background:#0f172a;padding:.65rem 1rem;display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;border-bottom:1px solid rgba(255,255,255,.06)">'
+      +barsHtml
+    +'</div>'
+    // TABS
+    +'<div style="display:flex;background:#0f172a;border-bottom:2px solid rgba(255,255,255,.06);overflow-x:auto;scrollbar-width:none;position:sticky;top:113px;z-index:9">'
+      +'<div class="vp-tab on" onclick="vpTab('dna',this)" style="flex-shrink:0;padding:.58rem .9rem;font-size:.7rem;font-weight:700;cursor:pointer;color:'+lv.color+';border-bottom:2.5px solid '+lv.color+';margin-bottom:-2px;white-space:nowrap">DNA Attributes</div>'
+      +'<div class="vp-tab" onclick="vpTab('stats',this)" style="flex-shrink:0;padding:.58rem .9rem;font-size:.7rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap">Statistik</div>'
+      +'<div class="vp-tab" onclick="vpTab('bio',this)" style="flex-shrink:0;padding:.58rem .9rem;font-size:.7rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap">Biodata</div>'
+    +'</div>'
+    // DNA TAB
+    +'<div id="vp-dna" style="padding:.75rem .85rem;background:#0f172a;min-height:60vh">'
+      +'<div id="vp-attr-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem">'
+        +'<div style="grid-column:1/-1;text-align:center;padding:2rem;color:rgba(255,255,255,.3);font-size:.78rem">Memuatkan atribut...</div>'
+      +'</div>'
+    +'</div>'
+    // STATS TAB
+    +'<div id="vp-stats" style="display:none;padding:.75rem .85rem;background:#0f172a;min-height:60vh">'
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-bottom:.65rem">'
+        +'<div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:10px;padding:.65rem .4rem;text-align:center"><div style="font-size:1.4rem;font-weight:900;color:#fff">—</div><div style="font-size:.58rem;color:rgba(255,255,255,.75)">Penampilan</div></div>'
+        +'<div style="background:linear-gradient(135deg,#5b21b6,#8b5cf6);border-radius:10px;padding:.65rem .4rem;text-align:center"><div style="font-size:1.4rem;font-weight:900;color:#fff">—</div><div style="font-size:.58rem;color:rgba(255,255,255,.75)">Gol</div></div>'
+        +'<div style="background:linear-gradient(135deg,#92400e,#f59e0b);border-radius:10px;padding:.65rem .4rem;text-align:center"><div style="font-size:1.4rem;font-weight:900;color:#fff">—</div><div style="font-size:.58rem;color:rgba(255,255,255,.75)">Assist</div></div>'
+      +'</div>'
+      +'<div style="text-align:center;padding:1.5rem;color:rgba(255,255,255,.25);font-size:.75rem">Data dari perlawanan rasmi</div>'
+    +'</div>'
+    // BIO TAB
+    +'<div id="vp-bio" style="display:none;padding:.75rem .85rem;background:#0f172a;min-height:60vh">'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.65rem">'
+        +'<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.75rem">'
+          +'<div style="font-size:.58rem;font-weight:700;color:'+lv.color+';text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">Peribadi</div>'
+          +'<div style="margin-bottom:.4rem"><div style="font-size:.5rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Umur</div><div style="font-size:.8rem;font-weight:600;color:#fff">'+age+' tahun</div></div>'
+          +'<div style="margin-bottom:.4rem"><div style="font-size:.5rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Kebangsaan</div><div style="font-size:.8rem;font-weight:600;color:#fff">Malaysian</div></div>'
+          +'<div><div style="font-size:.5rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">FP No.</div><div style="font-size:.62rem;font-weight:700;color:'+lv.color+';font-family:monospace">'+(p.passport_number||'—')+'</div></div>'
+        +'</div>'
+        +'<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.75rem">'
+          +'<div style="font-size:.58rem;font-weight:700;color:'+lv.color+';text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">Fizikal</div>'
+          +'<div style="margin-bottom:.4rem"><div style="font-size:.5rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Posisi</div><div style="font-size:.8rem;font-weight:600;color:#fff">'+posCode2(posVal)+'</div></div>'
+          +'<div style="margin-bottom:.4rem"><div style="font-size:.5rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Kaki</div><div style="font-size:.8rem;font-weight:600;color:#fff">'+(p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—')+'</div></div>'
+          +heightHtml
+        +'</div>'
+      +'</div>'
+      +'<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.75rem;margin-bottom:.65rem">'
+        +'<div style="font-size:.58rem;font-weight:700;color:'+lv.color+';text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem">Kelab Semasa</div>'
+        +'<div style="font-size:.85rem;font-weight:700;color:#fff">'+(p.clubs&&p.clubs.name?p.clubs.name:'—')+'</div>'
+      +'</div>'
+      +msgBtn
+    +'</div>'
+  +'</div>';
+
   modal.style.display='block';
   modal.scrollTop=0;
   loadViewerAttributes(p.id);
