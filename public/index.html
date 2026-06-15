@@ -2074,6 +2074,22 @@ function showPlayerModal(p){
   modal.style.display='block';
   modal.scrollTop=0;
   loadViewerAttributes(p.id);
+  // Inject msg button
+  setTimeout(function(){
+    const mc=document.getElementById('vp-msg-container');
+    if(!mc) return;
+    const btn=document.createElement('button');
+    btn.style.cssText='width:100%;padding:.72rem;background:'+lv.color+';color:#000;border:none;border-radius:10px;font-size:.82rem;font-weight:800;cursor:pointer;font-family:inherit';
+    btn.textContent='Hantar Mesej kepada '+dn;
+    btn.onclick=function(){startConvoWith(p.id,dn);};
+    if(!_u){
+      btn.style.background='rgba(0,135,90,.15)';btn.style.color='var(--g)';
+      btn.style.border='1px solid var(--g)';btn.style.fontWeight='600';
+      btn.textContent='Log Masuk untuk Hantar Mesej';
+      btn.onclick=function(){closePlayerModal();showLogin();};
+    }
+    mc.appendChild(btn);
+  },100);
 }
 function vpTab(el){
   const t=el.dataset.tab||el;
