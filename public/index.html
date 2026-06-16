@@ -1896,32 +1896,37 @@ function renderAttrCards2(filterCat){
 
 function renderClubHistory2(p){
   const el=document.getElementById('club2-list');
-  if(!el)return;
-  const history=[
-    {name:'Kelab Bolasepak Kepayang',status:'semasa',period:'2025 — Kini',    apps:5,  goals:4,  ast:3,  yk:0,rk:0,col:'#00875a'},
-    {name:'Kepayang FC',              status:'tetap', period:'2024 — 2025',    apps:18, goals:8,  ast:10, yk:2,rk:0,col:'#3b82f6'},
-    {name:'Seremban Old Boys / Seremban Sports Station (3S)',        status:'tetap', period:'1998 — 2024',    apps:312,goals:87, ast:124,yk:28,rk:2,col:'#8b5cf6'},
-  ];
-  el.innerHTML=history.map(c=>`
-    <div class="club2-item">
-      <div class="club2-top">
-        <div class="club2-logo" style="background:${c.col}">${c.name[0]}</div>
-        <div>
-          <div class="club2-name">${c.name}</div>
-          <div class="club2-badges">
-            ${c.status==='semasa'?'<span class="cb2-semasa">Semasa</span>':'<span class="cb2-tetap">Tetap</span>'}
-          </div>
-          <div class="club2-period">📅 ${c.period}</div>
-        </div>
-      </div>
-      <div class="club2-stats">
-        <div class="cs2-item"><div class="cs2-val">${c.apps}</div><div class="cs2-lbl">Perlawanan</div></div>
-        <div class="cs2-item"><div class="cs2-val">${c.goals}</div><div class="cs2-lbl">Gol</div></div>
-        <div class="cs2-item"><div class="cs2-val">${c.ast}</div><div class="cs2-lbl">Assist</div></div>
-        <div class="cs2-item"><div class="cs2-val" style="color:#f59e0b">${c.yk}</div><div class="cs2-lbl">Kad K</div></div>
-        <div class="cs2-item"><div class="cs2-val" style="color:#ef4444">${c.rk}</div><div class="cs2-lbl">Kad M</div></div>
-      </div>
-    </div>`).join('');
+  if(!el) return;
+
+  // Hanya tunjuk kelab semasa dari DB
+  // Sejarah kelab akan ditambah kemudian oleh user sendiri
+  const currentClub = p.clubs?.name||null;
+
+  if(!currentClub){
+    el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--mute);font-size:.78rem">'
+      +'<div style="font-size:2rem;margin-bottom:.5rem">🏟</div>'
+      +'<div style="font-weight:600;margin-bottom:.25rem">Tiada rekod kelab</div>'
+      +'<div style="font-size:.7rem">Pemain belum mendaftar dalam mana-mana kelab</div>'
+      +'</div>';
+    return;
+  }
+
+  // Tunjuk kelab semasa sahaja
+  el.innerHTML='<div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:.8rem .85rem;margin-bottom:.5rem;box-shadow:var(--sh)">'
+    +'<div style="display:flex;align-items:center;gap:.6rem">'
+      +'<div style="width:38px;height:38px;border-radius:9px;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:800;color:#fff;flex-shrink:0">'+currentClub[0]+'</div>'
+      +'<div>'
+        +'<div style="font-size:.8rem;font-weight:700;color:var(--txt)">'+currentClub+'</div>'
+        +'<div style="display:flex;gap:.28rem;margin-top:.18rem">'
+          +'<span style="font-size:.55rem;font-weight:700;padding:.08rem .38rem;border-radius:5px;background:rgba(0,135,90,.12);color:var(--g)">Semasa</span>'
+        +'</div>'
+        +'<div style="font-size:.6rem;color:var(--mute);margin-top:.28rem">📅 Rekod kelab aktif</div>'
+      +'</div>'
+    +'</div>'
+    +'<div style="margin-top:.65rem;padding:.5rem;background:rgba(0,135,90,.05);border:1px dashed rgba(0,135,90,.2);border-radius:8px;text-align:center;font-size:.65rem;color:var(--mute)">'
+      +'+ Sejarah kelab lain akan ditambah kemudian'
+    +'</div>'
+  +'</div>';
 }
 
 function renderBio2(p){
@@ -2287,8 +2292,10 @@ function closePlayerModal(){
   const modal = document.getElementById('player-modal');
   if(modal){ 
     modal.style.display='none';
-    modal.innerHTML=''; // Clear untuk prevent stale state
+    modal.innerHTML='';
   }
+  // Re-enable scroll on body
+  document.body.style.overflow='';
 }
 
 function startConvoWith(playerId, playerName){
