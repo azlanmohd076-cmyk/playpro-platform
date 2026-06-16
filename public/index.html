@@ -2146,8 +2146,8 @@ async function loadStats2(pid){
   try{
     // Ambil dari player_match_stats table
     var{data,error}=await SB.from('player_match_stats')
-      .select('goals,goals_scored,assists,yellow_cards,red_cards,minutes_played')
-      .eq('player_id',pid).limit(500);
+      .select('goals,assists,yellow_cards,red_cards,minutes_played')
+      .eq('player_id',pid).limit(200);
 
     // Reset semua ke —
     ['s2-apps','s2-mins','s2-goals','s2-ast','s2-yk','s2-rk'].forEach(function(id){
@@ -2168,7 +2168,7 @@ async function loadStats2(pid){
     var sum=function(a,k){return a.reduce(function(t,r){return t+(r[k]||0);},0);};
     var apps=data.length;
     var mins=sum(data,'minutes_played');
-    var goals=sum(data,'goals_scored')||sum(data,'goals');
+    var goals=sum(data,'goals');
     var ast=sum(data,'assists');
     var yk=sum(data,'yellow_cards');
     var rk=sum(data,'red_cards');
@@ -3005,7 +3005,12 @@ async function saveClubHistoryOnboarding(playerId){
 
 /* ── EDIT PROFILE ── */
 function openEditModal(){
-  if(!_pd) return;
+  if(!_pd){
+    toast('⚠️ Sila refresh halaman dan cuba semula');
+    console.warn('_pd is null, trying to reload profile');
+    loadProfile();
+    return;
+  }
   // Pre-fill fields
   var nick=document.getElementById('edit-nickname');
   var phone=document.getElementById('edit-phone');
