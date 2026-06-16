@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="theme-color" content="#00875a"/>
+<meta name="theme-color" content="#0077B6"/>
 <title>PlayPro — Platform Bola Sepak Malaysia</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
@@ -17,8 +17,8 @@ window.PLAYPRO_SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  --g:    #00875a;
-  --g2:   #00c97a;
+  --g:    #0077B6;
+  --g2:   #00B4D8;
   --g3:   #005c3e;
   --glt:  #e6f5ee;
   --gold: #f59e0b;
@@ -134,7 +134,7 @@ body { font-family:'Inter',system-ui,sans-serif; font-size:14px; background:var(
   cursor:pointer; font-size:.95rem; transition:.15s; position:relative;
 }
 .hdr-ic-btn:hover { border-color:var(--g); background:var(--glt) }
-html.dark .hdr-ic-btn:hover { background:rgba(0,135,90,.1) }
+html.dark .hdr-ic-btn:hover { background:rgba(0,119,182,.1) }
 .hdr-login-btn {
   height:36px; padding:0 .85rem;
   background:var(--g); color:#fff;
@@ -151,7 +151,7 @@ html.dark .hdr-ic-btn:hover { background:rgba(0,135,90,.1) }
   border-radius:8px; display:flex; align-items:center; gap:.4rem;
   cursor:pointer; transition:.15s;
 }
-html.dark .hdr-user-chip { background:rgba(0,135,90,.1) }
+html.dark .hdr-user-chip { background:rgba(0,119,182,.1) }
 .hdr-av {
   width:24px; height:24px; border-radius:6px;
   background:var(--g); color:#fff;
@@ -220,9 +220,9 @@ html.dark .hdr-user-chip { background:rgba(0,135,90,.1) }
   cursor:pointer; transition:.15s; white-space:nowrap;
 }
 .hb-item:hover { border-color:var(--g); color:var(--g); background:var(--glt) }
-html.dark .hb-item:hover { background:rgba(0,135,90,.08) }
+html.dark .hb-item:hover { background:rgba(0,119,182,.08) }
 .hb-item.on { border-color:var(--g); color:var(--g); background:var(--glt); font-weight:700 }
-html.dark .hb-item.on { background:rgba(0,135,90,.1) }
+html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 .hb-ic { font-size:.85rem }
 .hb-arrow { color:var(--mute); font-size:.65rem; margin:0 .1rem }
 
@@ -296,8 +296,8 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
   padding:.65rem 1.1rem; cursor:pointer; transition:.15s;
   border-left:3px solid transparent;
 }
-.dr-row:hover { background:rgba(0,135,90,.06); border-left-color:rgba(0,135,90,.3) }
-.dr-row.on { background:rgba(0,135,90,.08); border-left-color:var(--g) }
+.dr-row:hover { background:rgba(0,119,182,.06); border-left-color:rgba(0,119,182,.3) }
+.dr-row.on { background:rgba(0,119,182,.08); border-left-color:var(--g) }
 .dr-ic { font-size:1rem; width:20px; text-align:center; flex-shrink:0 }
 .dr-tx { font-size:.81rem; font-weight:500; color:var(--txt) }
 .dr-row.on .dr-tx { font-weight:700; color:var(--g) }
@@ -309,7 +309,7 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
   border:1px solid var(--bdr); transition:.15s; margin-bottom:.4rem;
 }
 .dr-btn:last-child { margin-bottom:0 }
-.dr-btn:hover { border-color:var(--g); background:rgba(0,135,90,.05) }
+.dr-btn:hover { border-color:var(--g); background:rgba(0,119,182,.05) }
 .dr-btn-tx { font-size:.79rem; font-weight:600; color:var(--txt) }
 .dr-btn.primary .dr-btn-tx { color:var(--g) }
 
@@ -342,7 +342,7 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
   border-radius:var(--r); overflow:hidden; box-shadow:var(--sh);
   cursor:pointer; transition:.15s; margin-bottom:.6rem;
 }
-.match-card:hover { border-color:rgba(0,135,90,.25); transform:translateY(-1px) }
+.match-card:hover { border-color:rgba(0,119,182,.25); transform:translateY(-1px) }
 .mc-top {
   padding:.45rem .85rem; background:var(--navy);
   display:flex; justify-content:space-between; align-items:center;
@@ -369,7 +369,7 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
   margin-bottom:.6rem; overflow:hidden; cursor:pointer;
   transition:.15s;
 }
-.feed-card:hover { border-color:rgba(0,135,90,.2) }
+.feed-card:hover { border-color:rgba(0,119,182,.2) }
 .fc-top { display:flex; align-items:center; gap:.6rem; padding:.75rem .85rem .4rem }
 .fc-av {
   width:36px; height:36px; border-radius:9px;
@@ -384,7 +384,7 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
   font-size:.58rem; font-weight:700; padding:.12rem .45rem;
   border-radius:999px; letter-spacing:.03em; flex-shrink:0;
 }
-.b-liga   { background:rgba(0,135,90,.1);  color:var(--g) }
+.b-liga   { background:rgba(0,119,182,.1);  color:var(--g) }
 .b-kelab  { background:rgba(245,158,11,.1);color:var(--gold) }
 .b-pemain { background:rgba(59,130,246,.1);color:#3b82f6 }
 .fc-body { padding:.1rem .85rem .65rem; font-size:.79rem; color:var(--dim); line-height:1.6 }
@@ -397,7 +397,7 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
   display:flex; align-items:center; justify-content:center; gap:.3rem;
 }
 .fc-act:last-child { border-right:none }
-.fc-act:hover { color:var(--g); background:rgba(0,135,90,.04) }
+.fc-act:hover { color:var(--g); background:rgba(0,119,182,.04) }
 
 /* ════════════════════════════════════
    PROFILE TAB — REDESIGN pp2Tab
@@ -405,43 +405,43 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
 
 /* ── HEADER ── */
 .pp2-header {
-  background: linear-gradient(135deg, #0d1f2d 0%, #1a2f3d 50%, #0f2318 100%);
+  background: linear-gradient(135deg, #03045E 0%, #023E8A 50%, #0096C7 100%);
   padding: 1.1rem 1rem .9rem; position: relative; overflow: hidden;
 }
 .pp2-header::before {
   content:''; position:absolute; inset:0;
-  background:radial-gradient(circle at 80% 20%, rgba(0,200,120,.08) 0%, transparent 60%);
+  background:radial-gradient(circle at 80% 20%, rgba(0,180,216,.08) 0%, transparent 60%);
 }
 .pp2-top-row { display:flex; align-items:center; gap:.85rem; position:relative; z-index:1 }
 .pp2-avatar-wrap { position:relative; flex-shrink:0 }
 .pp2-avatar {
   width:62px; height:62px; border-radius:14px;
-  background:linear-gradient(135deg,#00875a,#00c97a);
+  background:linear-gradient(135deg,#0077B6,#00B4D8);
   display:flex; align-items:center; justify-content:center;
   font-size:1.5rem; font-weight:900; color:#fff;
-  border: 2px solid rgba(0,200,120,.3);
+  border: 2px solid rgba(0,180,216,.3);
 }
 .pp2-jersey {
   position:absolute; bottom:-5px; right:-5px;
   width:22px; height:22px; border-radius:6px;
-  background:#1a2f3d; border:1.5px solid rgba(255,255,255,.2);
+  background:#023E8A; border:1.5px solid rgba(255,255,255,.2);
   display:flex; align-items:center; justify-content:center;
   font-size:.58rem; font-weight:800; color:rgba(255,255,255,.85);
 }
 .pp2-info { flex:1; min-width:0 }
 .pp2-name-row { display:flex; align-items:center; gap:.5rem; margin-bottom:.2rem; flex-wrap:wrap }
 .pp2-name { font-size:1.05rem; font-weight:800; color:#fff; letter-spacing:-.02em }
-.pp2-active { background:#00875a; color:#fff; font-size:.56rem; font-weight:700; padding:.1rem .4rem; border-radius:999px; letter-spacing:.05em }
+.pp2-active { background:#0077B6; color:#fff; font-size:.56rem; font-weight:700; padding:.1rem .4rem; border-radius:999px; letter-spacing:.05em }
 .pp2-pos { font-size:.7rem; font-weight:700; margin-bottom:.25rem }
-.pp2-pos-code { background:rgba(0,200,120,.15); border:1px solid rgba(0,200,120,.25); padding:.1rem .4rem; border-radius:5px; color:rgba(255,255,255,.9); margin-right:.3rem }
+.pp2-pos-code { background:rgba(0,180,216,.15); border:1px solid rgba(0,180,216,.25); padding:.1rem .4rem; border-radius:5px; color:rgba(255,255,255,.9); margin-right:.3rem }
 .pp2-pos-full { color:rgba(255,255,255,.45); font-weight:400; font-size:.65rem }
 .pp2-meta { display:flex; flex-wrap:wrap; gap:.25rem .65rem; font-size:.62rem; color:rgba(255,255,255,.5) }
 .pp2-dna-circle {
   width:52px; height:52px; border-radius:50%; flex-shrink:0;
-  border:3px solid #00c97a; background:rgba(0,0,0,.3);
+  border:3px solid #00B4D8; background:rgba(0,0,0,.3);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
 }
-.pp2-dna-num { font-size:1.15rem; font-weight:900; color:#00c97a; line-height:1; letter-spacing:-.04em }
+.pp2-dna-num { font-size:1.15rem; font-weight:900; color:#00B4D8; line-height:1; letter-spacing:-.04em }
 .pp2-dna-lbl { font-size:.42rem; font-weight:700; color:rgba(255,255,255,.45); letter-spacing:.08em; text-transform:uppercase }
 .pp2-contract {
   margin-top:.6rem; padding:.4rem .75rem; position:relative; z-index:1;
@@ -466,9 +466,9 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
 
 /* ── DNA SCORECARD ── */
 .dna2-scorecard {
-  background:linear-gradient(135deg,#0d1f2d,#122218);
+  background:linear-gradient(135deg,#03045E,#023E8A);
   padding:.9rem 1rem; display:flex; align-items:center; gap:.9rem;
-  margin:.65rem .85rem; border-radius:13px; border:1px solid rgba(0,200,120,.15);
+  margin:.65rem .85rem; border-radius:13px; border:1px solid rgba(0,180,216,.15);
 }
 .dna2-ring-wrap { position:relative; width:58px; height:58px; flex-shrink:0 }
 .dna2-ring-wrap svg { position:absolute; inset:0; transform:rotate(-90deg) }
@@ -477,14 +477,14 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
 .dna2-ring-sub { font-size:.42rem; color:rgba(255,255,255,.4); font-weight:700; letter-spacing:.06em; text-transform:uppercase }
 .dna2-sc-right { flex:1 }
 .dna2-sc-level { font-size:.58rem; font-weight:700; color:rgba(255,255,255,.4); letter-spacing:.1em; text-transform:uppercase; margin-bottom:.12rem }
-.dna2-sc-title { font-size:.95rem; font-weight:800; color:#00c97a; letter-spacing:-.01em; margin-bottom:.25rem }
+.dna2-sc-title { font-size:.95rem; font-weight:800; color:#00B4D8; letter-spacing:-.01em; margin-bottom:.25rem }
 .dna2-sc-stars { display:flex; gap:2px; margin-bottom:.2rem }
 .dna2-sc-meta { font-size:.6rem; color:rgba(255,255,255,.35) }
 .dna2-badge {
   font-size:.56rem; font-weight:700; padding:.12rem .45rem; border-radius:999px;
   display:inline-flex; align-items:center; gap:.2rem; margin-left:.4rem;
 }
-.dna2-badge-pro   { background:rgba(0,200,120,.15); color:#00c97a; border:1px solid rgba(0,200,120,.2) }
+.dna2-badge-pro   { background:rgba(0,180,216,.15); color:#00B4D8; border:1px solid rgba(0,180,216,.2) }
 .dna2-badge-coach { background:rgba(59,130,246,.12); color:#60a5fa; border:1px solid rgba(59,130,246,.2) }
 .dna2-badge-none  { background:rgba(150,150,150,.1); color:var(--mute); border:1px solid var(--bdr) }
 
@@ -502,7 +502,7 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
 }
 .rf2.on { color:#fff; border-color:transparent }
 .rf2-all.on,.rf2-tech.on { background:#3b82f6 }
-.rf2-phys.on { background:#00875a }
+.rf2-phys.on { background:#0077B6 }
 .rf2-ment.on { background:#8b5cf6 }
 .rf2-tact.on { background:#f59e0b }
 .radar2-body { display:flex; min-height:260px }
@@ -527,7 +527,7 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
 .af2.on { color:#fff; border-color:transparent }
 .af2-all.on  { background:var(--txt); color:var(--bg) }
 .af2-tech.on { background:#3b82f6 }
-.af2-phys.on { background:#00875a }
+.af2-phys.on { background:#0077B6 }
 .af2-ment.on { background:#8b5cf6 }
 .af2-tact.on { background:#f59e0b }
 .af2-gk.on   { background:#ef4444 }
@@ -540,7 +540,7 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
 .attr2-name { font-size:.62rem; font-weight:700; color:var(--txt); line-height:1.2 }
 .attr2-cat  { font-size:.56rem; color:var(--mute) }
 .attr2-rating { font-size:.56rem; font-weight:700; padding:.07rem .28rem; border-radius:4px }
-.r2-cemerlang { background:rgba(0,135,90,.12);  color:var(--g) }
+.r2-cemerlang { background:rgba(0,119,182,.12);  color:var(--g) }
 .r2-baik      { background:rgba(59,130,246,.12); color:#3b82f6 }
 .r2-sederhana { background:rgba(245,158,11,.12); color:#f59e0b }
 .r2-lemah     { background:rgba(239,68,68,.12);  color:#ef4444 }
@@ -551,7 +551,7 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
 .stat2-val { font-size:1.45rem; font-weight:900; color:#fff; letter-spacing:-.03em }
 .stat2-lbl { font-size:.58rem; font-weight:600; color:rgba(255,255,255,.7); margin-top:.12rem }
 .sc2-apps  { background:linear-gradient(135deg,#1d4ed8,#3b82f6) }
-.sc2-mins  { background:linear-gradient(135deg,#065f46,#00875a) }
+.sc2-mins  { background:linear-gradient(135deg,#065f46,#0077B6) }
 .sc2-goals { background:linear-gradient(135deg,#5b21b6,#8b5cf6) }
 .sc2-ast   { background:linear-gradient(135deg,#92400e,#f59e0b) }
 .sc2-yk    { background:linear-gradient(135deg,#78350f,#d97706) }
@@ -573,7 +573,7 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
 .club2-logo { width:38px; height:38px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:.88rem; font-weight:800; color:#fff; flex-shrink:0 }
 .club2-name { font-size:.8rem; font-weight:700; color:var(--txt) }
 .club2-badges { display:flex; gap:.28rem; margin-top:.18rem; flex-wrap:wrap }
-.cb2-semasa { font-size:.55rem; font-weight:700; padding:.08rem .38rem; border-radius:5px; background:rgba(0,135,90,.12); color:var(--g) }
+.cb2-semasa { font-size:.55rem; font-weight:700; padding:.08rem .38rem; border-radius:5px; background:rgba(0,119,182,.12); color:var(--g) }
 .cb2-tetap  { font-size:.55rem; font-weight:700; padding:.08rem .38rem; border-radius:5px; background:rgba(59,130,246,.1); color:#3b82f6 }
 .club2-period { font-size:.6rem; color:var(--mute); margin-top:.28rem; display:flex; align-items:center; gap:.28rem }
 .club2-stats { display:flex; margin-top:.55rem; border-top:1px solid var(--bdr); padding-top:.5rem }
@@ -591,9 +591,9 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
 .bio2-ppno  { font-family:monospace; font-size:.7rem; color:var(--g); font-weight:700; letter-spacing:.08em }
 .bio2-frame-wrap { padding:.7rem .85rem 1.2rem }
 .pp-frame-card {
-  background:linear-gradient(135deg,#0d1f2d,#122218);
+  background:linear-gradient(135deg,#03045E,#023E8A);
   border-radius:13px; padding:1rem; display:flex; gap:.9rem; align-items:center;
-  border:1px solid rgba(0,200,120,.15);
+  border:1px solid rgba(0,180,216,.15);
 }
 .pp-frame-photo {
   width:64px; height:64px; border-radius:11px; flex-shrink:0;
@@ -605,13 +605,13 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
 .pp-frame-name  { font-size:.88rem; font-weight:800; color:#fff; margin-bottom:.22rem }
 .pp-frame-no    { font-size:.62rem; font-family:monospace; color:rgba(255,255,255,.45); letter-spacing:.08em }
 .pp-frame-kyc   { font-size:.6rem; font-weight:600; margin-top:.3rem }
-.kyc2-ok   { color:#00c97a }
+.kyc2-ok   { color:#00B4D8 }
 .kyc2-pend { color:#f59e0b }
 .kyc2-none { color:var(--mute) }
 .fr2-unverified { border:2px dashed rgba(150,150,150,.35) }
 .fr2-silver     { border:2px solid #c0c0c0; box-shadow:0 0 10px rgba(192,192,192,.3) }
 .fr2-bronze     { border:2px solid #cd7f32; box-shadow:0 0 10px rgba(205,127,50,.3) }
-.fr2-green      { border:2px solid #00875a; box-shadow:0 0 10px rgba(0,135,90,.4) }
+.fr2-green      { border:2px solid #0077B6; box-shadow:0 0 10px rgba(0,119,182,.4) }
 .fr2-blue       { border:2px solid #3b82f6; box-shadow:0 0 12px rgba(59,130,246,.4) }
 .fr2-purple     { border:2px solid #8b5cf6; box-shadow:0 0 12px rgba(139,92,246,.4) }
 .fr2-gold       { border:2px solid #f59e0b; box-shadow:0 0 14px rgba(245,158,11,.5) }
@@ -619,7 +619,7 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
 
 /* PLACEHOLDER & BANNER (kekal) */
 .pp-banner {
-  background:linear-gradient(135deg,var(--navy) 0%,#0f2a1e 50%,var(--g3) 100%);
+  background:linear-gradient(135deg,var(--navy) 0%,#03045E 50%,var(--g3) 100%);
   padding:1.5rem 1.2rem; position:relative; overflow:hidden;
 }
 .pp-banner::before {
@@ -663,7 +663,7 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
   background:transparent; color:var(--mute);
   transition:.15s; font-family:inherit;
 }
-.ls-tab.on { background:var(--g); color:#fff; box-shadow:0 2px 8px rgba(0,135,90,.25) }
+.ls-tab.on { background:var(--g); color:#fff; box-shadow:0 2px 8px rgba(0,119,182,.25) }
 .fg { margin-bottom:.85rem }
 .fl { display:block; font-size:.62rem; font-weight:700; color:var(--g); margin-bottom:.32rem; letter-spacing:.07em; text-transform:uppercase }
 .fi {
@@ -680,13 +680,13 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
   width:100%; padding:.82rem; border:none; border-radius:10px;
   background:var(--g); color:#fff; font-size:.88rem; font-weight:700;
   cursor:pointer; transition:.15s; margin-top:.2rem;
-  font-family:inherit; box-shadow:0 2px 10px rgba(0,135,90,.25);
+  font-family:inherit; box-shadow:0 2px 10px rgba(0,119,182,.25);
 }
 .fb:hover { background:var(--g3); transform:translateY(-1px) }
 .fb:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none }
 .fm { text-align:center; padding:.55rem .75rem; border-radius:9px; font-size:.74rem; font-weight:600; margin-top:.55rem; display:none; border:1px solid }
 .fm.err { background:rgba(239,68,68,.07); color:var(--red); border-color:rgba(239,68,68,.15); display:block }
-.fm.ok  { background:rgba(0,135,90,.07); color:var(--g); border-color:rgba(0,135,90,.15); display:block }
+.fm.ok  { background:rgba(0,119,182,.07); color:var(--g); border-color:rgba(0,119,182,.15); display:block }
 .ls-foot { text-align:center; margin-top:.9rem; font-size:.72rem; color:var(--mute) }
 .ls-foot a { color:var(--g); font-weight:600; cursor:pointer }
 .portal-grid { display:grid; grid-template-columns:1fr 1fr; gap:.45rem; margin-bottom:.85rem }
@@ -698,12 +698,12 @@ html.dark .hb-item.on { background:rgba(0,135,90,.1) }
   transition:.15s; text-align:center;
 }
 .portal-card:hover, .portal-card.on { border-color:var(--g); background:var(--glt); color:var(--g) }
-html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,90,.08) }
+html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,182,.08) }
 .portal-card span:first-child { font-size:1.7rem }
 .role-chip {
   display:flex; align-items:center; gap:.5rem; margin-bottom:.85rem;
-  padding:.5rem .75rem; background:rgba(0,135,90,.07);
-  border:1px solid rgba(0,135,90,.2); border-radius:9px;
+  padding:.5rem .75rem; background:rgba(0,119,182,.07);
+  border:1px solid rgba(0,119,182,.2); border-radius:9px;
 }
 .rc-txt { font-size:.8rem; font-weight:700; color:var(--g) }
 .rc-chg { margin-left:auto; font-size:.68rem; color:var(--mute); cursor:pointer; background:none; border:none; font-family:inherit }
@@ -930,7 +930,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
         <div style="background:var(--bg2);border-bottom:1px solid var(--bdr);padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem">
           <button onclick="closeConvo()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--txt)">←</button>
           <div id="convo-name" style="font-size:.88rem;font-weight:700;color:var(--txt);flex:1"></div>
-          <div id="convo-badge" style="font-size:.58rem;font-weight:700;padding:.1rem .4rem;border-radius:5px;background:rgba(0,135,90,.1);color:var(--g)">VERIFIED</div>
+          <div id="convo-badge" style="font-size:.58rem;font-weight:700;padding:.1rem .4rem;border-radius:5px;background:rgba(0,119,182,.1);color:var(--g)">VERIFIED</div>
         </div>
         <div id="convo-messages" style="flex:1;overflow-y:auto;padding:.75rem 1rem;display:flex;flex-direction:column;gap:.5rem;min-height:0"></div>
         <div id="convo-input-wrap" style="padding:.65rem 1rem;background:var(--bg2);border-top:1px solid var(--bdr);display:flex;gap:.5rem">
@@ -1045,7 +1045,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
             <div class="dna2-ring-wrap">
               <svg viewBox="0 0 58 58">
                 <circle cx="29" cy="29" r="23" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="5"/>
-                <circle id="dna2-ring" cx="29" cy="29" r="23" fill="none" stroke="#00c97a" stroke-width="5" stroke-linecap="round" stroke-dasharray="144.5" stroke-dashoffset="144.5"/>
+                <circle id="dna2-ring" cx="29" cy="29" r="23" fill="none" stroke="#00B4D8" stroke-width="5" stroke-linecap="round" stroke-dasharray="144.5" stroke-dashoffset="144.5"/>
               </svg>
               <div class="dna2-ring-inner">
                 <div class="dna2-ring-val" id="dna2-val">—</div>
@@ -1087,7 +1087,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
                 </div>
                 <div class="cat2-wrap">
                   <div class="cat2-label"><span class="cat2-name">💪 Fizikal</span><span class="cat2-val" id="cat2-phys">—</span></div>
-                  <div class="cat2-track"><div class="cat2-fill" id="catbar2-phys" style="width:0%;background:#00875a"></div></div>
+                  <div class="cat2-track"><div class="cat2-fill" id="catbar2-phys" style="width:0%;background:#0077B6"></div></div>
                 </div>
                 <div class="cat2-wrap">
                   <div class="cat2-label"><span class="cat2-name">🧠 Mental</span><span class="cat2-val" id="cat2-ment">—</span></div>
@@ -1140,7 +1140,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
             <canvas id="season2-chart" height="150"></canvas>
             <div style="display:flex;gap:.85rem;margin-top:.55rem;justify-content:center">
               <span style="font-size:.6rem;color:var(--dim);display:flex;align-items:center;gap:.28rem"><span style="width:9px;height:9px;background:#3b82f6;border-radius:2px;display:inline-block"></span>Penampilan</span>
-              <span style="font-size:.6rem;color:var(--dim);display:flex;align-items:center;gap:.28rem"><span style="width:9px;height:9px;background:#00875a;border-radius:2px;display:inline-block"></span>Gol</span>
+              <span style="font-size:.6rem;color:var(--dim);display:flex;align-items:center;gap:.28rem"><span style="width:9px;height:9px;background:#0077B6;border-radius:2px;display:inline-block"></span>Gol</span>
               <span style="font-size:.6rem;color:var(--dim);display:flex;align-items:center;gap:.28rem"><span style="width:9px;height:9px;background:#8b5cf6;border-radius:2px;display:inline-block"></span>Assist</span>
             </div>
           </div>
@@ -1159,7 +1159,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
             <div class="bio2-card">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
                 <div class="bio2-title" style="margin-bottom:0">👤 Maklumat Peribadi</div>
-                <button onclick="openEditModal()" style="font-size:.65rem;font-weight:700;color:var(--g);background:rgba(0,135,90,.1);border:1px solid rgba(0,135,90,.2);padding:.25rem .6rem;border-radius:7px;cursor:pointer;font-family:inherit">✏️ Edit</button>
+                <button onclick="openEditModal()" style="font-size:.65rem;font-weight:700;color:var(--g);background:rgba(0,119,182,.1);border:1px solid rgba(0,119,182,.2);padding:.25rem .6rem;border-radius:7px;cursor:pointer;font-family:inherit">✏️ Edit</button>
               </div>
               <div class="bio2-row"><div class="bio2-label">Nama Penuh</div><div class="bio2-val" id="bio2-name">—</div></div>
               <div class="bio2-row"><div class="bio2-label">Tarikh Lahir</div><div class="bio2-val" id="bio2-dob">—</div></div>
@@ -1317,7 +1317,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
       <div style="margin-bottom:.75rem">
         <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem">Jenis Dokumen Pengenalan</label>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem">
-          <div class="doc-type-btn active" onclick="selectDocType(this,'mykad')" data-type="mykad" style="padding:.6rem .4rem;background:rgba(0,135,90,.15);border:1.5px solid var(--g);border-radius:10px;text-align:center;cursor:pointer;transition:.15s">
+          <div class="doc-type-btn active" onclick="selectDocType(this,'mykad')" data-type="mykad" style="padding:.6rem .4rem;background:rgba(0,119,182,.15);border:1.5px solid var(--g);border-radius:10px;text-align:center;cursor:pointer;transition:.15s">
             <div style="font-size:1.1rem">🪪</div>
             <div style="font-size:.62rem;font-weight:700;color:var(--g);margin-top:.2rem">MyKad</div>
           </div>
@@ -1357,7 +1357,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
       </div>
 
       <!-- Auto-fill preview -->
-      <div id="ob-preview" style="display:none;background:rgba(0,135,90,.06);border:1px solid rgba(0,135,90,.15);border-radius:10px;padding:.75rem;margin-bottom:.75rem">
+      <div id="ob-preview" style="display:none;background:rgba(0,119,182,.06);border:1px solid rgba(0,119,182,.15);border-radius:10px;padding:.75rem;margin-bottom:.75rem">
         <div style="font-size:.62rem;font-weight:700;color:var(--g);margin-bottom:.5rem">📋 Maklumat Auto-Detect</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
           <div><div style="font-size:.55rem;color:var(--mute);text-transform:uppercase">Tarikh Lahir</div><div style="font-size:.75rem;font-weight:600;color:var(--txt)" id="ob-dob-preview">—</div></div>
@@ -1793,7 +1793,7 @@ function dnaLevel2(s){
   if(s>=90) return{title:'ELITE',      stars:5,color:'#f9a825',border:'3px solid #f9a825',shadow:'0 0 16px rgba(249,168,37,.7)'};
   if(s>=80) return{title:'ADVANCED',   stars:4,color:'#8b5cf6',border:'3px solid #8b5cf6',shadow:'0 0 12px rgba(139,92,246,.6)'};
   if(s>=70) return{title:'DEVELOPED',  stars:3,color:'#3b82f6',border:'3px solid #3b82f6',shadow:'0 0 10px rgba(59,130,246,.5)'};
-  if(s>=60) return{title:'DEVELOPING', stars:2,color:'#00875a',border:'3px solid #00875a',shadow:'0 0 8px rgba(0,135,90,.4)'};
+  if(s>=60) return{title:'DEVELOPING', stars:2,color:'#0077B6',border:'3px solid #0077B6',shadow:'0 0 8px rgba(0,119,182,.4)'};
   if(s>=50) return{title:'FOUNDATION', stars:1,color:'#cd7f32',border:'2px solid #cd7f32',shadow:'0 0 6px rgba(205,127,50,.3)'};
   return{title:'STARTER',stars:0,color:'#9ca3af',border:'2px solid #6b7280',shadow:'none'};
 }
@@ -1925,7 +1925,7 @@ function renderDNA2Scorecard(p){
 }
 
 function renderCatBars2(p){
-  const c={tech:{v:p.dna_technical,id:'tech',col:'#3b82f6'},phys:{v:p.dna_physical,id:'phys',col:'#00875a'},ment:{v:p.dna_mental,id:'ment',col:'#8b5cf6'},tact:{v:p.dna_tactical,id:'tact',col:'#f59e0b'}};
+  const c={tech:{v:p.dna_technical,id:'tech',col:'#3b82f6'},phys:{v:p.dna_physical,id:'phys',col:'#0077B6'},ment:{v:p.dna_mental,id:'ment',col:'#8b5cf6'},tact:{v:p.dna_tactical,id:'tact',col:'#f59e0b'}};
   Object.values(c).forEach(x=>{
     const v=x.v||0;
     document.getElementById('cat2-'+x.id).textContent=v||'—';
@@ -1967,7 +1967,7 @@ function renderRadar2(filterCat){
   const ang=i=>(Math.PI*2*i/N)-Math.PI/2;
   const px=(i,r)=>cx+r*Math.cos(ang(i));
   const py=(i,r)=>cy+r*Math.sin(ang(i));
-  const cols={all:'#3b82f6',technical:'#3b82f6',physical:'#00875a',mental:'#8b5cf6',tactical:'#f59e0b'};
+  const cols={all:'#3b82f6',technical:'#3b82f6',physical:'#0077B6',mental:'#8b5cf6',tactical:'#f59e0b'};
   const col=cols[filterCat]||'#3b82f6';
   let h='';
   [.2,.4,.6,.8,1].forEach(p=>{h+=`<polygon points="${attrs.map((_,i)=>`${px(i,R*p)},${py(i,R*p)}`).join(' ')}" fill="none" stroke="var(--bdr)" stroke-width="0.7" opacity="0.6"/>`;});
@@ -1999,7 +1999,7 @@ function renderAttrCards2(filterCat){
   if(filterCat==='gk') attrs=_attrData2.filter(r=>GK_CODES2.has(r.attribute_code));
   else if(filterCat!=='all') attrs=_attrData2.filter(r=>r.attribute_definitions?.category===filterCat&&!GK_CODES2.has(r.attribute_code));
   if(!attrs.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--mute);font-size:.75rem">Tiada atribut</div>';return;}
-  const catColors={technical:'#3b82f6',physical:'#00875a',mental:'#8b5cf6',tactical:'#f59e0b'};
+  const catColors={technical:'#3b82f6',physical:'#0077B6',mental:'#8b5cf6',tactical:'#f59e0b'};
   const catIcons={technical:'⚙️',physical:'💪',mental:'🧠',tactical:'🎯'};
   const C=119.4; // 2π*19 ≈ 119.4 for r=19 in 42px circle
   grid.innerHTML=attrs.map(r=>{
@@ -2052,7 +2052,7 @@ function renderClubHistory2(p){
                   +'<div class="club2-period">📅 Rekod aktif</div>'
                 +'</div>'
               +'</div>'
-              +'<div style="margin-top:.55rem;padding:.45rem;background:rgba(0,135,90,.05);border:1px dashed rgba(0,135,90,.2);border-radius:8px;text-align:center;font-size:.62rem;color:var(--mute)">Sejarah kelab lain belum ditambah</div>'
+              +'<div style="margin-top:.55rem;padding:.45rem;background:rgba(0,119,182,.05);border:1px dashed rgba(0,119,182,.2);border-radius:8px;text-align:center;font-size:.62rem;color:var(--mute)">Sejarah kelab lain belum ditambah</div>'
             +'</div>';
           } else {
             el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--mute);font-size:.75rem">'
@@ -2064,11 +2064,11 @@ function renderClubHistory2(p){
           return;
         }
         // Render dari DB
-        const colors=['#00875a','#3b82f6','#8b5cf6','#f59e0b','#ef4444'];
+        const colors=['#0077B6','#3b82f6','#8b5cf6','#f59e0b','#ef4444'];
         el.innerHTML=data.map(function(c,i){
           var yearStr=(c.year_from||'?')+' — '+(c.is_current?'Kini':(c.year_to||'?'));
           var verBadge=c.is_verified
-            ?'<span style="font-size:.52rem;font-weight:700;padding:.06rem .3rem;border-radius:4px;background:rgba(0,135,90,.12);color:var(--g)">✅ Verified</span>'
+            ?'<span style="font-size:.52rem;font-weight:700;padding:.06rem .3rem;border-radius:4px;background:rgba(0,119,182,.12);color:var(--g)">✅ Verified</span>'
             :'<span style="font-size:.52rem;font-weight:700;padding:.06rem .3rem;border-radius:4px;background:rgba(245,158,11,.1);color:#f59e0b">⏳ Belum Verified</span>';
           return '<div class="club2-item">'
             +'<div class="club2-top">'
@@ -2211,7 +2211,7 @@ function buildSeasonChart2(apps,goals,ast){
   if(!ctx) return;
   if(_seasonChart2){_seasonChart2.destroy();}
   var isDark=document.documentElement.classList.contains('dark');
-  var tCol=isDark?'rgba(228,237,232,.45)':'rgba(13,31,22,.35)';
+  var tCol=isDark?'rgba(228,237,232,.45)':'rgba(3,4,94,.35)';
   var gCol=isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)';
   _seasonChart2=new Chart(ctx,{
     type:'bar',
@@ -2219,7 +2219,7 @@ function buildSeasonChart2(apps,goals,ast){
       labels:['Keseluruhan'],
       datasets:[
         {label:'Penampilan',data:[apps||0],backgroundColor:'rgba(59,130,246,.75)',borderRadius:3},
-        {label:'Gol',data:[goals||0],backgroundColor:'rgba(0,135,90,.75)',borderRadius:3},
+        {label:'Gol',data:[goals||0],backgroundColor:'rgba(0,119,182,.75)',borderRadius:3},
         {label:'Assist',data:[ast||0],backgroundColor:'rgba(139,92,246,.75)',borderRadius:3},
       ]
     },
@@ -2445,7 +2445,7 @@ async function loadViewerAttributes(playerId){
       return;
     }
     const sc=Math.max(1,...data.map(r=>r.current_value||0))<=20?20:100;
-    const catColors={technical:'#3b82f6',physical:'#00875a',mental:'#8b5cf6',tactical:'#f59e0b'};
+    const catColors={technical:'#3b82f6',physical:'#0077B6',mental:'#8b5cf6',tactical:'#f59e0b'};
     const catIcons={technical:'⚙️',physical:'💪',mental:'🧠',tactical:'🎯'};
     const GK=new Set(['gk_handling','gk_contribution','gk_throwing','gk_dirtiness']);
     const C=119.4;
@@ -2525,7 +2525,7 @@ async function fetchConversations(){
   // Demo conversations (akan digantikan dengan Supabase realtime)
   const demoConvos = [
     {id:'c1', name:'Kelab Muda Nilai FC', avatar:'K', color:'#3b82f6', msg:'Kami berminat untuk menjemput anda ke sesi tryout kami minggu hadapan...', time:'2 min lalu', unread:true, verified:true},
-    {id:'c2', name:'Coach Rahman', avatar:'R', color:'#00875a', msg:'DNA kau memang power bro. Nak tanya pasal posisi midfielder kau...', time:'1 jam lalu', unread:true, verified:true},
+    {id:'c2', name:'Coach Rahman', avatar:'R', color:'#0077B6', msg:'DNA kau memang power bro. Nak tanya pasal posisi midfielder kau...', time:'1 jam lalu', unread:true, verified:true},
     {id:'c3', name:'PlayPro System', avatar:'▶', color:'#8b5cf6', msg:'Selamat datang ke PlayPro! Football Passport kau telah berjaya dibuat.', time:'semalam', unread:false, verified:true},
     {id:'c4', name:'Hafizi Razak', avatar:'H', color:'#f59e0b', msg:'Bro, nak ajak main futsal sabtu ni. Kau free tak?', time:'3 hari lalu', unread:false, verified:true},
   ];
@@ -2538,8 +2538,8 @@ async function fetchConversations(){
 
   list.innerHTML = demoConvos.map(c=>`
     <div onclick="openConvo('${c.id}','${c.name}','${c.avatar}','${c.color}',${c.verified})"
-      style="display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;border-bottom:1px solid var(--bdr);cursor:pointer;background:${c.unread?'rgba(0,135,90,.04)':'var(--bg2)'};transition:.15s"
-      onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='${c.unread?'rgba(0,135,90,.04)':'var(--bg2)'}'"
+      style="display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;border-bottom:1px solid var(--bdr);cursor:pointer;background:${c.unread?'rgba(0,119,182,.04)':'var(--bg2)'};transition:.15s"
+      onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='${c.unread?'rgba(0,119,182,.04)':'var(--bg2)'}'"
     >
       <div style="width:42px;height:42px;border-radius:12px;background:${c.color};display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:800;color:#fff;flex-shrink:0">${c.avatar}</div>
       <div style="flex:1;min-width:0">
@@ -2692,7 +2692,7 @@ function selectDocType(el, type){
     b.querySelector('div:last-child').style.color='var(--mute)';
   });
   el.classList.add('active');
-  el.style.background='rgba(0,135,90,.15)';
+  el.style.background='rgba(0,119,182,.15)';
   el.style.borderColor='var(--g)';
   el.querySelector('div:last-child').style.color='var(--g)';
 
@@ -3159,11 +3159,31 @@ async function saveEditProfile(){
   }
 }
 
+/* ── SCROLL TO PENJARING ── */
+function scrollToPenjaring(){
+  // Pergi ke tab Utama dulu
+  go('home');
+  setTimeout(function(){
+    var el=document.getElementById('top-scorers-home');
+    if(!el) el=document.querySelector('.section-title');
+    if(el){
+      el.scrollIntoView({behavior:'smooth',block:'start'});
+      // Highlight kejap
+      var parent=el.closest('.section')||el.parentElement;
+      if(parent){
+        parent.style.transition='box-shadow .3s';
+        parent.style.boxShadow='0 0 20px rgba(0,180,216,.4)';
+        setTimeout(function(){parent.style.boxShadow='';},1500);
+      }
+    }
+  },300);
+}
+
 /* ── FEED ── */
 /* ── FEED DATA ── */
 const FEED=[
   {
-    t:'keputusan', color:'#1a2744', accent:'#00c97a',
+    t:'keputusan', color:'#1a2744', accent:'#00B4D8',
     tag:'⚽ KEPUTUSAN AKHIR',
     home:'Kelab Muda Nilai', homeIc:'🦁', homeScore:3,
     away:'SS United FC',    awayIc:'🦅', awayScore:1,
@@ -3171,7 +3191,7 @@ const FEED=[
     mom:'Razif Azri · MOM', l:89, c:23, s:18,
   },
   {
-    t:'pemain', color:'#0d2d1e', accent:'#00875a',
+    t:'pemain', color:'#0d2d1e', accent:'#0077B6',
     tag:'👤 PEMAIN', nm:'Ahmad Hafizi ✓', pos:'ST · Kelab Muda Nilai',
     score:84, band:'ELITE',
     body:'⚽ <b>Gol pertama musim ini!</b> DNA naik ke 84 selepas penilaian teknikal. Terima kasih coach Razman! 🙏',
@@ -3190,7 +3210,7 @@ const FEED=[
     l:45, c:12, s:8, age:'3 jam',
   },
   {
-    t:'pemain', color:'#0d2d1e', accent:'#00875a',
+    t:'pemain', color:'#0d2d1e', accent:'#0077B6',
     tag:'👤 PEMAIN', nm:'Luqman Hakim ✓', pos:'CDM · Port Dickson FC',
     score:72, band:'ESTABLISHED',
     body:'🎯 2 assist dalam perlawanan semalam. Passport score naik ke <b>70</b>. Terima kasih kepada semua penyokong! 💚',
