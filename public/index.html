@@ -1144,7 +1144,10 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
         <div id="pp2t-bio" style="display:none">
           <div class="bio2-grid">
             <div class="bio2-card">
-              <div class="bio2-title">👤 Maklumat Peribadi</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+                <div class="bio2-title" style="margin-bottom:0">👤 Maklumat Peribadi</div>
+                <button onclick="openEditModal()" style="font-size:.65rem;font-weight:700;color:var(--g);background:rgba(0,135,90,.1);border:1px solid rgba(0,135,90,.2);padding:.25rem .6rem;border-radius:7px;cursor:pointer;font-family:inherit">✏️ Edit</button>
+              </div>
               <div class="bio2-row"><div class="bio2-label">Nama Penuh</div><div class="bio2-val" id="bio2-name">—</div></div>
               <div class="bio2-row"><div class="bio2-label">Tarikh Lahir</div><div class="bio2-val" id="bio2-dob">—</div></div>
               <div class="bio2-row"><div class="bio2-label">Umur</div><div class="bio2-val" id="bio2-age">—</div></div>
@@ -1195,6 +1198,96 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
 </div>
 
 <!-- LOGIN SHEET -->
+<!-- EDIT PROFILE MODAL -->
+<div id="edit-modal" onclick="if(event.target===this)closeEditModal()">
+  <div id="edit-sheet">
+    <div style="width:40px;height:4px;background:var(--bg4);border-radius:2px;margin:.85rem auto .5rem"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div style="font-size:1rem;font-weight:800;color:var(--txt)">Edit Profil</div>
+      <button onclick="closeEditModal()" style="background:none;border:none;color:var(--mute);cursor:pointer;font-size:1.1rem">✕</button>
+    </div>
+
+    <!-- Gambar Profil -->
+    <div class="edit-section">
+      <div class="edit-section-title">📷 Gambar Profil</div>
+      <div class="photo-upload-area" onclick="document.getElementById('photo-input').click()" id="photo-preview-wrap">
+        <div id="photo-placeholder" style="text-align:center">
+          <div style="font-size:1.5rem">📷</div>
+          <div style="font-size:.6rem;color:var(--mute);margin-top:.25rem">Tap untuk upload</div>
+        </div>
+        <img id="photo-preview" style="display:none" alt=""/>
+      </div>
+      <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="previewPhoto(event)"/>
+      <div style="font-size:.62rem;color:var(--mute);text-align:center">Format: JPG, PNG. Maksimum 2MB</div>
+    </div>
+
+    <!-- Maklumat Peribadi -->
+    <div class="edit-section">
+      <div class="edit-section-title">👤 Maklumat Peribadi</div>
+      <div class="fg"><label class="fl">Nickname / Nama Samaran</label><input class="fi" id="edit-nickname" type="text" placeholder="Nama samaran di padang"/></div>
+      <div class="fg"><label class="fl">No. Telefon</label>
+        <div style="display:flex;gap:.4rem">
+          <select class="fi" id="edit-phone-code" style="width:90px;flex-shrink:0">
+            <option value="+60">🇲🇾 +60</option>
+            <option value="+65">🇸🇬 +65</option>
+            <option value="+62">🇮🇩 +62</option>
+            <option value="+1">🇺🇸 +1</option>
+          </select>
+          <input class="fi" id="edit-phone" type="tel" placeholder="123456789" style="flex:1"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fizikal & Posisi -->
+    <div class="edit-section">
+      <div class="edit-section-title">⚽ Fizikal & Posisi</div>
+      <div class="fg"><label class="fl">Posisi Utama</label>
+        <select class="fi" id="edit-position">
+          <option value="">-- Pilih Posisi --</option>
+          <optgroup label="Penjaga Gol"><option value="gk">GK — Goalkeeper</option></optgroup>
+          <optgroup label="Pertahanan">
+            <option value="cb">CB — Center-Back</option>
+            <option value="lb">LB — Left-Back</option>
+            <option value="rb">RB — Right-Back</option>
+            <option value="lwb">LWB — Left Wing-Back</option>
+            <option value="rwb">RWB — Right Wing-Back</option>
+          </optgroup>
+          <optgroup label="Pertengahan">
+            <option value="dm">DM — Defensive Midfielder</option>
+            <option value="cm">CM — Central Midfielder</option>
+            <option value="am">AM — Attacking Midfielder</option>
+            <option value="lm">LM — Left Midfielder</option>
+            <option value="rm">RM — Right Midfielder</option>
+          </optgroup>
+          <optgroup label="Penyerang">
+            <option value="cf">CF — Center-Forward</option>
+            <option value="st">ST — Striker</option>
+            <option value="ss">SS — Second Striker</option>
+          </optgroup>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem">
+        <div class="fg"><label class="fl">Kaki Dominan</label>
+          <select class="fi" id="edit-foot">
+            <option value="">-- Pilih --</option>
+            <option value="right">Kanan</option>
+            <option value="left">Kiri</option>
+            <option value="both">Kedua-dua</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">No. Jersi</label><input class="fi" id="edit-jersey" type="number" min="1" max="99" placeholder="1-99"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem">
+        <div class="fg"><label class="fl">Tinggi (cm)</label><input class="fi" id="edit-height" type="number" min="100" max="230" placeholder="170"/></div>
+        <div class="fg"><label class="fl">Berat (kg)</label><input class="fi" id="edit-weight" type="number" min="30" max="150" placeholder="68"/></div>
+      </div>
+    </div>
+
+    <button class="fb" id="edit-save-btn" onclick="saveEditProfile()">Simpan Perubahan →</button>
+    <div class="fm" id="edit-msg" style="margin-top:.5rem"></div>
+  </div>
+</div>
+
 <!-- ONBOARDING SCREEN -->
 <div id="onboarding-mask" style="position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.85);display:none;align-items:flex-end;justify-content:center">
   <div id="onboarding-sheet" style="width:100%;max-width:430px;background:var(--bg2);border-radius:18px 18px 0 0;border-top:1px solid var(--bdr);padding:0 1.2rem 2.5rem;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
@@ -2907,6 +3000,125 @@ async function saveClubHistoryOnboarding(playerId){
   if(payload.length>0){
     var{error}=await SB.from('player_club_history').insert(payload);
     if(error) console.warn('club history save:',error.message);
+  }
+}
+
+/* ── EDIT PROFILE ── */
+function openEditModal(){
+  if(!_pd) return;
+  // Pre-fill fields
+  var nick=document.getElementById('edit-nickname');
+  var phone=document.getElementById('edit-phone');
+  var phoneCode=document.getElementById('edit-phone-code');
+  var pos=document.getElementById('edit-position');
+  var foot=document.getElementById('edit-foot');
+  var jersey=document.getElementById('edit-jersey');
+  var height=document.getElementById('edit-height');
+  var weight=document.getElementById('edit-weight');
+
+  if(nick) nick.value=_pd.nickname||'';
+  if(phone && _pd.phone){
+    var ph=_pd.phone;
+    // Extract code dan number
+    if(ph.startsWith('+60')){if(phoneCode) phoneCode.value='+60'; phone.value=ph.replace('+60','');}
+    else if(ph.startsWith('+65')){if(phoneCode) phoneCode.value='+65'; phone.value=ph.replace('+65','');}
+    else{phone.value=ph;}
+  }
+  if(pos) pos.value=_pd.best_position||_pd.position||'';
+  if(foot) foot.value=_pd.preferred_foot||'';
+  if(jersey) jersey.value=_pd.jersey_number||'';
+  if(height) height.value=_pd.height_cm||'';
+  if(weight) weight.value=_pd.weight_kg||'';
+
+  // Show photo if exists
+  if(_pd.photo_url){
+    var img=document.getElementById('photo-preview');
+    var ph2=document.getElementById('photo-placeholder');
+    if(img){img.src=_pd.photo_url;img.style.display='block';}
+    if(ph2) ph2.style.display='none';
+  }
+
+  var modal=document.getElementById('edit-modal');
+  if(modal) modal.classList.add('on');
+}
+
+function closeEditModal(){
+  var modal=document.getElementById('edit-modal');
+  if(modal) modal.classList.remove('on');
+}
+
+function previewPhoto(event){
+  var file=event.target.files[0];
+  if(!file) return;
+  if(file.size>2*1024*1024){toast('❌ Gambar terlalu besar. Maksimum 2MB');return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=document.getElementById('photo-preview');
+    var ph=document.getElementById('photo-placeholder');
+    if(img){img.src=e.target.result;img.style.display='block';}
+    if(ph) ph.style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveEditProfile(){
+  if(!_u||!_pd) return;
+  var btn=document.getElementById('edit-save-btn');
+  btn.disabled=true;
+  btn.textContent='Menyimpan...';
+
+  try{
+    var phoneCode=document.getElementById('edit-phone-code')?.value||'+60';
+    var phoneNum=(document.getElementById('edit-phone')?.value||'').trim();
+    var fullPhone=phoneNum?(phoneCode+phoneNum):null;
+    var pos=document.getElementById('edit-position')?.value||null;
+    var foot=document.getElementById('edit-foot')?.value||null;
+    var jersey=document.getElementById('edit-jersey')?.value||null;
+    var height=document.getElementById('edit-height')?.value||null;
+    var weight=document.getElementById('edit-weight')?.value||null;
+    var nick=document.getElementById('edit-nickname')?.value?.trim()||null;
+
+    var update={};
+    if(nick!==null) update.nickname=nick;
+    if(fullPhone) update.phone=fullPhone;
+    if(pos){update.position=pos;update.best_position=pos.toUpperCase();}
+    if(foot) update.preferred_foot=foot;
+    if(jersey) update.jersey_number=parseInt(jersey);
+    if(height) update.height_cm=parseInt(height);
+    if(weight) update.weight_kg=parseInt(weight);
+
+    // Upload gambar jika ada
+    var photoFile=document.getElementById('photo-input')?.files[0];
+    if(photoFile){
+      var fileName='player-'+_pd.id+'-'+Date.now()+'.'+photoFile.name.split('.').pop();
+      var{data:uploadData,error:uploadErr}=await SB.storage
+        .from('player-photos')
+        .upload(fileName,photoFile,{upsert:true});
+      if(!uploadErr&&uploadData){
+        var{data:urlData}=SB.storage.from('player-photos').getPublicUrl(fileName);
+        if(urlData?.publicUrl) update.photo_url=urlData.publicUrl;
+      } else {
+        console.warn('Photo upload:', uploadErr?.message);
+        toast('⚠️ Gambar gagal diupload tapi maklumat lain akan disimpan');
+      }
+    }
+
+    if(Object.keys(update).length>0){
+      var{error}=await SB.from('players').update(update).eq('id',_pd.id);
+      if(error) throw new Error(error.message);
+    }
+
+    toast('✅ Profil dikemaskini!');
+    closeEditModal();
+    _pd=null;
+    loadProfile();
+
+  }catch(e){
+    toast('❌ Gagal: '+e.message);
+    console.error('saveEdit:',e);
+  }finally{
+    btn.disabled=false;
+    btn.textContent='Simpan Perubahan →';
   }
 }
 
