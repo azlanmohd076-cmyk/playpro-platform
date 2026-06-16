@@ -1013,7 +1013,10 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
           <div class="pp2-contract">
             <span class="pp2-contract-label">📋 Status Kontrak:</span>
             <span class="pp2-contract-val" id="pp2-contract">Tiada Kontrak</span>
-            <span style="margin-left:auto;cursor:pointer;font-size:.8rem;color:rgba(255,255,255,.3)" onclick="sharePassport()">↗️</span>
+            <span style="margin-left:auto;display:flex;gap:.5rem;align-items:center">
+              <button onclick="openEditModal()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;padding:.2rem .55rem;border-radius:6px;cursor:pointer;font-size:.65rem;font-weight:600;font-family:inherit">✏️ Edit</button>
+              <span style="cursor:pointer;font-size:.8rem;color:rgba(255,255,255,.3)" onclick="sharePassport()">↗️</span>
+            </span>
           </div>
         </div>
 
@@ -3044,12 +3047,18 @@ function openEditModal(){
   }
 
   var modal=document.getElementById('edit-modal');
-  if(modal) modal.classList.add('on');
+  if(modal){
+    modal.classList.add('on');
+    modal.style.display='flex';
+  }
 }
 
 function closeEditModal(){
   var modal=document.getElementById('edit-modal');
-  if(modal) modal.classList.remove('on');
+  if(modal){
+    modal.classList.remove('on');
+    modal.style.display='none';
+  }
 }
 
 function previewPhoto(event){
