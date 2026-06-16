@@ -1315,6 +1315,19 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
         <input class="fi" id="ob-nickname" type="text" placeholder="e.g. Lan Rompa (optional)"/>
       </div>
 
+      <!-- SEJARAH KELAB -->
+      <div style="margin-bottom:.75rem">
+        <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem">Sejarah Kelab (Optional)</label>
+        <div id="ob-club-list">
+          <div class="ob-club-row" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:.4rem;margin-bottom:.4rem">
+            <input class="fi ob-club-name" type="text" placeholder="Nama Kelab" style="margin-bottom:0;font-size:.78rem"/>
+            <input class="fi ob-club-from" type="number" placeholder="Dari" min="1970" max="2030" style="margin-bottom:0;font-size:.78rem"/>
+            <input class="fi ob-club-to" type="number" placeholder="Hingga" min="1970" max="2030" style="margin-bottom:0;font-size:.78rem"/>
+          </div>
+        </div>
+        <button onclick="tambahKelabOnboarding()" style="font-size:.65rem;color:var(--g);background:none;border:none;cursor:pointer;font-family:inherit;padding:.2rem 0">➕ Tambah kelab lain</button>
+      </div>
+
       <div style="display:flex;gap:.65rem">
         <button onclick="obSkip()" style="flex:1;padding:.72rem;background:var(--bg3);color:var(--mute);border:1px solid var(--bdr);border-radius:10px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit">Skip dulu</button>
         <button class="fb" id="ob-btn2" onclick="obComplete()" style="flex:2">Simpan & Mula →</button>
@@ -1897,36 +1910,68 @@ function renderAttrCards2(filterCat){
 function renderClubHistory2(p){
   const el=document.getElementById('club2-list');
   if(!el) return;
-
-  // Hanya tunjuk kelab semasa dari DB
-  // Sejarah kelab akan ditambah kemudian oleh user sendiri
-  const currentClub = p.clubs?.name||null;
-
-  if(!currentClub){
-    el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--mute);font-size:.78rem">'
-      +'<div style="font-size:2rem;margin-bottom:.5rem">🏟</div>'
-      +'<div style="font-weight:600;margin-bottom:.25rem">Tiada rekod kelab</div>'
-      +'<div style="font-size:.7rem">Pemain belum mendaftar dalam mana-mana kelab</div>'
-      +'</div>';
-    return;
+  el.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--mute);font-size:.75rem">Memuatkan sejarah kelab...</div>';
+  // Ambil dari DB
+  if(p && p.id){
+    SB.from('player_club_history')
+      .select('*')
+      .eq('player_id', p.id)
+      .order('year_from', {ascending:false, nullsFirst:true})
+      .then(function({data, error}){
+        if(error||!data||!data.length){
+          // Tunjuk kelab semasa dari players table
+          var currentClub=p.clubs&&p.clubs.name?p.clubs.name:null;
+          if(currentClub){
+            el.innerHTML='<div class="club2-item">'
+              +'<div class="club2-top">'
+                +'<div class="club2-logo" style="background:var(--g)">'+currentClub[0]+'</div>'
+                +'<div>'
+                  +'<div class="club2-name">'+currentClub+'</div>'
+                  +'<div class="club2-badges"><span class="cb2-semasa">Semasa</span></div>'
+                  +'<div class="club2-period">📅 Rekod aktif</div>'
+                +'</div>'
+              +'</div>'
+              +'<div style="margin-top:.55rem;padding:.45rem;background:rgba(0,135,90,.05);border:1px dashed rgba(0,135,90,.2);border-radius:8px;text-align:center;font-size:.62rem;color:var(--mute)">Sejarah kelab lain belum ditambah</div>'
+            +'</div>';
+          } else {
+            el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--mute);font-size:.75rem">'
+              +'<div style="font-size:2rem;margin-bottom:.5rem">🏟</div>'
+              +'<div style="font-weight:600;margin-bottom:.25rem">Tiada rekod kelab</div>'
+              +'<div style="font-size:.7rem">Pemain belum mendaftar dalam mana-mana kelab</div>'
+            +'</div>';
+          }
+          return;
+        }
+        // Render dari DB
+        const colors=['#00875a','#3b82f6','#8b5cf6','#f59e0b','#ef4444'];
+        el.innerHTML=data.map(function(c,i){
+          var yearStr=(c.year_from||'?')+' — '+(c.is_current?'Kini':(c.year_to||'?'));
+          var verBadge=c.is_verified
+            ?'<span style="font-size:.52rem;font-weight:700;padding:.06rem .3rem;border-radius:4px;background:rgba(0,135,90,.12);color:var(--g)">✅ Verified</span>'
+            :'<span style="font-size:.52rem;font-weight:700;padding:.06rem .3rem;border-radius:4px;background:rgba(245,158,11,.1);color:#f59e0b">⏳ Belum Verified</span>';
+          return '<div class="club2-item">'
+            +'<div class="club2-top">'
+              +'<div class="club2-logo" style="background:'+colors[i%colors.length]+'">'+c.club_name[0]+'</div>'
+              +'<div style="flex:1">'
+                +'<div class="club2-name">'+c.club_name+'</div>'
+                +'<div class="club2-badges">'
+                  +(c.is_current?'<span class="cb2-semasa">Semasa</span>':'<span class="cb2-tetap">Tetap</span>')
+                  +' '+verBadge
+                +'</div>'
+                +'<div class="club2-period">📅 '+yearStr+'</div>'
+              +'</div>'
+            +'</div>'
+            +'<div class="club2-stats">'
+              +'<div class="cs2-item"><div class="cs2-val">'+(c.appearances||0)+'</div><div class="cs2-lbl">Perlawanan</div></div>'
+              +'<div class="cs2-item"><div class="cs2-val">'+(c.goals||0)+'</div><div class="cs2-lbl">Gol</div></div>'
+              +'<div class="cs2-item"><div class="cs2-val">'+(c.assists||0)+'</div><div class="cs2-lbl">Assist</div></div>'
+              +'<div class="cs2-item"><div class="cs2-val" style="color:#f59e0b">'+(c.yellow_cards||0)+'</div><div class="cs2-lbl">Kad K</div></div>'
+              +'<div class="cs2-item"><div class="cs2-val" style="color:#ef4444">'+(c.red_cards||0)+'</div><div class="cs2-lbl">Kad M</div></div>'
+            +'</div>'
+          +'</div>';
+        }).join('');
+      });
   }
-
-  // Tunjuk kelab semasa sahaja
-  el.innerHTML='<div style="background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:.8rem .85rem;margin-bottom:.5rem;box-shadow:var(--sh)">'
-    +'<div style="display:flex;align-items:center;gap:.6rem">'
-      +'<div style="width:38px;height:38px;border-radius:9px;background:var(--g);display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:800;color:#fff;flex-shrink:0">'+currentClub[0]+'</div>'
-      +'<div>'
-        +'<div style="font-size:.8rem;font-weight:700;color:var(--txt)">'+currentClub+'</div>'
-        +'<div style="display:flex;gap:.28rem;margin-top:.18rem">'
-          +'<span style="font-size:.55rem;font-weight:700;padding:.08rem .38rem;border-radius:5px;background:rgba(0,135,90,.12);color:var(--g)">Semasa</span>'
-        +'</div>'
-        +'<div style="font-size:.6rem;color:var(--mute);margin-top:.28rem">📅 Rekod kelab aktif</div>'
-      +'</div>'
-    +'</div>'
-    +'<div style="margin-top:.65rem;padding:.5rem;background:rgba(0,135,90,.05);border:1px dashed rgba(0,135,90,.2);border-radius:8px;text-align:center;font-size:.65rem;color:var(--mute)">'
-      +'+ Sejarah kelab lain akan ditambah kemudian'
-    +'</div>'
-  +'</div>';
 }
 
 function renderBio2(p){
@@ -2756,7 +2801,14 @@ async function obComplete(){
       if(updErr) console.warn('update failed:',updErr.message);
     }
 
-    // 3. Save step 2 data
+    // 3. Get player ID yang baru dibuat
+    var{data:newPlayer}=await SB.from('players').select('id').eq('profile_id',_u.id).single();
+    var newPlayerId=newPlayer?.id||null;
+
+    // 4. Save club history
+    if(newPlayerId) await saveClubHistoryOnboarding(newPlayerId);
+
+    // 5. Save step 2 data
     var pos=document.getElementById('ob-position')?.value||null;
     var foot=document.getElementById('ob-foot')?.value||null;
     var jersey=document.getElementById('ob-jersey')?.value||null;
@@ -2787,6 +2839,43 @@ async function obComplete(){
   }finally{
     btn.disabled=false;
     btn.textContent='Simpan & Mula →';
+  }
+}
+
+/* ── CLUB HISTORY ONBOARDING ── */
+function tambahKelabOnboarding(){
+  var list=document.getElementById('ob-club-list');
+  if(!list) return;
+  var row=document.createElement('div');
+  row.className='ob-club-row';
+  row.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr;gap:.4rem;margin-bottom:.4rem;position:relative';
+  row.innerHTML='<input class="fi ob-club-name" type="text" placeholder="Nama Kelab" style="margin-bottom:0;font-size:.78rem"/>'
+    +'<input class="fi ob-club-from" type="number" placeholder="Dari" min="1970" max="2030" style="margin-bottom:0;font-size:.78rem"/>'
+    +'<input class="fi ob-club-to" type="number" placeholder="Hingga" min="1970" max="2030" style="margin-bottom:0;font-size:.78rem"/>';
+  list.appendChild(row);
+}
+
+async function saveClubHistoryOnboarding(playerId){
+  var rows=document.querySelectorAll('.ob-club-row');
+  var payload=[];
+  rows.forEach(function(row){
+    var name=row.querySelector('.ob-club-name')?.value?.trim();
+    var from=row.querySelector('.ob-club-from')?.value;
+    var to=row.querySelector('.ob-club-to')?.value;
+    if(name){
+      payload.push({
+        player_id:playerId,
+        club_name:name,
+        year_from:from?parseInt(from):null,
+        year_to:to?parseInt(to):null,
+        is_current:!to,
+        is_verified:false
+      });
+    }
+  });
+  if(payload.length>0){
+    var{error}=await SB.from('player_club_history').insert(payload);
+    if(error) console.warn('club history save:',error.message);
   }
 }
 
