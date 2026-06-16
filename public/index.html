@@ -2599,7 +2599,14 @@ async function obNext(){
 }
 
 async function obSkip(){
-  await saveOnboardingStep1();
+  try{
+    await Promise.race([
+      saveOnboardingStep1(),
+      new Promise(function(_,reject){setTimeout(function(){reject(new Error('timeout'));},8000);})
+    ]);
+  }catch(e){
+    console.log('Skip save result:', e.message);
+  }
   hideOnboarding();
   toast('✅ Football Passport dicipta! Lengkapkan profil kemudian.');
   window._obJustCompleted=true;
@@ -2625,19 +2632,19 @@ async function saveOnboardingStep1(){
   if(!_u) return;
   var name=_u.user_metadata?.full_name||'Pemain';
   var fp=_obDOB?generateFPNo(_obDOB,_obStateCode,name):null;
+  // Build payload - hanya column yang wujud
   var payload={
     profile_id:_u.id,
     full_name:name,
     preferred_name:name,
-    nationality:'Malaysian',
-    ic_number:_obDocType!=='passport'?_obDocNo:null,
-    date_of_birth:_obDOB,
-    passport_number:fp,
-    kyc_status:'unverified',
-    passport_frame:'unverified',
     is_active:true,
     is_passport_public:true,
+    kyc_status:'unverified',
+    passport_frame:'unverified',
   };
+  if(_obDocType!=='passport'&&_obDocNo) payload.ic_number=_obDocNo;
+  if(_obDOB) payload.date_of_birth=_obDOB;
+  if(fp) payload.passport_number=fp;
   try{
     // Cuba insert dulu
     var{data:insertData,error:insertErr}=await SB.from('players').insert(payload).select().single();
