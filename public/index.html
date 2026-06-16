@@ -488,6 +488,386 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 .dna2-badge-coach { background:rgba(59,130,246,.12); color:#60a5fa; border:1px solid rgba(59,130,246,.2) }
 .dna2-badge-none  { background:rgba(150,150,150,.1); color:var(--mute); border:1px solid var(--bdr) }
 
+/* ════════════════════════════════════
+   PASSPORT KAD — Mini Card + Holographic Modal
+════════════════════════════════════ */
+
+/* MINI KAD — portrait card proportions (A-ratio ~1:1.41) */
+.mini-kad-wrap {
+  position:relative; flex-shrink:0; cursor:pointer;
+  width:62px; height:87px;
+  perspective:600px;
+}
+.mini-kad {
+  width:62px; height:87px; border-radius:8px;
+  position:relative; overflow:hidden;
+  transform-style:preserve-3d;
+  transition:transform .2s ease, box-shadow .2s ease;
+  user-select:none;
+}
+.mini-kad:active { transform:scale(.95); }
+.mini-kad-bg {
+  position:absolute; inset:0; border-radius:8px;
+}
+.mini-kad-holo {
+  position:absolute; inset:0; border-radius:8px;
+  opacity:0; pointer-events:none;
+  background:linear-gradient(135deg,
+    transparent 20%, rgba(255,255,255,.08) 40%,
+    rgba(0,180,216,.12) 50%, rgba(139,92,246,.08) 60%,
+    transparent 80%);
+  mix-blend-mode:color-dodge;
+  animation:miniHoloSway 4s ease-in-out infinite;
+}
+@keyframes miniHoloSway {
+  0%,100% { background-position:0% 50%; opacity:0; }
+  50%      { background-position:100% 50%; opacity:.6; }
+}
+.mini-kad-top {
+  position:absolute; top:4px; left:5px; right:5px;
+  display:flex; justify-content:space-between; align-items:flex-start;
+}
+.mini-kad-ovr {
+  font-size:.85rem; font-weight:900; color:#fff;
+  text-shadow:0 1px 4px rgba(0,0,0,.8);
+  line-height:1;
+}
+.mini-kad-pos {
+  font-size:.45rem; font-weight:800; color:rgba(255,255,255,.8);
+  background:rgba(0,0,0,.35); padding:.05rem .22rem;
+  border-radius:3px; letter-spacing:.04em;
+}
+.mini-kad-initial {
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-55%);
+  font-size:1.8rem; font-weight:900; color:rgba(255,255,255,.9);
+  text-shadow:0 2px 8px rgba(0,0,0,.6);
+  pointer-events:none;
+}
+.mini-kad-bottom {
+  position:absolute; bottom:0; left:0; right:0;
+  padding:3px 5px 4px;
+  background:linear-gradient(0deg,rgba(0,0,0,.75) 0%,transparent 100%);
+  border-radius:0 0 8px 8px;
+}
+.mini-kad-name {
+  font-size:.42rem; font-weight:800; color:#fff;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  text-align:center; text-transform:uppercase; letter-spacing:.04em;
+}
+.mini-kad-stats {
+  display:flex; justify-content:space-between;
+  margin-top:2px;
+}
+.mini-kad-stat {
+  display:flex; flex-direction:column; align-items:center;
+  flex:1;
+}
+.mini-kad-stat-v {
+  font-size:.48rem; font-weight:900; color:#fff; line-height:1;
+}
+.mini-kad-stat-k {
+  font-size:.32rem; font-weight:700; color:rgba(255,255,255,.6);
+  letter-spacing:.04em; text-transform:uppercase;
+}
+
+/* TIER BG STYLES */
+.tier-elite .mini-kad-bg {
+  background:linear-gradient(145deg,#1a1a0e 0%,#2d2200 25%,#1a1200 50%,#0d0d00 75%,#1a1a0e 100%);
+  border:1.5px solid #f9a825;
+  box-shadow:0 0 14px rgba(249,168,37,.55), inset 0 0 10px rgba(249,168,37,.08);
+}
+.tier-elite .mini-kad-holo { opacity:.8; animation-duration:3s; }
+.tier-elite .mini-kad-initial { color:#f9a825; }
+
+.tier-advanced .mini-kad-bg {
+  background:linear-gradient(145deg,#1a0d2e,#2d1b47,#1e1040,#130a2a);
+  border:1.5px solid #8b5cf6;
+  box-shadow:0 0 12px rgba(139,92,246,.5), inset 0 0 8px rgba(139,92,246,.1);
+}
+.tier-advanced .mini-kad-holo { opacity:.5; }
+
+.tier-developed .mini-kad-bg {
+  background:linear-gradient(145deg,#0a1628,#0d2040,#0a1a35,#06102a);
+  border:1.5px solid #3b82f6;
+  box-shadow:0 0 10px rgba(59,130,246,.45), inset 0 0 6px rgba(59,130,246,.08);
+}
+.tier-developing .mini-kad-bg {
+  background:linear-gradient(145deg,#0a1a10,#0d2415,#081a10,#051208);
+  border:1.5px solid #0077B6;
+  box-shadow:0 0 8px rgba(0,119,182,.35);
+}
+.tier-foundation .mini-kad-bg {
+  background:linear-gradient(145deg,#1e1208,#2d1a0a,#1a1005,#110b03);
+  border:1.5px solid #cd7f32;
+  box-shadow:0 0 6px rgba(205,127,50,.3);
+}
+.tier-starter .mini-kad-bg {
+  background:linear-gradient(145deg,#1a1a1a,#252525,#1a1a1a,#111);
+  border:1.5px solid #6b7280;
+  box-shadow:0 0 4px rgba(107,114,128,.2);
+}
+
+/* ── KAD MODAL — Full Screen Holographic ── */
+#kad-modal {
+  position:fixed; inset:0; z-index:9990;
+  background:rgba(0,0,0,.88);
+  backdrop-filter:blur(12px);
+  display:none; align-items:center; justify-content:center;
+  flex-direction:column; gap:1rem;
+  padding:1rem;
+}
+#kad-modal.open { display:flex; }
+
+.kad-scene {
+  perspective:1000px;
+  width:240px; height:338px; flex-shrink:0;
+}
+
+.kad-card {
+  width:240px; height:338px; border-radius:18px;
+  position:relative; overflow:hidden;
+  transform-style:preserve-3d;
+  transition:transform .08s ease-out;
+  will-change:transform;
+  animation:kadSway 6s ease-in-out infinite;
+  cursor:grab;
+}
+.kad-card:active { cursor:grabbing; }
+@keyframes kadSway {
+  0%,100% { transform:rotateY(-4deg) rotateX(2deg); }
+  50%      { transform:rotateY(4deg) rotateX(-2deg); }
+}
+.kad-card.grabbing { animation:none !important; }
+
+/* Card background layer */
+.kad-bg { position:absolute; inset:0; border-radius:18px; }
+
+/* Holographic shimmer layer */
+.kad-holo {
+  position:absolute; inset:0; border-radius:18px;
+  pointer-events:none;
+  background:linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255,100,100,.07) 10%,
+    rgba(255,200,50,.09) 20%,
+    rgba(100,255,150,.09) 30%,
+    rgba(50,150,255,.09) 40%,
+    rgba(200,50,255,.07) 50%,
+    rgba(255,100,100,.07) 60%,
+    transparent 70%,
+    rgba(255,255,255,.04) 85%,
+    transparent 100%
+  );
+  background-size:300% 300%;
+  mix-blend-mode:color-dodge;
+  animation:holoShift 4s ease-in-out infinite;
+  opacity:0;
+  transition:opacity .3s;
+}
+.kad-card:hover .kad-holo,
+.kad-card.grabbing .kad-holo { opacity:1; }
+
+@keyframes holoShift {
+  0%,100% { background-position:0% 50%; }
+  33%      { background-position:100% 0%; }
+  66%      { background-position:50% 100%; }
+}
+
+/* Gloss overlay */
+.kad-gloss {
+  position:absolute; inset:0; border-radius:18px;
+  background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 50%,rgba(255,255,255,.02) 100%);
+  pointer-events:none;
+}
+
+/* Card top section */
+.kad-top {
+  position:absolute; top:14px; left:18px; right:18px;
+  display:flex; justify-content:space-between; align-items:flex-start;
+  z-index:2;
+}
+.kad-ovr-wrap { display:flex; flex-direction:column; align-items:flex-start; }
+.kad-ovr {
+  font-size:3.2rem; font-weight:900; color:#fff;
+  line-height:1; letter-spacing:-.05em;
+  text-shadow:0 2px 12px rgba(0,0,0,.8);
+}
+.kad-pos-lbl {
+  font-size:.7rem; font-weight:800; color:rgba(255,255,255,.8);
+  letter-spacing:.08em; margin-top:-.2rem;
+}
+.kad-tier-badge {
+  font-size:.52rem; font-weight:800; letter-spacing:.1em;
+  padding:.2rem .55rem; border-radius:999px;
+  border:1.5px solid currentColor; opacity:.85;
+}
+.kad-flag {
+  font-size:1rem; margin-top:.2rem;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));
+}
+
+/* Player initial (avatar) */
+.kad-photo-area {
+  position:absolute; top:0; left:0; right:0;
+  height:180px; display:flex; align-items:center; justify-content:center;
+  z-index:1;
+}
+.kad-photo-initial {
+  font-size:5.5rem; font-weight:900;
+  text-shadow:0 4px 20px rgba(0,0,0,.6);
+  opacity:.9; user-select:none;
+}
+
+/* Stats strip */
+.kad-stats-strip {
+  position:absolute; bottom:72px; left:0; right:0;
+  display:flex; justify-content:space-around;
+  padding:0 14px; z-index:2;
+}
+.kad-stat-item {
+  display:flex; flex-direction:column; align-items:center;
+  flex:1;
+}
+.kad-stat-val {
+  font-size:1.1rem; font-weight:900; color:#fff;
+  line-height:1; text-shadow:0 1px 6px rgba(0,0,0,.7);
+}
+.kad-stat-key {
+  font-size:.52rem; font-weight:700; color:rgba(255,255,255,.6);
+  letter-spacing:.06em; text-transform:uppercase;
+}
+
+/* Divider line */
+.kad-divider {
+  position:absolute; bottom:96px; left:16px; right:16px;
+  height:1px; background:rgba(255,255,255,.12); z-index:2;
+}
+
+/* Card bottom */
+.kad-bottom {
+  position:absolute; bottom:0; left:0; right:0;
+  padding:10px 16px 14px;
+  background:linear-gradient(0deg,rgba(0,0,0,.85) 0%,rgba(0,0,0,.6) 70%,transparent 100%);
+  border-radius:0 0 18px 18px;
+  z-index:2;
+}
+.kad-player-name {
+  font-size:1rem; font-weight:900; color:#fff;
+  text-transform:uppercase; letter-spacing:.04em;
+  text-align:center; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
+  text-shadow:0 1px 8px rgba(0,0,0,.8);
+  margin-bottom:.1rem;
+}
+.kad-club-name {
+  font-size:.58rem; font-weight:600; color:rgba(255,255,255,.5);
+  text-align:center; letter-spacing:.05em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.kad-fp-num {
+  font-size:.45rem; font-weight:700; color:rgba(255,255,255,.3);
+  text-align:center; letter-spacing:.08em; margin-top:.2rem;
+  font-family:monospace;
+}
+
+/* TIER CARD STYLES */
+.kad-tier-elite .kad-bg {
+  background:linear-gradient(145deg,#1a1200 0%,#2d2000 20%,#0d0d00 40%,#1a1000 60%,#2a1a00 80%,#1a1200 100%);
+  border:2px solid #f9a825;
+  box-shadow:0 0 40px rgba(249,168,37,.5), 0 0 80px rgba(249,168,37,.2), inset 0 0 30px rgba(249,168,37,.06);
+}
+.kad-tier-elite .kad-ovr,
+.kad-tier-elite .kad-photo-initial { color:#f9a825; }
+.kad-tier-elite .kad-tier-badge { color:#f9a825; border-color:#f9a825; }
+.kad-tier-elite .kad-holo { opacity:.7; animation-duration:3s; }
+
+.kad-tier-advanced .kad-bg {
+  background:linear-gradient(145deg,#100020,#1e0040,#0f001a,#18003a,#100020);
+  border:2px solid #8b5cf6;
+  box-shadow:0 0 35px rgba(139,92,246,.5), 0 0 70px rgba(139,92,246,.2), inset 0 0 25px rgba(139,92,246,.07);
+}
+.kad-tier-advanced .kad-ovr,
+.kad-tier-advanced .kad-photo-initial { color:#c4b5fd; }
+.kad-tier-advanced .kad-tier-badge { color:#8b5cf6; }
+.kad-tier-advanced .kad-holo { opacity:.5; }
+
+.kad-tier-developed .kad-bg {
+  background:linear-gradient(145deg,#050f20,#0a1e40,#050f20,#08183a);
+  border:2px solid #3b82f6;
+  box-shadow:0 0 30px rgba(59,130,246,.45), 0 0 60px rgba(59,130,246,.15), inset 0 0 20px rgba(59,130,246,.07);
+}
+.kad-tier-developed .kad-ovr,
+.kad-tier-developed .kad-photo-initial { color:#93c5fd; }
+.kad-tier-developed .kad-tier-badge { color:#3b82f6; }
+
+.kad-tier-developing .kad-bg {
+  background:linear-gradient(145deg,#020e0a,#041a10,#020e0a,#031408);
+  border:2px solid #0077B6;
+  box-shadow:0 0 24px rgba(0,119,182,.4), inset 0 0 15px rgba(0,119,182,.06);
+}
+.kad-tier-developing .kad-ovr,
+.kad-tier-developing .kad-photo-initial { color:#7dd3fc; }
+.kad-tier-developing .kad-tier-badge { color:#0077B6; }
+
+.kad-tier-foundation .kad-bg {
+  background:linear-gradient(145deg,#1a0e04,#2a1808,#1a0e04,#120a02);
+  border:2px solid #cd7f32;
+  box-shadow:0 0 18px rgba(205,127,50,.35), inset 0 0 12px rgba(205,127,50,.05);
+}
+.kad-tier-foundation .kad-ovr,
+.kad-tier-foundation .kad-photo-initial { color:#fbbf24; }
+.kad-tier-foundation .kad-tier-badge { color:#cd7f32; }
+
+.kad-tier-starter .kad-bg {
+  background:linear-gradient(145deg,#111,#1c1c1c,#111,#0d0d0d);
+  border:2px solid #6b7280;
+  box-shadow:0 0 12px rgba(107,114,128,.25);
+}
+.kad-tier-starter .kad-ovr,
+.kad-tier-starter .kad-photo-initial { color:#d1d5db; }
+.kad-tier-starter .kad-tier-badge { color:#9ca3af; }
+
+/* Modal action buttons */
+.kad-actions {
+  display:flex; gap:.75rem; flex-wrap:wrap; justify-content:center;
+  max-width:300px;
+}
+.kad-btn {
+  padding:.55rem 1.1rem; border-radius:10px; border:none;
+  font-size:.75rem; font-weight:700; cursor:pointer;
+  font-family:inherit; display:flex; align-items:center; gap:.35rem;
+  transition:.15s;
+}
+.kad-btn:active { transform:scale(.96); }
+.kad-btn-share {
+  background:#25D366; color:#fff;
+  box-shadow:0 4px 14px rgba(37,211,102,.3);
+}
+.kad-btn-print {
+  background:rgba(255,255,255,.12); color:#fff;
+  border:1px solid rgba(255,255,255,.2);
+}
+.kad-btn-close {
+  background:rgba(255,255,255,.08); color:rgba(255,255,255,.6);
+  border:1px solid rgba(255,255,255,.1);
+}
+
+/* ── PRINT STYLES ── */
+@media print {
+  body > *:not(#kad-print-target) { display:none !important; }
+  #kad-print-target {
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:#fff;
+  }
+  .kad-card {
+    animation:none !important;
+    box-shadow:none !important;
+  }
+}
+
 /* ── RADAR ── */
 .radar2-section {
   margin:.4rem .85rem; background:var(--card); border:1px solid var(--bdr);
@@ -1040,8 +1420,25 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
         <div class="pp2-header">
           <div class="pp2-top-row">
             <div class="pp2-avatar-wrap">
-              <div id="pp2-avatar-frame" style="border-radius:16px;border:2px solid #6b7280;display:inline-block">
-                <div class="pp2-avatar" id="pp2-avatar">A</div>
+              <!-- MINI PASSPORT KAD -->
+              <div class="mini-kad-wrap tier-starter" id="mini-kad-wrap" onclick="openPassportKad()" title="Tekan untuk lihat Passport Kad">
+                <div class="mini-kad" id="mini-kad">
+                  <div class="mini-kad-bg"></div>
+                  <div class="mini-kad-holo"></div>
+                  <div class="mini-kad-top">
+                    <div class="mini-kad-ovr" id="mk-ovr">—</div>
+                    <div class="mini-kad-pos" id="mk-pos">—</div>
+                  </div>
+                  <div class="mini-kad-initial" id="mk-init">A</div>
+                  <div class="mini-kad-bottom">
+                    <div class="mini-kad-name" id="mk-name">—</div>
+                    <div class="mini-kad-stats" id="mk-stats">
+                      <div class="mini-kad-stat"><div class="mini-kad-stat-v">—</div><div class="mini-kad-stat-k">PAC</div></div>
+                      <div class="mini-kad-stat"><div class="mini-kad-stat-v">—</div><div class="mini-kad-stat-k">SHO</div></div>
+                      <div class="mini-kad-stat"><div class="mini-kad-stat-v">—</div><div class="mini-kad-stat-k">PAS</div></div>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div class="pp2-jersey" id="pp2-jersey">#—</div>
               <div id="pp2-state" style="display:none;position:absolute;top:-6px;left:-6px;font-size:.45rem;font-weight:800;color:rgba(255,255,255,.75);letter-spacing:.06em;background:rgba(0,0,0,.5);padding:.1rem .28rem;border-radius:3px;"></div>
@@ -1998,6 +2395,12 @@ async function loadAttr2(pid){
       const b=document.getElementById('dna2-badge');
       b.className='dna2-badge dna2-badge-coach';b.innerHTML='🏋️ Coach Assessed';
     }
+    // Update mini kad dengan attrs terkini
+    if(_pd){
+      var attrMap2={};
+      _attrData2.forEach(function(r){attrMap2[r.attribute_code]=r.current_value||0;});
+      updateMiniKad(_pd,attrMap2);
+    }
   }catch(e){console.error(e);}
 }
 
@@ -2443,6 +2846,13 @@ async function loadAttr2ForOther(pid){
     if((data||[]).length>0){
       var b=document.getElementById('dna2-badge');
       if(b){b.className='dna2-badge dna2-badge-coach';b.innerHTML='🏋️ Coach Assessed';}
+    }
+    // Update mini kad untuk player orang lain
+    var otherP = window._overrideProfileData;
+    if(otherP){
+      var oAttrMap={};
+      (data||[]).forEach(function(r){oAttrMap[r.attribute_code]=r.current_value||0;});
+      updateMiniKad(otherP,oAttrMap);
     }
   }catch(e){console.error(e);}
 }
@@ -3529,6 +3939,241 @@ SB.auth.onAuthStateChange((ev,session)=>{
   if(_tab==='profile')loadProfile();
 });
 init();
+</script>
+
+<!-- ════ PASSPORT KAD MODAL ════ -->
+<div id="kad-modal" onclick="closeKadModal(event)">
+  <div class="kad-scene">
+    <div class="kad-card" id="kad-card">
+      <div class="kad-bg"></div>
+      <div class="kad-holo"></div>
+      <div class="kad-gloss"></div>
+      <!-- Top: OVR + Tier Badge -->
+      <div class="kad-top">
+        <div class="kad-ovr-wrap">
+          <div class="kad-ovr" id="kad-ovr">—</div>
+          <div class="kad-pos-lbl" id="kad-pos">—</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">
+          <div class="kad-tier-badge" id="kad-tier-badge">—</div>
+          <div class="kad-flag">🇲🇾</div>
+        </div>
+      </div>
+      <!-- Player initial/photo -->
+      <div class="kad-photo-area">
+        <div class="kad-photo-initial" id="kad-initial">A</div>
+      </div>
+      <!-- Stats divider -->
+      <div class="kad-divider"></div>
+      <!-- Stats strip (6 FIFA stats) -->
+      <div class="kad-stats-strip" id="kad-stats-strip">
+        <div class="kad-stat-item"><div class="kad-stat-val" id="ks-pac">—</div><div class="kad-stat-key">PAC</div></div>
+        <div class="kad-stat-item"><div class="kad-stat-val" id="ks-sho">—</div><div class="kad-stat-key">SHO</div></div>
+        <div class="kad-stat-item"><div class="kad-stat-val" id="ks-pas">—</div><div class="kad-stat-key">PAS</div></div>
+        <div class="kad-stat-item"><div class="kad-stat-val" id="ks-dri">—</div><div class="kad-stat-key">DRI</div></div>
+        <div class="kad-stat-item"><div class="kad-stat-val" id="ks-def">—</div><div class="kad-stat-key">DEF</div></div>
+        <div class="kad-stat-item"><div class="kad-stat-val" id="ks-phy">—</div><div class="kad-stat-key">PHY</div></div>
+      </div>
+      <!-- Bottom: Name + Club + FP No -->
+      <div class="kad-bottom">
+        <div class="kad-player-name" id="kad-pname">—</div>
+        <div class="kad-club-name" id="kad-club">—</div>
+        <div class="kad-fp-num" id="kad-fpno">—</div>
+      </div>
+    </div>
+  </div>
+  <!-- Action Buttons -->
+  <div class="kad-actions" id="kad-actions">
+    <button class="kad-btn kad-btn-share" onclick="shareKadWhatsapp(event)">📲 Kongsi WhatsApp</button>
+    <button class="kad-btn kad-btn-print" onclick="printKad(event)">🖨️ Print Kad</button>
+    <button class="kad-btn kad-btn-close" onclick="closeKadModalDirect()">✕ Tutup</button>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════
+   PASSPORT KAD — Logic
+════════════════════════════════════ */
+
+// Store current kad data
+var _kadData = null;
+var _kadAttrs = {};
+
+function tierClass(title){
+  var m = {'ELITE':'kad-tier-elite','ADVANCED':'kad-tier-advanced','DEVELOPED':'kad-tier-developed',
+           'DEVELOPING':'kad-tier-developing','FOUNDATION':'kad-tier-foundation','STARTER':'kad-tier-starter'};
+  return m[title]||'kad-tier-starter';
+}
+function miniTierClass(title){
+  var m = {'ELITE':'tier-elite','ADVANCED':'tier-advanced','DEVELOPED':'tier-developed',
+           'DEVELOPING':'tier-developing','FOUNDATION':'tier-foundation','STARTER':'tier-starter'};
+  return m[title]||'tier-starter';
+}
+
+/* Update mini-kad in passport header */
+function updateMiniKad(p, attrs){
+  var wrap = document.getElementById('mini-kad-wrap');
+  if(!wrap) return;
+  var dn = p.preferred_name||p.full_name||'Pemain';
+  var dna = p.dna_overall||0;
+  var lv = dnaLevel2(dna);
+  var pos = posCode2(p.best_position||p.position||'');
+
+  // Tier class
+  var allTiers = ['tier-elite','tier-advanced','tier-developed','tier-developing','tier-foundation','tier-starter'];
+  allTiers.forEach(function(c){ wrap.classList.remove(c); });
+  wrap.classList.add(miniTierClass(lv.title));
+
+  document.getElementById('mk-ovr').textContent = dna||'—';
+  document.getElementById('mk-pos').textContent = pos||'—';
+  document.getElementById('mk-init').textContent = dn[0].toUpperCase();
+  document.getElementById('mk-name').textContent = dn.toUpperCase();
+
+  // Mini stats (PAC, SHO, PAS from attrs)
+  var pac = attrs['pace']||0, sho = attrs['finishing']||0, pas = attrs['passing']||0;
+  var statsEl = document.getElementById('mk-stats');
+  if(statsEl){
+    statsEl.innerHTML =
+      '<div class="mini-kad-stat"><div class="mini-kad-stat-v">'+(pac||'—')+'</div><div class="mini-kad-stat-k">PAC</div></div>'
+    + '<div class="mini-kad-stat"><div class="mini-kad-stat-v">'+(sho||'—')+'</div><div class="mini-kad-stat-k">SHO</div></div>'
+    + '<div class="mini-kad-stat"><div class="mini-kad-stat-v">'+(pas||'—')+'</div><div class="mini-kad-stat-k">PAS</div></div>';
+  }
+}
+
+/* Open the holographic kad modal */
+function openPassportKad(){
+  var p = window._overrideProfileData || _pd;
+  if(!p){ toast('⏳ Data belum dimuatkan'); return; }
+  _kadData = p;
+
+  // Build attrs map from _attrData2
+  _kadAttrs = {};
+  var attrSource = window._attrData2||[];
+  attrSource.forEach(function(r){ _kadAttrs[r.attribute_code] = r.current_value||0; });
+
+  var dn = p.preferred_name||p.full_name||'Pemain';
+  var dna = p.dna_overall||0;
+  var lv = dnaLevel2(dna);
+  var pos = posCode2(p.best_position||p.position||'');
+
+  // Stats
+  var pac = _kadAttrs['pace']||0;
+  var sho = _kadAttrs['finishing']||0;
+  var pas = _kadAttrs['passing']||0;
+  var dri = _kadAttrs['dribbling']||0;
+  var def = _kadAttrs['tackling']||0;
+  var phy = _kadAttrs['strength']||0;
+
+  // Populate modal
+  document.getElementById('kad-ovr').textContent = dna||'—';
+  document.getElementById('kad-pos').textContent = pos||'—';
+  document.getElementById('kad-tier-badge').textContent = lv.title;
+  document.getElementById('kad-tier-badge').style.color = lv.color;
+  document.getElementById('kad-tier-badge').style.borderColor = lv.color;
+  document.getElementById('kad-initial').textContent = dn[0].toUpperCase();
+  document.getElementById('kad-initial').style.color = lv.color;
+  document.getElementById('ks-pac').textContent = pac||'—';
+  document.getElementById('ks-sho').textContent = sho||'—';
+  document.getElementById('ks-pas').textContent = pas||'—';
+  document.getElementById('ks-dri').textContent = dri||'—';
+  document.getElementById('ks-def').textContent = def||'—';
+  document.getElementById('ks-phy').textContent = phy||'—';
+  document.getElementById('kad-pname').textContent = dn.toUpperCase();
+  document.getElementById('kad-club').textContent = (p.clubs&&p.clubs.name)||'Tanpa Kelab';
+  document.getElementById('kad-fpno').textContent = p.passport_number||'—';
+
+  // Apply tier class to card
+  var card = document.getElementById('kad-card');
+  var allK = ['kad-tier-elite','kad-tier-advanced','kad-tier-developed','kad-tier-developing','kad-tier-foundation','kad-tier-starter'];
+  allK.forEach(function(c){ card.classList.remove(c); });
+  card.classList.add(tierClass(lv.title));
+
+  // Show modal
+  var modal = document.getElementById('kad-modal');
+  modal.classList.add('open');
+  document.body.style.overflow='hidden';
+
+  // Attach tilt interaction
+  attachKadTilt();
+}
+
+function closeKadModal(e){
+  if(e && e.target !== document.getElementById('kad-modal')) return;
+  closeKadModalDirect();
+}
+function closeKadModalDirect(){
+  document.getElementById('kad-modal').classList.remove('open');
+  document.body.style.overflow='';
+  detachKadTilt();
+}
+
+/* Tilt on pointer move */
+var _kadTiltBound = null;
+var _kadGrabBound = null;
+var _kadRelBound = null;
+function attachKadTilt(){
+  var card = document.getElementById('kad-card');
+  var scene = document.querySelector('.kad-scene');
+  _kadTiltBound = function(e){
+    var rect = scene.getBoundingClientRect();
+    var cx = rect.left + rect.width/2;
+    var cy = rect.top + rect.height/2;
+    var mx = (e.clientX||((e.touches&&e.touches[0])?e.touches[0].clientX:cx));
+    var my = (e.clientY||((e.touches&&e.touches[0])?e.touches[0].clientY:cy));
+    var dx = (mx-cx)/(rect.width/2);
+    var dy = (my-cy)/(rect.height/2);
+    card.style.transform = 'rotateY('+(dx*14)+'deg) rotateX('+(-dy*10)+'deg)';
+  };
+  _kadGrabBound = function(){ card.classList.add('grabbing'); };
+  _kadRelBound  = function(){
+    card.classList.remove('grabbing');
+    card.style.transform='';
+  };
+  document.addEventListener('mousemove', _kadTiltBound);
+  document.addEventListener('touchmove', _kadTiltBound, {passive:true});
+  card.addEventListener('mousedown', _kadGrabBound);
+  card.addEventListener('mouseup', _kadRelBound);
+}
+function detachKadTilt(){
+  if(_kadTiltBound){
+    document.removeEventListener('mousemove', _kadTiltBound);
+    document.removeEventListener('touchmove', _kadTiltBound);
+    _kadTiltBound=null;
+  }
+  var card = document.getElementById('kad-card');
+  if(card){
+    if(_kadGrabBound) card.removeEventListener('mousedown',_kadGrabBound);
+    if(_kadRelBound)  card.removeEventListener('mouseup',_kadRelBound);
+    card.style.transform='';
+  }
+}
+
+/* Share to WhatsApp */
+function shareKadWhatsapp(e){
+  e.stopPropagation();
+  var p = _kadData;
+  if(!p) return;
+  var dn = p.preferred_name||p.full_name||'Pemain';
+  var dna = p.dna_overall||0;
+  var lv = dnaLevel2(dna);
+  var fpno = p.passport_number||'—';
+  var url = window.location.origin+'/?p='+fpno;
+  var msg = '🪪 *PlayPro Football Passport*\n\n'
+    +'👤 *'+dn+'*\n'
+    +'🧬 DNA Overall: *'+dna+'* ('+lv.title+')\n'
+    +'🏟 Kelab: '+(( p.clubs&&p.clubs.name)||'Tiada')+'\n'
+    +'📋 FP: '+fpno+'\n\n'
+    +'🔗 '+url+'\n\n'
+    +'_Dijana oleh PlayPro — Platform Bola Sepak Malaysia_ 🇲🇾';
+  var waUrl = 'https://wa.me/?text='+encodeURIComponent(msg);
+  window.open(waUrl,'_blank');
+}
+
+/* Print Kad */
+function printKad(e){
+  e.stopPropagation();
+  window.print();
+}
 </script>
 </body>
 </html>
