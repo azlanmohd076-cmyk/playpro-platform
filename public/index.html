@@ -493,67 +493,126 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 ════════════════════════════════════ */
 
 /* MINI KAD — portrait card proportions (A-ratio ~1:1.41) */
+/* ══ MINI KAD — FIFA Card style kecil ══ */
 .mini-kad-wrap {
   position:relative; flex-shrink:0; cursor:pointer;
-  width:62px; height:87px;
+  /* Saiz kad kecil — nisbah FIFA 63:88 */
+  width:58px; height:82px;
   perspective:600px;
+  /* Tiada background kotak — kad je nampak */
+  background:none !important;
+  border:none !important;
+  outline:none !important;
 }
 .mini-kad {
-  width:62px; height:87px; border-radius:8px;
+  width:58px; height:82px; border-radius:8px;
   position:relative; overflow:hidden;
   transform-style:preserve-3d;
-  transition:transform .2s ease, box-shadow .2s ease;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease;
   user-select:none;
+  /* Goyang kiri-kanan + glow pulse */
+  animation:miniFloat 4s ease-in-out infinite;
+  will-change:transform;
 }
-.mini-kad:active { transform:scale(.95); }
+.mini-kad:hover {
+  transform:scale(1.09) rotateY(-8deg) rotateX(4deg) !important;
+  animation-play-state:paused;
+}
+.mini-kad:active {
+  transform:scale(.91) !important;
+  animation-play-state:paused;
+}
+@keyframes miniFloat {
+  0%   { transform:rotateY(-4deg) rotateX(2deg) translateY(0px); }
+  25%  { transform:rotateY(3deg) rotateX(-1.5deg) translateY(-1.5px); }
+  50%  { transform:rotateY(4deg) rotateX(-2deg) translateY(0px); }
+  75%  { transform:rotateY(-3deg) rotateX(1.5deg) translateY(1.5px); }
+  100% { transform:rotateY(-4deg) rotateX(2deg) translateY(0px); }
+}
 .mini-kad-bg {
   position:absolute; inset:0; border-radius:8px;
 }
+/* Holographic shimmer — rainbow sweep */
 .mini-kad-holo {
   position:absolute; inset:0; border-radius:8px;
-  opacity:0; pointer-events:none;
-  background:linear-gradient(135deg,
-    transparent 20%, rgba(255,255,255,.08) 40%,
-    rgba(0,180,216,.12) 50%, rgba(139,92,246,.08) 60%,
-    transparent 80%);
+  pointer-events:none;
+  background:linear-gradient(
+    115deg,
+    transparent 0%,
+    rgba(255,80,60,.12) 12%,
+    rgba(255,200,40,.15) 24%,
+    rgba(50,255,140,.13) 37%,
+    rgba(40,140,255,.14) 51%,
+    rgba(180,50,255,.12) 65%,
+    rgba(255,80,60,.1) 78%,
+    transparent 90%
+  );
+  background-size:280% 280%;
   mix-blend-mode:color-dodge;
-  animation:miniHoloSway 4s ease-in-out infinite;
+  animation:miniHolo 3s ease-in-out infinite;
+  opacity:0;
+  transition:opacity .3s;
 }
-@keyframes miniHoloSway {
-  0%,100% { background-position:0% 50%; opacity:0; }
-  50%      { background-position:100% 50%; opacity:.6; }
+@keyframes miniHolo {
+  0%   { background-position:0% 0%;   opacity:0; }
+  20%  { opacity:.6; }
+  50%  { background-position:100% 100%; opacity:.75; }
+  80%  { opacity:.55; }
+  100% { background-position:0% 0%;   opacity:0; }
+}
+/* Glow pulsing pada border */
+@keyframes miniGlowPulse {
+  0%,100% { box-shadow:var(--mk-glow-lo); }
+  50%     { box-shadow:var(--mk-glow-hi); }
+}
+/* Scan-line texture (Elite) */
+.tier-elite .mini-kad-bg::after {
+  content:''; position:absolute; inset:0; border-radius:8px;
+  background:repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(255,255,255,.018) 2px, rgba(255,255,255,.018) 4px
+  );
+  pointer-events:none;
 }
 .mini-kad-top {
-  position:absolute; top:4px; left:5px; right:5px;
+  position:absolute; top:4px; left:4px; right:4px;
   display:flex; justify-content:space-between; align-items:flex-start;
+  z-index:3;
 }
 .mini-kad-ovr {
-  font-size:.85rem; font-weight:900; color:#fff;
-  text-shadow:0 1px 4px rgba(0,0,0,.8);
-  line-height:1;
+  font-size:.92rem; font-weight:900; color:#fff;
+  text-shadow:0 1px 5px rgba(0,0,0,.95);
+  line-height:1; letter-spacing:-.03em;
 }
 .mini-kad-pos {
-  font-size:.45rem; font-weight:800; color:rgba(255,255,255,.8);
-  background:rgba(0,0,0,.35); padding:.05rem .22rem;
-  border-radius:3px; letter-spacing:.04em;
+  font-size:.44rem; font-weight:800; color:rgba(255,255,255,.9);
+  background:rgba(0,0,0,.55); padding:.07rem .22rem;
+  border-radius:3px; letter-spacing:.03em;
 }
 .mini-kad-initial {
-  position:absolute; top:50%; left:50%;
-  transform:translate(-50%,-55%);
-  font-size:1.8rem; font-weight:900; color:rgba(255,255,255,.9);
-  text-shadow:0 2px 8px rgba(0,0,0,.6);
-  pointer-events:none;
+  position:absolute; top:44%; left:50%;
+  transform:translate(-50%,-50%);
+  font-size:2rem; font-weight:900; color:rgba(255,255,255,.88);
+  text-shadow:0 3px 12px rgba(0,0,0,.8);
+  pointer-events:none; z-index:2;
+  /* Bounce-in anim satu kali bila kad muncul */
+  animation:mkInitPop .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes mkInitPop {
+  from { transform:translate(-50%,-50%) scale(.5); opacity:0; }
+  to   { transform:translate(-50%,-50%) scale(1); opacity:1; }
 }
 .mini-kad-bottom {
   position:absolute; bottom:0; left:0; right:0;
-  padding:3px 5px 4px;
-  background:linear-gradient(0deg,rgba(0,0,0,.75) 0%,transparent 100%);
+  padding:3px 4px 4px;
+  background:linear-gradient(0deg,rgba(0,0,0,.88) 0%,rgba(0,0,0,.5) 65%,transparent 100%);
   border-radius:0 0 8px 8px;
+  z-index:3;
 }
 .mini-kad-name {
   font-size:.42rem; font-weight:800; color:#fff;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  text-align:center; text-transform:uppercase; letter-spacing:.04em;
+  text-align:center; text-transform:uppercase; letter-spacing:.06em;
 }
 .mini-kad-stats {
   display:flex; justify-content:space-between;
@@ -564,63 +623,114 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   flex:1;
 }
 .mini-kad-stat-v {
-  font-size:.48rem; font-weight:900; color:#fff; line-height:1;
+  font-size:.5rem; font-weight:900; color:#fff; line-height:1;
+  text-shadow:0 1px 3px rgba(0,0,0,.7);
 }
 .mini-kad-stat-k {
-  font-size:.32rem; font-weight:700; color:rgba(255,255,255,.6);
+  font-size:.32rem; font-weight:700; color:rgba(255,255,255,.5);
   letter-spacing:.04em; text-transform:uppercase;
 }
+/* Tap indicator (tooltip kecil) */
+.mini-kad-tap-hint {
+  position:absolute; bottom:-14px; left:50%; transform:translateX(-50%);
+  font-size:.35rem; color:rgba(255,255,255,.3); white-space:nowrap;
+  letter-spacing:.04em; pointer-events:none;
+}
 
-/* TIER BG STYLES */
+/* ══ TIER BG STYLES — Mini Kad ══ */
 .tier-elite .mini-kad-bg {
   background:linear-gradient(145deg,#1a1a0e 0%,#2d2200 25%,#1a1200 50%,#0d0d00 75%,#1a1a0e 100%);
   border:1.5px solid #f9a825;
-  box-shadow:0 0 14px rgba(249,168,37,.55), inset 0 0 10px rgba(249,168,37,.08);
 }
-.tier-elite .mini-kad-holo { opacity:.8; animation-duration:3s; }
+.tier-elite .mini-kad {
+  --mk-glow-lo: 0 0 8px rgba(249,168,37,.4), 0 2px 12px rgba(0,0,0,.6);
+  --mk-glow-hi: 0 0 18px rgba(249,168,37,.8), 0 2px 12px rgba(0,0,0,.6);
+  box-shadow:var(--mk-glow-lo);
+  animation:miniSway 5s ease-in-out infinite, miniGlowPulse 2s ease-in-out infinite;
+}
+.tier-elite .mini-kad-holo { opacity:.7; animation-duration:2.5s; }
 .tier-elite .mini-kad-initial { color:#f9a825; }
+.tier-elite .mini-kad-ovr { color:#f9a825; }
 
 .tier-advanced .mini-kad-bg {
   background:linear-gradient(145deg,#1a0d2e,#2d1b47,#1e1040,#130a2a);
   border:1.5px solid #8b5cf6;
-  box-shadow:0 0 12px rgba(139,92,246,.5), inset 0 0 8px rgba(139,92,246,.1);
 }
-.tier-advanced .mini-kad-holo { opacity:.5; }
+.tier-advanced .mini-kad {
+  --mk-glow-lo: 0 0 7px rgba(139,92,246,.45), 0 2px 10px rgba(0,0,0,.6);
+  --mk-glow-hi: 0 0 15px rgba(139,92,246,.75), 0 2px 10px rgba(0,0,0,.6);
+  box-shadow:var(--mk-glow-lo);
+  animation:miniSway 5s ease-in-out infinite, miniGlowPulse 2.5s ease-in-out infinite;
+}
+.tier-advanced .mini-kad-holo { opacity:.45; animation-duration:3s; }
+.tier-advanced .mini-kad-initial { color:#c4b5fd; }
+.tier-advanced .mini-kad-ovr { color:#c4b5fd; }
 
 .tier-developed .mini-kad-bg {
   background:linear-gradient(145deg,#0a1628,#0d2040,#0a1a35,#06102a);
   border:1.5px solid #3b82f6;
-  box-shadow:0 0 10px rgba(59,130,246,.45), inset 0 0 6px rgba(59,130,246,.08);
 }
+.tier-developed .mini-kad {
+  --mk-glow-lo: 0 0 6px rgba(59,130,246,.4), 0 2px 8px rgba(0,0,0,.6);
+  --mk-glow-hi: 0 0 13px rgba(59,130,246,.7), 0 2px 8px rgba(0,0,0,.6);
+  box-shadow:var(--mk-glow-lo);
+  animation:miniSway 5s ease-in-out infinite, miniGlowPulse 3s ease-in-out infinite;
+}
+.tier-developed .mini-kad-initial { color:#93c5fd; }
+.tier-developed .mini-kad-ovr { color:#93c5fd; }
+
 .tier-developing .mini-kad-bg {
   background:linear-gradient(145deg,#0a1a10,#0d2415,#081a10,#051208);
   border:1.5px solid #0077B6;
-  box-shadow:0 0 8px rgba(0,119,182,.35);
 }
+.tier-developing .mini-kad {
+  --mk-glow-lo: 0 0 5px rgba(0,119,182,.35), 0 2px 8px rgba(0,0,0,.6);
+  --mk-glow-hi: 0 0 11px rgba(0,119,182,.6), 0 2px 8px rgba(0,0,0,.6);
+  box-shadow:var(--mk-glow-lo);
+  animation:miniSway 5s ease-in-out infinite, miniGlowPulse 3.5s ease-in-out infinite;
+}
+.tier-developing .mini-kad-initial { color:#7dd3fc; }
+.tier-developing .mini-kad-ovr { color:#7dd3fc; }
+
 .tier-foundation .mini-kad-bg {
   background:linear-gradient(145deg,#1e1208,#2d1a0a,#1a1005,#110b03);
   border:1.5px solid #cd7f32;
-  box-shadow:0 0 6px rgba(205,127,50,.3);
 }
+.tier-foundation .mini-kad {
+  box-shadow:0 0 5px rgba(205,127,50,.3), 0 2px 8px rgba(0,0,0,.6);
+}
+.tier-foundation .mini-kad-initial { color:#fbbf24; }
+.tier-foundation .mini-kad-ovr { color:#fbbf24; }
+
 .tier-starter .mini-kad-bg {
   background:linear-gradient(145deg,#1a1a1a,#252525,#1a1a1a,#111);
   border:1.5px solid #6b7280;
-  box-shadow:0 0 4px rgba(107,114,128,.2);
+}
+.tier-starter .mini-kad {
+  box-shadow:0 0 3px rgba(107,114,128,.2), 0 2px 8px rgba(0,0,0,.5);
 }
 
 /* ── KAD MODAL — Full Screen Holographic ── */
+/* ══ KAD MODAL — Full Screen Holographic ══ */
 #kad-modal {
   position:fixed; inset:0; z-index:9990;
-  background:rgba(0,0,0,.88);
-  backdrop-filter:blur(12px);
+  background:rgba(0,0,0,.92);
+  backdrop-filter:blur(16px);
   display:none; align-items:center; justify-content:center;
-  flex-direction:column; gap:1rem;
+  flex-direction:column; gap:1.1rem;
   padding:1rem;
+  /* Particle glow background */
+  background-image:radial-gradient(ellipse at 50% 30%, rgba(0,119,182,.08) 0%, transparent 60%);
 }
 #kad-modal.open { display:flex; }
+#kad-modal.open .kad-scene { animation:kadModalEntry .55s cubic-bezier(.34,1.3,.64,1) forwards; }
+@keyframes kadModalEntry {
+  from { transform:scale(.3) rotateY(-180deg); opacity:0; }
+  to   { transform:scale(1) rotateY(0deg); opacity:1; }
+}
 
 .kad-scene {
-  perspective:1000px;
+  perspective:1200px;
   width:240px; height:338px; flex-shrink:0;
 }
 
@@ -628,17 +738,33 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   width:240px; height:338px; border-radius:18px;
   position:relative; overflow:hidden;
   transform-style:preserve-3d;
-  transition:transform .08s ease-out;
+  transition:transform .06s ease-out;
   will-change:transform;
   animation:kadSway 6s ease-in-out infinite;
   cursor:grab;
 }
 .kad-card:active { cursor:grabbing; }
 @keyframes kadSway {
-  0%,100% { transform:rotateY(-4deg) rotateX(2deg); }
-  50%      { transform:rotateY(4deg) rotateX(-2deg); }
+  0%,100% { transform:rotateY(-5deg) rotateX(2.5deg); }
+  50%      { transform:rotateY(5deg) rotateX(-2.5deg); }
 }
 .kad-card.grabbing { animation:none !important; }
+
+/* Glow aura bawah kad */
+.kad-card::after {
+  content:'';
+  position:absolute; bottom:-20px; left:10%; right:10%;
+  height:30px; border-radius:50%;
+  background:var(--kad-aura, rgba(255,255,255,.08));
+  filter:blur(12px);
+  pointer-events:none;
+  z-index:-1;
+  animation:kadAuraPulse 3s ease-in-out infinite;
+}
+@keyframes kadAuraPulse {
+  0%,100% { opacity:.5; transform:scaleX(.9); }
+  50%     { opacity:1; transform:scaleX(1.1); }
+}
 
 /* Card background layer */
 .kad-bg { position:absolute; inset:0; border-radius:18px; }
@@ -650,24 +776,27 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   background:linear-gradient(
     105deg,
     transparent 0%,
-    rgba(255,100,100,.07) 10%,
-    rgba(255,200,50,.09) 20%,
-    rgba(100,255,150,.09) 30%,
-    rgba(50,150,255,.09) 40%,
-    rgba(200,50,255,.07) 50%,
-    rgba(255,100,100,.07) 60%,
-    transparent 70%,
-    rgba(255,255,255,.04) 85%,
+    rgba(255,80,80,.09) 10%,
+    rgba(255,200,50,.12) 22%,
+    rgba(80,255,160,.1) 35%,
+    rgba(50,150,255,.11) 48%,
+    rgba(200,50,255,.09) 62%,
+    rgba(255,80,80,.07) 74%,
+    transparent 85%,
+    rgba(255,255,255,.05) 93%,
     transparent 100%
   );
   background-size:300% 300%;
   mix-blend-mode:color-dodge;
   animation:holoShift 4s ease-in-out infinite;
   opacity:0;
-  transition:opacity .3s;
+  transition:opacity .4s;
 }
+/* Elite & Advanced — holo sentiasa aktif */
+.kad-tier-elite .kad-holo { opacity:.7; animation-duration:2.8s; }
+.kad-tier-advanced .kad-holo { opacity:.45; animation-duration:3.2s; }
 .kad-card:hover .kad-holo,
-.kad-card.grabbing .kad-holo { opacity:1; }
+.kad-card.grabbing .kad-holo { opacity:1 !important; }
 
 @keyframes holoShift {
   0%,100% { background-position:0% 50%; }
@@ -675,10 +804,24 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   66%      { background-position:50% 100%; }
 }
 
+/* Rainbow scan line (Elite only) */
+.kad-tier-elite .kad-bg::after {
+  content:'';
+  position:absolute; inset:0; border-radius:18px;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(255,255,255,.015) 3px,
+    rgba(255,255,255,.015) 6px
+  );
+  pointer-events:none;
+}
+
 /* Gloss overlay */
 .kad-gloss {
   position:absolute; inset:0; border-radius:18px;
-  background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 50%,rgba(255,255,255,.02) 100%);
+  background:linear-gradient(135deg,rgba(255,255,255,.08) 0%,transparent 45%,rgba(255,255,255,.03) 100%);
   pointer-events:none;
 }
 
@@ -690,109 +833,125 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 }
 .kad-ovr-wrap { display:flex; flex-direction:column; align-items:flex-start; }
 .kad-ovr {
-  font-size:3.2rem; font-weight:900; color:#fff;
+  font-size:3.4rem; font-weight:900; color:#fff;
   line-height:1; letter-spacing:-.05em;
-  text-shadow:0 2px 12px rgba(0,0,0,.8);
+  text-shadow:0 2px 14px rgba(0,0,0,.9);
 }
 .kad-pos-lbl {
-  font-size:.7rem; font-weight:800; color:rgba(255,255,255,.8);
-  letter-spacing:.08em; margin-top:-.2rem;
+  font-size:.72rem; font-weight:800; color:rgba(255,255,255,.8);
+  letter-spacing:.1em; margin-top:-.15rem;
 }
 .kad-tier-badge {
-  font-size:.52rem; font-weight:800; letter-spacing:.1em;
-  padding:.2rem .55rem; border-radius:999px;
-  border:1.5px solid currentColor; opacity:.85;
+  font-size:.5rem; font-weight:800; letter-spacing:.12em;
+  padding:.22rem .58rem; border-radius:999px;
+  border:1.5px solid currentColor; opacity:.9;
+  text-transform:uppercase;
 }
 .kad-flag {
-  font-size:1rem; margin-top:.2rem;
-  filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));
+  font-size:1rem; margin-top:.25rem;
+  filter:drop-shadow(0 1px 4px rgba(0,0,0,.6));
 }
 
-/* Player initial (avatar) */
+/* Player initial / avatar */
 .kad-photo-area {
   position:absolute; top:0; left:0; right:0;
-  height:180px; display:flex; align-items:center; justify-content:center;
+  height:190px; display:flex; align-items:center; justify-content:center;
   z-index:1;
 }
 .kad-photo-initial {
-  font-size:5.5rem; font-weight:900;
-  text-shadow:0 4px 20px rgba(0,0,0,.6);
+  font-size:6rem; font-weight:900;
+  text-shadow:0 4px 24px rgba(0,0,0,.7);
   opacity:.9; user-select:none;
 }
 
 /* Stats strip */
 .kad-stats-strip {
-  position:absolute; bottom:72px; left:0; right:0;
+  position:absolute; bottom:74px; left:0; right:0;
   display:flex; justify-content:space-around;
-  padding:0 14px; z-index:2;
+  padding:0 12px; z-index:2;
 }
 .kad-stat-item {
   display:flex; flex-direction:column; align-items:center;
   flex:1;
 }
 .kad-stat-val {
-  font-size:1.1rem; font-weight:900; color:#fff;
-  line-height:1; text-shadow:0 1px 6px rgba(0,0,0,.7);
+  font-size:1.15rem; font-weight:900; color:#fff;
+  line-height:1; text-shadow:0 1px 6px rgba(0,0,0,.8);
 }
 .kad-stat-key {
-  font-size:.52rem; font-weight:700; color:rgba(255,255,255,.6);
-  letter-spacing:.06em; text-transform:uppercase;
+  font-size:.5rem; font-weight:700; color:rgba(255,255,255,.55);
+  letter-spacing:.07em; text-transform:uppercase;
 }
 
 /* Divider line */
 .kad-divider {
-  position:absolute; bottom:96px; left:16px; right:16px;
-  height:1px; background:rgba(255,255,255,.12); z-index:2;
+  position:absolute; bottom:100px; left:14px; right:14px;
+  height:1px; background:rgba(255,255,255,.13); z-index:2;
 }
 
 /* Card bottom */
 .kad-bottom {
   position:absolute; bottom:0; left:0; right:0;
   padding:10px 16px 14px;
-  background:linear-gradient(0deg,rgba(0,0,0,.85) 0%,rgba(0,0,0,.6) 70%,transparent 100%);
+  background:linear-gradient(0deg,rgba(0,0,0,.9) 0%,rgba(0,0,0,.65) 65%,transparent 100%);
   border-radius:0 0 18px 18px;
   z-index:2;
 }
 .kad-player-name {
   font-size:1rem; font-weight:900; color:#fff;
-  text-transform:uppercase; letter-spacing:.04em;
+  text-transform:uppercase; letter-spacing:.05em;
   text-align:center; white-space:nowrap;
   overflow:hidden; text-overflow:ellipsis;
-  text-shadow:0 1px 8px rgba(0,0,0,.8);
-  margin-bottom:.1rem;
+  text-shadow:0 1px 8px rgba(0,0,0,.9);
+  margin-bottom:.12rem;
 }
 .kad-club-name {
-  font-size:.58rem; font-weight:600; color:rgba(255,255,255,.5);
-  text-align:center; letter-spacing:.05em;
+  font-size:.58rem; font-weight:600; color:rgba(255,255,255,.45);
+  text-align:center; letter-spacing:.06em;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .kad-fp-num {
-  font-size:.45rem; font-weight:700; color:rgba(255,255,255,.3);
-  text-align:center; letter-spacing:.08em; margin-top:.2rem;
+  font-size:.44rem; font-weight:700; color:rgba(255,255,255,.25);
+  text-align:center; letter-spacing:.1em; margin-top:.18rem;
   font-family:monospace;
 }
 
-/* TIER CARD STYLES */
+/* ══ TIER CARD STYLES — Full Kad ══ */
+
+/* ELITE — Hitam Emas + Holographic */
+.kad-tier-elite { --kad-aura: rgba(249,168,37,.35); }
 .kad-tier-elite .kad-bg {
   background:linear-gradient(145deg,#1a1200 0%,#2d2000 20%,#0d0d00 40%,#1a1000 60%,#2a1a00 80%,#1a1200 100%);
   border:2px solid #f9a825;
-  box-shadow:0 0 40px rgba(249,168,37,.5), 0 0 80px rgba(249,168,37,.2), inset 0 0 30px rgba(249,168,37,.06);
+  box-shadow:0 0 45px rgba(249,168,37,.55), 0 0 90px rgba(249,168,37,.25), inset 0 0 35px rgba(249,168,37,.07);
+  animation:eliteGlowPulse 2s ease-in-out infinite;
+}
+@keyframes eliteGlowPulse {
+  0%,100% { box-shadow:0 0 35px rgba(249,168,37,.45), 0 0 70px rgba(249,168,37,.2), inset 0 0 25px rgba(249,168,37,.06); }
+  50%     { box-shadow:0 0 60px rgba(249,168,37,.75), 0 0 110px rgba(249,168,37,.35), inset 0 0 40px rgba(249,168,37,.1); }
 }
 .kad-tier-elite .kad-ovr,
 .kad-tier-elite .kad-photo-initial { color:#f9a825; }
 .kad-tier-elite .kad-tier-badge { color:#f9a825; border-color:#f9a825; }
-.kad-tier-elite .kad-holo { opacity:.7; animation-duration:3s; }
 
+/* ADVANCED — Ungu Platinum + Shimmer */
+.kad-tier-advanced { --kad-aura: rgba(139,92,246,.3); }
 .kad-tier-advanced .kad-bg {
   background:linear-gradient(145deg,#100020,#1e0040,#0f001a,#18003a,#100020);
   border:2px solid #8b5cf6;
-  box-shadow:0 0 35px rgba(139,92,246,.5), 0 0 70px rgba(139,92,246,.2), inset 0 0 25px rgba(139,92,246,.07);
+  box-shadow:0 0 38px rgba(139,92,246,.55), 0 0 75px rgba(139,92,246,.22), inset 0 0 28px rgba(139,92,246,.08);
+  animation:advGlowPulse 2.5s ease-in-out infinite;
+}
+@keyframes advGlowPulse {
+  0%,100% { box-shadow:0 0 28px rgba(139,92,246,.4), 0 0 55px rgba(139,92,246,.15), inset 0 0 20px rgba(139,92,246,.06); }
+  50%     { box-shadow:0 0 50px rgba(139,92,246,.7), 0 0 90px rgba(139,92,246,.3), inset 0 0 35px rgba(139,92,246,.1); }
 }
 .kad-tier-advanced .kad-ovr,
 .kad-tier-advanced .kad-photo-initial { color:#c4b5fd; }
-.kad-tier-advanced .kad-tier-badge { color:#8b5cf6; }
-.kad-tier-advanced .kad-holo { opacity:.5; }
+.kad-tier-advanced .kad-tier-badge { color:#8b5cf6; border-color:#8b5cf6; }
 
+/* DEVELOPED — Biru Cerah */
+.kad-tier-developed { --kad-aura: rgba(59,130,246,.25); }
 .kad-tier-developed .kad-bg {
   background:linear-gradient(145deg,#050f20,#0a1e40,#050f20,#08183a);
   border:2px solid #3b82f6;
@@ -800,8 +959,10 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 }
 .kad-tier-developed .kad-ovr,
 .kad-tier-developed .kad-photo-initial { color:#93c5fd; }
-.kad-tier-developed .kad-tier-badge { color:#3b82f6; }
+.kad-tier-developed .kad-tier-badge { color:#3b82f6; border-color:#3b82f6; }
 
+/* DEVELOPING — Teal/Cyan */
+.kad-tier-developing { --kad-aura: rgba(0,119,182,.2); }
 .kad-tier-developing .kad-bg {
   background:linear-gradient(145deg,#020e0a,#041a10,#020e0a,#031408);
   border:2px solid #0077B6;
@@ -809,8 +970,10 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 }
 .kad-tier-developing .kad-ovr,
 .kad-tier-developing .kad-photo-initial { color:#7dd3fc; }
-.kad-tier-developing .kad-tier-badge { color:#0077B6; }
+.kad-tier-developing .kad-tier-badge { color:#0077B6; border-color:#0077B6; }
 
+/* FOUNDATION — Gangsa */
+.kad-tier-foundation { --kad-aura: rgba(205,127,50,.2); }
 .kad-tier-foundation .kad-bg {
   background:linear-gradient(145deg,#1a0e04,#2a1808,#1a0e04,#120a02);
   border:2px solid #cd7f32;
@@ -818,8 +981,10 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 }
 .kad-tier-foundation .kad-ovr,
 .kad-tier-foundation .kad-photo-initial { color:#fbbf24; }
-.kad-tier-foundation .kad-tier-badge { color:#cd7f32; }
+.kad-tier-foundation .kad-tier-badge { color:#cd7f32; border-color:#cd7f32; }
 
+/* STARTER — Kelabu Matte */
+.kad-tier-starter { --kad-aura: rgba(107,114,128,.15); }
 .kad-tier-starter .kad-bg {
   background:linear-gradient(145deg,#111,#1c1c1c,#111,#0d0d0d);
   border:2px solid #6b7280;
@@ -827,45 +992,56 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 }
 .kad-tier-starter .kad-ovr,
 .kad-tier-starter .kad-photo-initial { color:#d1d5db; }
-.kad-tier-starter .kad-tier-badge { color:#9ca3af; }
+.kad-tier-starter .kad-tier-badge { color:#9ca3af; border-color:#9ca3af; }
 
-/* Modal action buttons */
+/* ══ Modal action buttons ══ */
 .kad-actions {
-  display:flex; gap:.75rem; flex-wrap:wrap; justify-content:center;
+  display:flex; gap:.65rem; flex-wrap:wrap; justify-content:center;
   max-width:300px;
 }
 .kad-btn {
-  padding:.55rem 1.1rem; border-radius:10px; border:none;
-  font-size:.75rem; font-weight:700; cursor:pointer;
-  font-family:inherit; display:flex; align-items:center; gap:.35rem;
-  transition:.15s;
+  padding:.6rem 1.15rem; border-radius:12px; border:none;
+  font-size:.72rem; font-weight:700; cursor:pointer;
+  font-family:inherit; display:flex; align-items:center; gap:.38rem;
+  transition:.15s ease; letter-spacing:.02em;
 }
-.kad-btn:active { transform:scale(.96); }
+.kad-btn:active { transform:scale(.95); }
 .kad-btn-share {
   background:#25D366; color:#fff;
-  box-shadow:0 4px 14px rgba(37,211,102,.3);
+  box-shadow:0 4px 18px rgba(37,211,102,.35);
 }
+.kad-btn-share:hover { background:#1db954; }
 .kad-btn-print {
-  background:rgba(255,255,255,.12); color:#fff;
-  border:1px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.13); color:#fff;
+  border:1px solid rgba(255,255,255,.22);
 }
+.kad-btn-print:hover { background:rgba(255,255,255,.2); }
 .kad-btn-close {
-  background:rgba(255,255,255,.08); color:rgba(255,255,255,.6);
+  background:rgba(255,255,255,.07); color:rgba(255,255,255,.55);
   border:1px solid rgba(255,255,255,.1);
 }
+.kad-btn-close:hover { background:rgba(255,255,255,.12); color:rgba(255,255,255,.8); }
 
-/* ── PRINT STYLES ── */
+/* Tap hint */
+.kad-hint {
+  font-size:.58rem; color:rgba(255,255,255,.25);
+  text-align:center; letter-spacing:.05em;
+  margin-top:-.3rem;
+}
+
+/* ══ PRINT STYLES ══ */
 @media print {
-  body > *:not(#kad-print-target) { display:none !important; }
-  #kad-print-target {
+  body > *:not(#kad-print-wrap) { display:none !important; }
+  #kad-print-wrap {
     position:fixed; inset:0;
     display:flex; align-items:center; justify-content:center;
-    background:#fff;
+    background:#0a0a14;
   }
-  .kad-card {
+  #kad-print-wrap .kad-card {
     animation:none !important;
-    box-shadow:none !important;
+    width:252px; height:354px;
   }
+  #kad-print-wrap .kad-card::after { display:none; }
 }
 
 /* ── RADAR ── */
@@ -3942,8 +4118,9 @@ init();
 </script>
 
 <!-- ════ PASSPORT KAD MODAL ════ -->
+<!-- ════ PASSPORT KAD MODAL ════ -->
 <div id="kad-modal" onclick="closeKadModal(event)">
-  <div class="kad-scene">
+  <div class="kad-scene" id="kad-scene">
     <div class="kad-card" id="kad-card">
       <div class="kad-bg"></div>
       <div class="kad-holo"></div>
@@ -3982,6 +4159,8 @@ init();
       </div>
     </div>
   </div>
+  <!-- Hint -->
+  <div class="kad-hint">☝️ Pegang &amp; gerak untuk kesan 3D</div>
   <!-- Action Buttons -->
   <div class="kad-actions" id="kad-actions">
     <button class="kad-btn kad-btn-share" onclick="shareKadWhatsapp(event)">📲 Kongsi WhatsApp</button>
@@ -3989,6 +4168,8 @@ init();
     <button class="kad-btn kad-btn-close" onclick="closeKadModalDirect()">✕ Tutup</button>
   </div>
 </div>
+<!-- Print wrapper (hidden normally, shown on print) -->
+<div id="kad-print-wrap" style="display:none"></div>
 
 <script>
 /* ════════════════════════════════════
@@ -4056,7 +4237,7 @@ function openPassportKad(){
   var lv = dnaLevel2(dna);
   var pos = posCode2(p.best_position||p.position||'');
 
-  // Stats
+  // Stats dari DNA attributes
   var pac = _kadAttrs['pace']||0;
   var sho = _kadAttrs['finishing']||0;
   var pas = _kadAttrs['passing']||0;
@@ -4068,10 +4249,7 @@ function openPassportKad(){
   document.getElementById('kad-ovr').textContent = dna||'—';
   document.getElementById('kad-pos').textContent = pos||'—';
   document.getElementById('kad-tier-badge').textContent = lv.title;
-  document.getElementById('kad-tier-badge').style.color = lv.color;
-  document.getElementById('kad-tier-badge').style.borderColor = lv.color;
   document.getElementById('kad-initial').textContent = dn[0].toUpperCase();
-  document.getElementById('kad-initial').style.color = lv.color;
   document.getElementById('ks-pac').textContent = pac||'—';
   document.getElementById('ks-sho').textContent = sho||'—';
   document.getElementById('ks-pas').textContent = pas||'—';
@@ -4082,19 +4260,27 @@ function openPassportKad(){
   document.getElementById('kad-club').textContent = (p.clubs&&p.clubs.name)||'Tanpa Kelab';
   document.getElementById('kad-fpno').textContent = p.passport_number||'—';
 
-  // Apply tier class to card
+  // Apply tier class to card (CSS handles colors, not inline style)
   var card = document.getElementById('kad-card');
   var allK = ['kad-tier-elite','kad-tier-advanced','kad-tier-developed','kad-tier-developing','kad-tier-foundation','kad-tier-starter'];
   allK.forEach(function(c){ card.classList.remove(c); });
   card.classList.add(tierClass(lv.title));
 
+  // Reset animation (re-trigger flip entry)
+  var scene = document.getElementById('kad-scene');
+  if(scene){
+    scene.style.animation = 'none';
+    scene.offsetHeight; /* reflow */
+    scene.style.animation = '';
+  }
+
   // Show modal
   var modal = document.getElementById('kad-modal');
   modal.classList.add('open');
-  document.body.style.overflow='hidden';
+  document.body.style.overflow = 'hidden';
 
-  // Attach tilt interaction
-  attachKadTilt();
+  // Attach tilt interaction selepas animation siap
+  setTimeout(function(){ attachKadTilt(); }, 600);
 }
 
 function closeKadModal(e){
@@ -4169,10 +4355,23 @@ function shareKadWhatsapp(e){
   window.open(waUrl,'_blank');
 }
 
-/* Print Kad */
+/* Print Kad — salin kad ke print wrapper, kemudian print */
 function printKad(e){
   e.stopPropagation();
-  window.print();
+  var card = document.getElementById('kad-card');
+  var wrap = document.getElementById('kad-print-wrap');
+  if(!card||!wrap) return;
+  // Clone kad untuk print
+  var clone = card.cloneNode(true);
+  clone.style.animation = 'none';
+  clone.style.transform = 'none';
+  clone.style.cursor = 'default';
+  clone.style.width = '252px';
+  clone.style.height = '354px';
+  wrap.innerHTML = '';
+  wrap.appendChild(clone);
+  // Print
+  setTimeout(function(){ window.print(); }, 100);
 }
 </script>
 </body>
