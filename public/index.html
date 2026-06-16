@@ -2604,20 +2604,34 @@ async function obNext(){
 }
 
 async function obSkip(){
+  if(!_u) return;
+  var name=_u.user_metadata?.full_name||'Pemain Baru';
+  var role=_u.user_metadata?.role||'player';
+  var phone=_u.user_metadata?.phone||null;
+  var fp=_obDOB?generateFPNo(_obDOB,_obStateCode,name):null;
   try{
-    await Promise.race([
-      saveOnboardingStep1(),
-      new Promise(function(_,reject){setTimeout(function(){reject(new Error('timeout'));},8000);})
-    ]);
-  }catch(e){
-    console.log('Skip save result:', e.message);
-  }
+    await SB.from('profiles').upsert({
+      id:_u.id,full_name:name,phone:phone,role:role
+    },{onConflict:'id'});
+    var payload={
+      profile_id:_u.id,full_name:name,preferred_name:name,
+      is_active:true,is_passport_public:true,
+      kyc_status:'unverified',passport_frame:'unverified',
+    };
+    if(_obDocType!=='passport'&&_obDocNo) payload.ic_number=_obDocNo;
+    if(_obDOB) payload.date_of_birth=_obDOB;
+    if(fp) payload.passport_number=fp;
+    var{error}=await SB.from('players').insert(payload);
+    if(error){
+      await SB.from('players').update(payload).eq('profile_id',_u.id);
+    }
+  }catch(e){console.warn('skip save:',e.message);}
   hideOnboarding();
-  toast('✅ Football Passport dicipta! Lengkapkan profil kemudian.');
+  toast('✅ Football Passport dicipta!');
   window._obJustCompleted=true;
   _pd=null;
   go('profile');
-  setTimeout(function(){loadProfile();},500);
+  setTimeout(function(){loadProfile();},800);
 }
 
 async function saveOnboardingStep1(){
@@ -2688,14 +2702,62 @@ async function obComplete(){
   btn.disabled=true;
   btn.textContent='Menyimpan...';
   try{
-    await saveOnboardingStep1();
-    await saveOnboardingStep2();
+    if(!_u){toast('⚠️ Sila log masuk dahulu');return;}
+    var name=_u.user_metadata?.full_name||'Pemain Baru';
+    var role=_u.user_metadata?.role||'player';
+    var phone=_u.user_metadata?.phone||null;
+    var fp=_obDOB?generateFPNo(_obDOB,_obStateCode,name):null;
+
+    // 1. Insert profiles dulu
+    try{
+      await SB.from('profiles').upsert({
+        id:_u.id,full_name:name,phone:phone,role:role
+      },{onConflict:'id'});
+    }catch(pe){console.warn('profiles:',pe.message);}
+
+    // 2. Insert players
+    var payload={
+      profile_id:_u.id,full_name:name,preferred_name:name,
+      is_active:true,is_passport_public:true,
+      kyc_status:'unverified',passport_frame:'unverified',
+    };
+    if(_obDocType!=='passport'&&_obDocNo) payload.ic_number=_obDocNo;
+    if(_obDOB) payload.date_of_birth=_obDOB;
+    if(fp) payload.passport_number=fp;
+
+    var{error:insErr}=await SB.from('players').insert(payload);
+    if(insErr){
+      console.warn('insert failed:',insErr.message);
+      var{error:updErr}=await SB.from('players')
+        .update(payload).eq('profile_id',_u.id);
+      if(updErr) console.warn('update failed:',updErr.message);
+    }
+
+    // 3. Save step 2 data
+    var pos=document.getElementById('ob-position')?.value||null;
+    var foot=document.getElementById('ob-foot')?.value||null;
+    var jersey=document.getElementById('ob-jersey')?.value||null;
+    var height=document.getElementById('ob-height')?.value||null;
+    var weight=document.getElementById('ob-weight')?.value||null;
+    var nick=document.getElementById('ob-nickname')?.value?.trim()||null;
+    var upd={};
+    if(pos){upd.position=pos;upd.best_position=pos.toUpperCase();}
+    if(foot) upd.preferred_foot=foot;
+    if(jersey) upd.jersey_number=parseInt(jersey);
+    if(height) upd.height_cm=parseInt(height);
+    if(weight) upd.weight_kg=parseInt(weight);
+    if(nick) upd.nickname=nick;
+    if(Object.keys(upd).length>0){
+      await SB.from('players').update(upd).eq('profile_id',_u.id);
+    }
+
     hideOnboarding();
     toast('✅ Profil disimpan! Selamat datang ke PlayPro!');
     window._obJustCompleted=true;
     _pd=null;
     go('profile');
     setTimeout(function(){loadProfile();},800);
+
   }catch(e){
     console.error('obComplete error:',e);
     toast('⚠️ '+e.message);
