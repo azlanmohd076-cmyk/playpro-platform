@@ -1226,6 +1226,21 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
         </div>
       </div>
 
+      <!-- No. Telefon -->
+      <div style="margin-bottom:.75rem">
+        <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem">No. Telefon <span style="color:#ef4444">*</span></label>
+        <div style="display:flex;gap:.4rem">
+          <select class="fi" id="ob-phone-code" style="width:90px;flex-shrink:0;padding-left:.5rem">
+            <option value="+60">🇲🇾 +60</option>
+            <option value="+65">🇸🇬 +65</option>
+            <option value="+62">🇮🇩 +62</option>
+            <option value="+1">🇺🇸 +1</option>
+          </select>
+          <input class="fi" id="ob-phone" type="tel" placeholder="123456789" style="flex:1"/>
+        </div>
+        <div style="font-size:.6rem;color:var(--mute);margin-top:.25rem">Tidak akan dipaparkan sepenuhnya kepada orang lain</div>
+      </div>
+
       <!-- No. Dokumen -->
       <div style="margin-bottom:.75rem">
         <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem" id="ob-doc-label">No. MyKad (12 digit)</label>
@@ -2036,57 +2051,70 @@ function pp2Tab(t){
 
 async function loadStats2(pid){
   try{
-    const{data}=await SB.from('player_match_stats')
+    // Ambil dari player_match_stats table
+    var{data,error}=await SB.from('player_match_stats')
       .select('goals,goals_scored,assists,yellow_cards,red_cards,minutes_played')
-      .eq('player_id',pid).limit(300);
-    if(!data||!data.length){
-      // Tunjuk demo stats untuk investor pitch
-      document.getElementById('s2-apps').textContent='335';
-      document.getElementById('s2-mins').textContent='28,350';
-      document.getElementById('s2-goals').textContent='99';
-      document.getElementById('s2-ast').textContent='137';
-      document.getElementById('s2-yk').textContent='30';
-      document.getElementById('s2-rk').textContent='2';
-      document.getElementById('r2-gpg').textContent='0.30';
-      document.getElementById('r2-apg').textContent='0.41';
-      document.getElementById('r2-mpg').textContent='286';
-      document.getElementById('r2-kpg').textContent='0.09';
-      buildSeasonChart2(335,99,137);
+      .eq('player_id',pid).limit(500);
+
+    // Reset semua ke —
+    ['s2-apps','s2-mins','s2-goals','s2-ast','s2-yk','s2-rk'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.textContent='0';
+    });
+    ['r2-gpg','r2-apg','r2-mpg','r2-kpg'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.textContent='—';
+    });
+
+    if(error||!data||!data.length){
+      // Tiada stats - tunjuk 0
+      buildSeasonChart2(0,0,0);
       return;
     }
-    const sum=(a,k)=>a.reduce((t,r)=>t+(r[k]||0),0);
-    const apps=data.length,mins=sum(data,'minutes_played'),
-          goals=sum(data,'goals_scored')||sum(data,'goals'),
-          ast=sum(data,'assists'),yk=sum(data,'yellow_cards'),rk=sum(data,'red_cards');
-    document.getElementById('s2-apps').textContent=apps;
-    document.getElementById('s2-mins').textContent=mins||'—';
-    document.getElementById('s2-goals').textContent=goals;
-    document.getElementById('s2-ast').textContent=ast;
-    document.getElementById('s2-yk').textContent=yk;
-    document.getElementById('s2-rk').textContent=rk;
-    document.getElementById('r2-gpg').textContent=apps?(goals/apps).toFixed(2):'—';
-    document.getElementById('r2-apg').textContent=apps?(ast/apps).toFixed(2):'—';
-    document.getElementById('r2-mpg').textContent=goals?Math.round(mins/goals):'—';
-    document.getElementById('r2-kpg').textContent=apps?((yk+rk)/apps).toFixed(2):'—';
+
+    var sum=function(a,k){return a.reduce(function(t,r){return t+(r[k]||0);},0);};
+    var apps=data.length;
+    var mins=sum(data,'minutes_played');
+    var goals=sum(data,'goals_scored')||sum(data,'goals');
+    var ast=sum(data,'assists');
+    var yk=sum(data,'yellow_cards');
+    var rk=sum(data,'red_cards');
+
+    var el;
+    el=document.getElementById('s2-apps'); if(el) el.textContent=apps;
+    el=document.getElementById('s2-mins'); if(el) el.textContent=mins?mins.toLocaleString():'0';
+    el=document.getElementById('s2-goals'); if(el) el.textContent=goals;
+    el=document.getElementById('s2-ast'); if(el) el.textContent=ast;
+    el=document.getElementById('s2-yk'); if(el) el.textContent=yk;
+    el=document.getElementById('s2-rk'); if(el) el.textContent=rk;
+
+    el=document.getElementById('r2-gpg'); if(el) el.textContent=apps?(goals/apps).toFixed(2):'—';
+    el=document.getElementById('r2-apg'); if(el) el.textContent=apps?(ast/apps).toFixed(2):'—';
+    el=document.getElementById('r2-mpg'); if(el) el.textContent=goals?Math.round(mins/goals):'—';
+    el=document.getElementById('r2-kpg'); if(el) el.textContent=apps?((yk+rk)/apps).toFixed(2):'—';
+
     buildSeasonChart2(apps,goals,ast);
-  }catch(e){console.error(e);}
+  }catch(e){
+    console.error('loadStats2:',e);
+    buildSeasonChart2(0,0,0);
+  }
 }
 
 function buildSeasonChart2(apps,goals,ast){
-  const ctx=document.getElementById('season2-chart');
-  if(!ctx)return;
+  var ctx=document.getElementById('season2-chart');
+  if(!ctx) return;
   if(_seasonChart2){_seasonChart2.destroy();}
-  const isDark=document.documentElement.classList.contains('dark');
-  const tCol=isDark?'rgba(228,237,232,.45)':'rgba(13,31,22,.35)';
-  const gCol=isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)';
+  var isDark=document.documentElement.classList.contains('dark');
+  var tCol=isDark?'rgba(228,237,232,.45)':'rgba(13,31,22,.35)';
+  var gCol=isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)';
   _seasonChart2=new Chart(ctx,{
     type:'bar',
     data:{
-      labels:['1998-2010','2010-2020','2020-2024','2024-Kini'],
+      labels:['Keseluruhan'],
       datasets:[
-        {label:'Penampilan',data:[120,110,82,Math.max(1,apps-312)],backgroundColor:'rgba(59,130,246,.75)',borderRadius:3},
-        {label:'Gol',data:[30,28,29,Math.max(0,goals-87)],backgroundColor:'rgba(0,135,90,.75)',borderRadius:3},
-        {label:'Assist',data:[48,40,36,Math.max(0,ast-124)],backgroundColor:'rgba(139,92,246,.75)',borderRadius:3},
+        {label:'Penampilan',data:[apps||0],backgroundColor:'rgba(59,130,246,.75)',borderRadius:3},
+        {label:'Gol',data:[goals||0],backgroundColor:'rgba(0,135,90,.75)',borderRadius:3},
+        {label:'Assist',data:[ast||0],backgroundColor:'rgba(139,92,246,.75)',borderRadius:3},
       ]
     },
     options:{
@@ -2773,7 +2801,10 @@ async function obComplete(){
     if(!_u){toast('⚠️ Sila log masuk dahulu');return;}
     var name=_u.user_metadata?.full_name||'Pemain Baru';
     var role=_u.user_metadata?.role||'player';
-    var phone=_u.user_metadata?.phone||null;
+    // Ambil no telefon dari onboarding form atau user_metadata
+    var obPhoneCode=document.getElementById('ob-phone-code')?.value||'+60';
+    var obPhoneNum=(document.getElementById('ob-phone')?.value||'').trim();
+    var phone=obPhoneNum?(obPhoneCode+obPhoneNum):(_u.user_metadata?.phone||null);
     var fp=_obDOB?generateFPNo(_obDOB,_obStateCode,name):null;
 
     // 1. Insert profiles dulu
