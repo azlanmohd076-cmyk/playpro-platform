@@ -1023,7 +1023,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
           <div class="pp2-contract">
             <span class="pp2-contract-label">📋 Status Kontrak:</span>
             <span class="pp2-contract-val" id="pp2-contract">Tiada Kontrak</span>
-            <span id="pp2-edit-btn-wrap" style="margin-left:auto;display:flex;gap:.5rem;align-items:center">
+            <span id="pp2-edit-btn-wrap" style="margin-left:auto;display:none;gap:.5rem;align-items:center">
               <button onclick="openEditModal()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;padding:.2rem .55rem;border-radius:6px;cursor:pointer;font-size:.65rem;font-weight:600;font-family:inherit">✏️ Edit</button>
               <span style="cursor:pointer;font-size:.8rem;color:rgba(255,255,255,.3)" onclick="sharePassport()">↗️</span>
             </span>
@@ -3161,23 +3161,19 @@ async function saveEditProfile(){
 }
 
 /* ── SCROLL TO PENJARING ── */
-function scrollToPenjaring(){
-  // Pergi ke tab Utama dulu
+function scrollToPenjaring(e){
+  if(e){e.preventDefault();e.stopPropagation();}
   go('home');
   setTimeout(function(){
-    var el=document.getElementById('top-scorers-home');
-    if(!el) el=document.querySelector('.section-title');
+    var el=document.getElementById('penjaring-section');
+    if(!el) el=document.getElementById('top-scorers-home');
     if(el){
       el.scrollIntoView({behavior:'smooth',block:'start'});
-      // Highlight kejap
-      var parent=el.closest('.section')||el.parentElement;
-      if(parent){
-        parent.style.transition='box-shadow .3s';
-        parent.style.boxShadow='0 0 20px rgba(0,180,216,.4)';
-        setTimeout(function(){parent.style.boxShadow='';},1500);
-      }
+      el.style.transition='box-shadow .3s';
+      el.style.boxShadow='0 0 20px rgba(0,180,216,.4)';
+      setTimeout(function(){el.style.boxShadow='';},1500);
     }
-  },300);
+  },400);
 }
 
 /* ── FEED ── */
