@@ -2620,6 +2620,69 @@ async function obSkip(){
   setTimeout(function(){loadProfile();},500);
 }
 
+async function saveOnboardingStep1(){
+  if(!_u) return;
+  var name=_u.user_metadata?.full_name||'Pemain Baru';
+  var role=_u.user_metadata?.role||'player';
+  var phone=_u.user_metadata?.phone||null;
+  var fp=_obDOB?generateFPNo(_obDOB,_obStateCode,name):null;
+
+  // Step 1: Insert profiles dulu (FK requirement)
+  try{
+    await SB.from('profiles').upsert({
+      id:_u.id,
+      full_name:name,
+      phone:phone,
+      role:role
+    },{onConflict:'id'});
+  }catch(e){console.warn('profiles upsert:',e.message);}
+
+  // Step 2: Insert players
+  var payload={
+    profile_id:_u.id,
+    full_name:name,
+    preferred_name:name,
+    is_active:true,
+    is_passport_public:true,
+    kyc_status:'unverified',
+    passport_frame:'unverified',
+  };
+  if(_obDocType!=='passport'&&_obDocNo) payload.ic_number=_obDocNo;
+  if(_obDOB) payload.date_of_birth=_obDOB;
+  if(fp) payload.passport_number=fp;
+
+  try{
+    var{error:insErr}=await SB.from('players').insert(payload);
+    if(insErr){
+      var{error:updErr}=await SB.from('players')
+        .update(payload).eq('profile_id',_u.id);
+      if(updErr) console.warn('players update:',updErr.message);
+    }
+  }catch(e){console.warn('players insert:',e.message);}
+}
+
+async function saveOnboardingStep2(){
+  if(!_u) return;
+  var pos=document.getElementById('ob-position')?.value||null;
+  var foot=document.getElementById('ob-foot')?.value||null;
+  var jersey=document.getElementById('ob-jersey')?.value||null;
+  var height=document.getElementById('ob-height')?.value||null;
+  var weight=document.getElementById('ob-weight')?.value||null;
+  var nick=document.getElementById('ob-nickname')?.value?.trim()||null;
+  var update={};
+  if(pos){update.position=pos;update.best_position=pos.toUpperCase();}
+  if(foot) update.preferred_foot=foot;
+  if(jersey) update.jersey_number=parseInt(jersey);
+  if(height) update.height_cm=parseInt(height);
+  if(weight) update.weight_kg=parseInt(weight);
+  if(nick) update.nickname=nick;
+  if(Object.keys(update).length===0) return;
+  try{
+    await SB.from('players').update(update).eq('profile_id',_u.id);
+  }catch(e){console.warn('step2:',e.message);}
+}
+
+
 async function obComplete(){
   var btn=document.getElementById('ob-btn2');
   btn.disabled=true;
