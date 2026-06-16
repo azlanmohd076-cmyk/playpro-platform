@@ -2090,22 +2090,35 @@ async function loadLB(){
 
 // Tengok profile pemain lain
 async function viewPlayerProfile(elOrId){
-  const playerId = typeof elOrId === 'string' ? elOrId : elOrId.dataset?.pid || elOrId;
-  toast('🔍 Loading: '+playerId);
+  const playerId = typeof elOrId === 'string' ? elOrId : (elOrId?.dataset?.pid || elOrId);
   if(!playerId){toast('❌ ID pemain tidak ditemui');return;}
+
+  // Tutup onboarding kalau ada
+  const obMask=document.getElementById('onboarding-mask');
+  if(obMask) obMask.style.display='none';
+
   try{
-    const{data:p}=await SB.from('players')
+    const{data:p,error}=await SB.from('players')
       .select('id,full_name,preferred_name,nickname,position,best_position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,nationality,phone,clubs(name)')
-      .eq('id',playerId).maybeSingle();
-    if(!p){toast('❌ Profil tidak dijumpai atau tidak awam');return;}
+      .eq('id',playerId)
+      .maybeSingle();
 
-    // Simpan player yang ditengok
-    _viewingPlayer = p;
-
-    // Tunjuk modal profile
+    if(error){
+      console.error('viewPlayer error:',error.message);
+      toast('❌ Gagal muatkan profil: '+error.message);
+      return;
+    }
+    if(!p){
+      toast('❌ Profil tidak dijumpai atau tidak awam');
+      return;
+    }
     showPlayerModal(p);
-  }catch(e){toast('❌ Gagal muatkan profil');console.error(e);}
+  }catch(e){
+    console.error('viewPlayer exception:',e.message);
+    toast('❌ Ralat: '+e.message);
+  }
 }
+
 
 let _viewingPlayer = null;
 
