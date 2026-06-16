@@ -2343,7 +2343,7 @@ function renderOtherPassport(p){
       +'<div style="font-size:1rem;font-weight:900;color:'+lv.color+'">'+dna+'</div>'
       +'<div style="font-size:.45rem;color:rgba(255,255,255,.4)">'+lv.title+'</div>'
     +'</div>'
-    +(_u?'<button onclick="startConvoWith(''+p.id+'',''+dn+'')" style="padding:.35rem .75rem;background:'+lv.color+';color:#000;border:none;border-radius:8px;font-size:.68rem;font-weight:800;cursor:pointer;font-family:inherit;flex-shrink:0">💬 Mesej</button>':'')
+    +(_u?'<button onclick="startConvoWith(this.dataset.pid,this.dataset.name)" data-pid="'+p.id+'" data-name="'+dn+'" style="padding:.35rem .75rem;background:'+lv.color+';color:#000;border:none;border-radius:8px;font-size:.68rem;font-weight:800;cursor:pointer;font-family:inherit;flex-shrink:0">💬 Mesej</button>':'')
     +'<span style="font-size:.55rem;font-family:monospace;color:'+lv.color+';padding:.25rem .5rem;background:rgba(0,0,0,.3);border-radius:6px;flex-shrink:0">'+(p.passport_number||'—')+'</span>';
   bar.style.display='flex';
 
