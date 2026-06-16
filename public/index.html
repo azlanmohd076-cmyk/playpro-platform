@@ -2114,7 +2114,7 @@ function showPlayerModal(p){
   if(!modal){
     modal=document.createElement('div');
     modal.id='player-modal';
-    modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;background:#0f172a;display:none';
+    modal.style.cssText='position:fixed;inset:0;z-index:500;background:#0f172a;display:none;overflow-y:auto';
     document.body.appendChild(modal);
   }
 
@@ -2135,7 +2135,7 @@ function showPlayerModal(p){
   });
 
   modal.innerHTML=
-    '<div style="height:100%;display:flex;flex-direction:column;overflow:hidden">'
+    '<div style="min-height:100%;display:flex;flex-direction:column">'
       +'<div style="background:linear-gradient(135deg,#0d1f2d,#1a2f3d);padding:.85rem 1rem;border-bottom:2px solid '+lv.color+'44;flex-shrink:0">'
         +'<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">'
           +'<button onclick="closePlayerModal()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0">&#8592;</button>'
@@ -2272,7 +2272,10 @@ async function loadViewerAttributes(playerId){
 
 function closePlayerModal(){
   const modal = document.getElementById('player-modal');
-  if(modal) modal.style.display = 'none';
+  if(modal){ 
+    modal.style.display='none';
+    modal.innerHTML=''; // Clear untuk prevent stale state
+  }
 }
 
 function startConvoWith(playerId, playerName){
