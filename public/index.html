@@ -1229,8 +1229,8 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
       <!-- No. Dokumen -->
       <div style="margin-bottom:.75rem">
         <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem" id="ob-doc-label">No. MyKad (12 digit)</label>
-        <input class="fi" id="ob-doc-no" type="text" placeholder="e.g. 761927051234" maxlength="20" oninput="validateDocNo()" style="font-family:monospace;letter-spacing:.05em"/>
-        <div id="ob-doc-hint" style="font-size:.62rem;color:var(--mute);margin-top:.3rem">Format: DDMMYY-SS-XXXX (12 digit tanpa sempang)</div>
+        <input class="fi" id="ob-doc-no" type="text" placeholder="e.g. 760927051234" maxlength="20" oninput="validateDocNo()" style="font-family:monospace;letter-spacing:.05em"/>
+        <div id="ob-doc-hint" style="font-size:.62rem;color:var(--mute);margin-top:.3rem">Format: YYMMDD-SS-XXXX (12 digit tanpa sempang, e.g. 760927051234)</div>
         <div id="ob-doc-err" style="font-size:.62rem;color:#ef4444;margin-top:.3rem;display:none"></div>
         <div id="ob-doc-ok" style="font-size:.62rem;color:var(--g);margin-top:.3rem;display:none">✅ Format betul</div>
       </div>
@@ -2481,8 +2481,8 @@ function selectDocType(el, type){
   var input=document.getElementById('ob-doc-no');
   if(type==='mykad'){
     label.textContent='No. MyKad (12 digit)';
-    hint.textContent='Format: DDMMYY-SS-XXXX (12 digit tanpa sempang)';
-    input.placeholder='e.g. 761927051234';
+    hint.textContent='Format: YYMMDD-SS-XXXX (12 digit tanpa sempang, e.g. 760927051234)';
+    input.placeholder='e.g. 760927051234';
     input.maxLength=12;
   } else if(type==='passport'){
     label.textContent='No. Passport Asing';
@@ -2492,7 +2492,7 @@ function selectDocType(el, type){
   } else {
     label.textContent='No. Kad Merah (12 digit)';
     hint.textContent='Format sama dengan MyKad (12 digit)';
-    input.placeholder='e.g. 761927051234';
+    input.placeholder='e.g. 760927051234';
     input.maxLength=12;
   }
   input.value='';
@@ -2523,17 +2523,20 @@ function validateDocNo(){
       return;
     }
     // Validate tarikh lahir dari 6 digit pertama
-    var dd=parseInt(digits.substring(0,2));
+    // Format IC Malaysia: YYMMDD-SS-XXXX
+    var yy=parseInt(digits.substring(0,2));
     var mm=parseInt(digits.substring(2,4));
-    var yy=parseInt(digits.substring(4,6));
+    var dd=parseInt(digits.substring(4,6));
     if(dd<1||dd>31||mm<1||mm>12){
-      err.textContent='❌ Tarikh lahir tidak sah dalam IC';
+      err.textContent='❌ Tarikh lahir tidak sah dalam IC (format: YYMMDD)';
       err.style.display='block';
       return;
     }
     var stateDigits=digits.substring(6,8);
     var stateName=STATE_NAMES_OB[stateDigits]||'Tidak diketahui';
-    var yyyy=yy>parseInt(new Date().getFullYear().toString().substring(2))?(1900+yy):(2000+yy);
+    // Tentukan tahun penuh: kalau YY > tahun semasa, ia 1900-an, kalau tidak 2000-an
+    var currentYY=parseInt(new Date().getFullYear().toString().substring(2));
+    var yyyy=yy>currentYY?(1900+yy):(2000+yy);
     _obDOB=yyyy+'-'+String(mm).padStart(2,'0')+'-'+String(dd).padStart(2,'0');
     _obStateCode=stateDigits;
     _obDocNo=digits;
@@ -2573,7 +2576,8 @@ function updateFPPreview(){
 }
 
 function generateFPNo(dob,stateCode,fullName){
-  var d=new Date(dob);
+  // dob format: YYYY-MM-DD
+  var d=new Date(dob+'T00:00:00');
   var dd=String(d.getDate()).padStart(2,'0');
   var mm=String(d.getMonth()+1).padStart(2,'0');
   var yyyy=d.getFullYear();
@@ -2636,15 +2640,27 @@ async function saveOnboardingStep1(){
   };
   try{
     // Cuba insert dulu
-    var{error:insertErr}=await SB.from('players').insert(payload);
+    var{data:insertData,error:insertErr}=await SB.from('players').insert(payload).select().single();
     if(insertErr){
+      console.log('Insert failed, trying update:', insertErr.message);
       // Kalau dah ada, update
-      var{error:updateErr}=await SB.from('players')
+      var{data:updateData,error:updateErr}=await SB.from('players')
         .update(payload)
-        .eq('profile_id',_u.id);
-      if(updateErr) console.error('ob1 update:',updateErr);
+        .eq('profile_id',_u.id)
+        .select().single();
+      if(updateErr){
+        console.error('ob1 update failed:', updateErr);
+        toast('⚠️ Gagal simpan profil: '+updateErr.message);
+      } else {
+        console.log('Updated player:', updateData?.id);
+      }
+    } else {
+      console.log('Inserted player:', insertData?.id);
     }
-  }catch(e){console.error('ob1:',e);}
+  }catch(e){
+    console.error('ob1 exception:',e);
+    toast('⚠️ Error: '+e.message);
+  }
 }
 
 async function saveOnboardingStep2(){
