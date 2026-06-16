@@ -1706,17 +1706,19 @@ async function loadProfile(){
     el.loading.style.display='none';
     if(!p){
       el.main.style.display='none';
-      // Tunjuk onboarding untuk pemain yang baru daftar
       var role=_u.user_metadata?.role||'player';
-      if(role==='player'||role==='coach'||role==='referee'){
+      // Hanya tunjuk onboarding kalau belum ada rekod DAN bukan dari onboarding
+      if((role==='player'||role==='coach'||role==='referee')&&!window._obJustCompleted){
         closeLogin();
         showOnboarding();
       } else {
+        window._obJustCompleted=false;
         el.norec.style.display='block';
-        document.getElementById('pp-norec-sub').textContent='Akaun '+_u.email+' belum dikaitkan dengan rekod pemain.';
+        document.getElementById('pp-norec-sub').textContent='Profil belum lengkap. Sila hubungi admin.';
       }
       return;
     }
+    window._obJustCompleted=false;
     _pd=p;
     el.data.style.display='block';
     renderPP2Header(p);
@@ -2596,7 +2598,10 @@ async function obSkip(){
   await saveOnboardingStep1();
   hideOnboarding();
   toast('✅ Football Passport dicipta! Lengkapkan profil kemudian.');
-  if(_tab==='profile'||true) loadProfile();
+  window._obJustCompleted=true;
+  _pd=null;
+  go('profile');
+  setTimeout(function(){loadProfile();},500);
 }
 
 async function obComplete(){
@@ -2607,27 +2612,38 @@ async function obComplete(){
   await saveOnboardingStep2();
   hideOnboarding();
   toast('✅ Profil disimpan! Selamat datang ke PlayPro!');
+  _pd=null;
   go('profile');
+  setTimeout(function(){loadProfile();},500);
 }
 
 async function saveOnboardingStep1(){
   if(!_u) return;
   var name=_u.user_metadata?.full_name||'Pemain';
   var fp=_obDOB?generateFPNo(_obDOB,_obStateCode,name):null;
+  var payload={
+    profile_id:_u.id,
+    full_name:name,
+    preferred_name:name,
+    nationality:'Malaysian',
+    ic_number:_obDocType!=='passport'?_obDocNo:null,
+    date_of_birth:_obDOB,
+    passport_number:fp,
+    kyc_status:'unverified',
+    passport_frame:'unverified',
+    is_active:true,
+    is_passport_public:true,
+  };
   try{
-    await SB.from('players').upsert({
-      profile_id:_u.id,
-      full_name:name,
-      preferred_name:name,
-      nationality:'Malaysian',
-      ic_number:_obDocType!=='passport'?_obDocNo:null,
-      date_of_birth:_obDOB,
-      passport_number:fp,
-      kyc_status:'unverified',
-      passport_frame:'unverified',
-      is_active:true,
-      is_passport_public:true,
-    },{onConflict:'profile_id'});
+    // Cuba insert dulu
+    var{error:insertErr}=await SB.from('players').insert(payload);
+    if(insertErr){
+      // Kalau dah ada, update
+      var{error:updateErr}=await SB.from('players')
+        .update(payload)
+        .eq('profile_id',_u.id);
+      if(updateErr) console.error('ob1 update:',updateErr);
+    }
   }catch(e){console.error('ob1:',e);}
 }
 
