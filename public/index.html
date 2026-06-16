@@ -777,7 +777,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
   </div>
   <div class="dr-body">
     <div class="dr-grp">NAVIGASI</div>
-    <div class="dr-row on" id="dr-home" onclick="go('home');closeDr()"><span class="dr-ic">🏠</span><span class="dr-tx">Laman Utama</span></div>
+    <div class="dr-row on" id="dr-home" onclick="go('home');closeDr()"><span class="dr-ic">🏠</span><span class="dr-tx">Hub</span></div>
     <div class="dr-row" id="dr-explore" onclick="go('explore');closeDr()"><span class="dr-ic">🔍</span><span class="dr-tx">Terokai</span></div>
     <div class="dr-row" id="dr-team" onclick="go('team');closeDr()"><span class="dr-ic">⚽</span><span class="dr-tx">Pasukan Saya</span></div>
     <div class="dr-row" id="dr-profile" onclick="go('profile');closeDr()"><span class="dr-ic">🪪</span><span class="dr-tx">Football Passport</span></div>
@@ -834,7 +834,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
     <span style="font-size:.65rem;color:rgba(255,255,255,.8);font-weight:700;margin-left:.2rem">2</span>
   </div>
   <div class="hn-sep"></div>
-  <div class="hn-item on" id="hn-home" onclick="go('home')">UTAMA</div>
+  <div class="hn-item on" id="hn-home" onclick="go('home')">HUB</div>
   <div class="hn-item" id="hn-explore" onclick="go('explore')">TEROKAI</div>
   <div class="hn-item" id="hn-team" onclick="go('team')">PASUKAN</div>
   <div class="hn-item" id="hn-profile" onclick="go('profile')">PASSPORT</div>
@@ -847,13 +847,9 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
 
 <!-- ═══ HEADER LAYER 3: Breadcrumb ═══ -->
 <div id="hdr-bread">
-  <div class="hb-item on" onclick="go('home')"><span class="hb-ic">🏠</span> Utama</div>
+  <div class="hb-item on" onclick="go('home')"><span class="hb-ic">🏠</span> Hub</div>
   <span class="hb-arrow">›</span>
   <div class="hb-item" onclick="mustLogin()"><span class="hb-ic">🏆</span> Liga</div>
-  <span class="hb-arrow">›</span>
-  <div class="hb-item" onclick="mustLogin()"><span class="hb-ic">🛡️</span> Kelab</div>
-  <span class="hb-arrow">›</span>
-  <div class="hb-item" onclick="scrollToPenjaring(event)" style="cursor:pointer"><span class="hb-ic">👤</span> Pemain</div>
   <span class="hb-arrow">›</span>
   <div class="hb-item" onclick="mustLogin()"><span class="hb-ic">🏟️</span> Padang</div>
   <span class="hb-arrow">›</span>
@@ -1199,7 +1195,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
 
 <!-- BOTTOM NAV -->
 <div id="bnav">
-  <div class="bn on" id="bn-home" onclick="go('home')"><div class="bn-ic">🏠</div><div class="bn-lb">Utama</div></div>
+  <div class="bn on" id="bn-home" onclick="go('home')"><div class="bn-ic">🏠</div><div class="bn-lb">Hub</div></div>
   <div class="bn" id="bn-explore" onclick="go('explore')"><div class="bn-ic">🔍</div><div class="bn-lb">Terokai</div></div>
   <div class="bn" id="bn-team" onclick="go('team')"><div class="bn-ic">⚽</div><div class="bn-lb">Pasukan</div></div>
   <div class="bn" id="bn-inbox" onclick="go('inbox')" style="position:relative">
@@ -3174,6 +3170,156 @@ function scrollToPenjaring(e){
       setTimeout(function(){el.style.boxShadow='';},1500);
     }
   },400);
+}
+
+/* ── TEROKAI ── */
+var _terLoaded = false;
+
+function loadTerokai(){
+  if(_terLoaded) return;
+  _terLoaded = true;
+  loadTerTopDNA();
+  loadTerTopScorers();
+  loadTerLeagues();
+}
+
+async function loadTerLeagues(){
+  try{
+    var{data}=await SB.from('leagues').select('id,name').limit(20);
+    var sel=document.getElementById('tr-liga');
+    if(!sel||!data) return;
+    data.forEach(function(l){
+      var opt=document.createElement('option');
+      opt.value=l.id;
+      opt.textContent=l.name;
+      sel.appendChild(opt);
+    });
+  }catch(e){console.error(e);}
+}
+
+async function loadTerTopDNA(){
+  var el=document.getElementById('ter-top-dna');
+  if(!el) return;
+  try{
+    var{data}=await SB.from('players')
+      .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,passport_frame,clubs(name)')
+      .not('dna_overall','is',null).eq('is_active',true)
+      .order('dna_overall',{ascending:false}).limit(5);
+    if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Tiada data</div>';return;}
+    el.innerHTML='';
+    data.forEach(function(p,i){
+      var lv=dnaLevel2(p.dna_overall||0);
+      var dn=p.preferred_name||p.full_name||'—';
+      var pos=p.best_position||p.position||'—';
+      var div=document.createElement('div');
+      div.style.cssText='display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.42rem;cursor:pointer';
+      div.innerHTML='<span style="font-size:.95rem;width:26px;text-align:center">'+(['🥇','🥈','🥉'][i]||i+1)+'</span>'
+        +'<div style="width:34px;height:34px;border-radius:9px;border:2px solid '+lv.color+';background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.85rem">'+dn[0]+'</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:.78rem;font-weight:700;color:var(--txt)">'+dn+'</div><div style="font-size:.6rem;color:var(--mute)">'+posCode2(pos)+' · '+(p.clubs?.name||'—')+'</div></div>'
+        +'<div style="text-align:right"><div style="font-size:1rem;font-weight:900;color:'+lv.color+'">'+p.dna_overall+'</div><div style="font-size:.52rem;color:'+lv.color+';font-weight:700">'+lv.title+'</div></div>';
+      div.addEventListener('click',function(){viewPlayerProfile(p.id);});
+      el.appendChild(div);
+    });
+  }catch(e){el.innerHTML='';}
+}
+
+async function loadTerTopScorers(){
+  var el=document.getElementById('ter-top-scorers');
+  if(!el) return;
+  try{
+    var{data}=await SB.from('players')
+      .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,clubs(name)')
+      .not('dna_overall','is',null).eq('is_active',true)
+      .order('dna_overall',{ascending:false}).limit(5);
+    if(!data||!data.length){el.innerHTML='';return;}
+    el.innerHTML='';
+    data.forEach(function(p,i){
+      var lv=dnaLevel2(p.dna_overall||0);
+      var dn=p.preferred_name||p.full_name||'—';
+      var pos=p.best_position||p.position||'—';
+      var div=document.createElement('div');
+      div.style.cssText='display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.42rem;cursor:pointer';
+      div.innerHTML='<span style="font-size:.95rem;width:26px;text-align:center">'+(['🥇','🥈','🥉'][i]||i+1)+'</span>'
+        +'<div style="width:34px;height:34px;border-radius:9px;border:2px solid '+lv.color+';background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.85rem">'+dn[0]+'</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:.78rem;font-weight:700;color:var(--txt)">'+dn+'</div><div style="font-size:.6rem;color:var(--mute)">'+posCode2(pos)+' · '+(p.clubs?.name||'—')+'</div></div>'
+        +'<div style="text-align:right"><div style="font-size:1rem;font-weight:900;color:'+lv.color+'">'+p.dna_overall+'</div></div>';
+      div.addEventListener('click',function(){viewPlayerProfile(p.id);});
+      el.appendChild(div);
+    });
+  }catch(e){el.innerHTML='';}
+}
+
+function onTerState(){
+  // Filter liga ikut negeri (future: query DB)
+  onTerSearch();
+}
+
+async function onTerSearch(){
+  var negeri=document.getElementById('tr-negeri')?.value||'';
+  var liga=document.getElementById('tr-liga')?.value||'';
+  var jenis=document.getElementById('tr-jenis')?.value||'';
+  var q=(document.getElementById('tr-search')?.value||'').trim();
+
+  // Kalau tiada filter, tunjuk default
+  if(!negeri&&!liga&&!jenis&&!q){
+    document.getElementById('ter-default').style.display='block';
+    document.getElementById('ter-results').style.display='none';
+    return;
+  }
+
+  document.getElementById('ter-default').style.display='none';
+  document.getElementById('ter-results').style.display='block';
+  document.getElementById('ter-results-list').innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--mute)">Mencari...</div>';
+
+  try{
+    var query=SB.from('players')
+      .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,passport_frame,passport_number,date_of_birth,clubs(name)')
+      .eq('is_active',true)
+      .eq('is_passport_public',true);
+
+    if(negeri) query=query.like('passport_number',negeri+'%');
+    if(q) query=query.or('full_name.ilike.%'+q+'%,preferred_name.ilike.%'+q+'%');
+    query=query.order('dna_overall',{ascending:false,nullsFirst:false}).limit(30);
+
+    var{data,error}=await query;
+    if(error) throw error;
+
+    var count=document.getElementById('ter-results-count');
+    var list=document.getElementById('ter-results-list');
+
+    if(!data||!data.length){
+      if(count) count.textContent='Tiada hasil ditemui';
+      list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--mute)"><div style="font-size:2rem;margin-bottom:.5rem">😔</div><div>Tiada pemain ditemui</div></div>';
+      return;
+    }
+
+    if(count) count.textContent=data.length+' pemain ditemui';
+    list.innerHTML='';
+    data.forEach(function(p){
+      var lv=dnaLevel2(p.dna_overall||0);
+      var dn=p.preferred_name||p.full_name||'—';
+      var pos=p.best_position||p.position||'—';
+      var age=p.date_of_birth?Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)):'—';
+      var div=document.createElement('div');
+      div.style.cssText='display:flex;align-items:center;gap:.7rem;padding:.75rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.5rem;cursor:pointer;transition:.15s';
+      div.innerHTML='<div style="width:40px;height:40px;border-radius:10px;border:2px solid '+lv.color+';background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.95rem;flex-shrink:0">'+dn[0]+'</div>'
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:.82rem;font-weight:700;color:var(--txt)">'+dn+'</div>'
+          +'<div style="font-size:.62rem;color:var(--mute)">'+posCode2(pos)+' · '+(p.clubs?.name||'Tiada Kelab')+' · '+age+' thn</div>'
+          +'<div style="font-size:.58rem;font-family:monospace;color:var(--g);margin-top:.15rem">'+(p.passport_number||'—')+'</div>'
+        +'</div>'
+        +'<div style="text-align:right;flex-shrink:0">'
+          +'<div style="font-size:1.05rem;font-weight:900;color:'+lv.color+'">'+( p.dna_overall||'—')+'</div>'
+          +'<div style="font-size:.5rem;font-weight:700;color:'+lv.color+'">'+lv.title+'</div>'
+        +'</div>';
+      div.addEventListener('mouseover',function(){this.style.background='var(--bg3)';});
+      div.addEventListener('mouseout',function(){this.style.background='var(--card)';});
+      div.addEventListener('click',function(){viewPlayerProfile(p.id);});
+      list.appendChild(div);
+    });
+  }catch(e){
+    document.getElementById('ter-results-list').innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--mute)">Ralat: '+e.message+'</div>';
+  }
 }
 
 /* ── FEED ── */
