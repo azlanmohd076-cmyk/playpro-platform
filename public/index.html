@@ -1023,7 +1023,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,135,
           <div class="pp2-contract">
             <span class="pp2-contract-label">📋 Status Kontrak:</span>
             <span class="pp2-contract-val" id="pp2-contract">Tiada Kontrak</span>
-            <span style="margin-left:auto;display:flex;gap:.5rem;align-items:center">
+            <span id="pp2-edit-btn-wrap" style="margin-left:auto;display:flex;gap:.5rem;align-items:center">
               <button onclick="openEditModal()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;padding:.2rem .55rem;border-radius:6px;cursor:pointer;font-size:.65rem;font-weight:600;font-family:inherit">✏️ Edit</button>
               <span style="cursor:pointer;font-size:.8rem;color:rgba(255,255,255,.3)" onclick="sharePassport()">↗️</span>
             </span>
@@ -2307,101 +2307,114 @@ async function viewPlayerProfile(elOrId){
 let _viewingPlayer = null;
 
 function showPlayerModal(p){
-  var modal=document.getElementById('player-modal');
-  if(!modal){
-    modal=document.createElement('div');
-    modal.id='player-modal';
-    modal.style.cssText='position:fixed;inset:0;z-index:500;background:#0f172a;display:none;overflow-y:auto';
-    document.body.appendChild(modal);
-  }
+  // Guna layout passport yang sama - simpan player yang ditengok
+  window._viewingOtherPlayer = p;
+  
+  // Update UI untuk tunjuk data orang lain dalam tab passport
+  renderOtherPassport(p);
+}
 
+function renderOtherPassport(p){
+  if(!p) return;
+  
   var dn=p.preferred_name||p.full_name||'Pemain';
   var dna=p.dna_overall||0;
   var lv=dnaLevel2(dna);
   var pos=p.best_position||p.position||'';
   var age=p.date_of_birth?Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)):'—';
-  var club=(p.clubs&&p.clubs.name)?p.clubs.name:'—';
-  var fpno=p.passport_number||'—';
   var foot=p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—';
-  var ht=p.height_cm?p.height_cm+'cm':'—';
 
-  // DNA bars
-  var b='';
-  [{l:'TEC',v:p.dna_technical||0,c:'#3b82f6'},{l:'FIZ',v:p.dna_physical||0,c:'#00875a'},{l:'MEN',v:p.dna_mental||0,c:'#8b5cf6'},{l:'TAK',v:p.dna_tactical||0,c:'#f59e0b'}].forEach(function(s){
-    b+='<div style="text-align:center;background:rgba(255,255,255,.06);border-radius:6px;padding:.35rem .2rem"><div style="font-size:1rem;font-weight:900;color:'+s.c+'">'+s.v+'</div><div style="font-size:.45rem;color:rgba(255,255,255,.35)">'+s.l+'</div></div>';
-  });
-
-  modal.innerHTML=
-    '<div style="min-height:100%;display:flex;flex-direction:column">'
-      +'<div style="background:linear-gradient(135deg,#0d1f2d,#1a2f3d);padding:.85rem 1rem;border-bottom:2px solid '+lv.color+'44;flex-shrink:0">'
-        +'<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">'
-          +'<button onclick="closePlayerModal()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0">&#8592;</button>'
-          +'<div style="width:52px;height:52px;border-radius:50%;background:'+lv.color+'33;border:3px solid '+lv.color+';display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;color:#fff;flex-shrink:0">'+dn[0].toUpperCase()+'</div>'
-          +'<div style="flex:1;min-width:0">'
-            +'<div style="font-size:.95rem;font-weight:900;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+dn+'</div>'
-            +'<div style="font-size:.6rem;color:rgba(255,255,255,.45)">'+posCode2(pos)+' | '+club+' | '+age+' thn</div>'
-          +'</div>'
-          +'<div style="text-align:center;flex-shrink:0">'
-            +'<div style="width:48px;height:48px;border-radius:50%;border:3px solid '+lv.color+';background:rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center">'
-              +'<div style="font-size:1.1rem;font-weight:900;color:'+lv.color+';line-height:1">'+dna+'</div>'
-              +'<div style="font-size:.38rem;color:rgba(255,255,255,.4)">DNA</div>'
-            +'</div>'
-            +'<div style="font-size:.45rem;font-weight:800;color:'+lv.color+';margin-top:.15rem">'+lv.title+'</div>'
-          +'</div>'
-        +'</div>'
-        +'<div style="background:rgba(0,0,0,.35);padding:.28rem .6rem;border-radius:7px;display:flex">'
-          +'<span style="font-size:.58rem;font-family:monospace;color:'+lv.color+';font-weight:700">'+fpno+'</span>'
-          +'<span style="margin-left:auto;font-size:.56rem;color:'+(p.kyc_status==='verified'?'#4ade80':'rgba(255,255,255,.3)')+'">'+( p.kyc_status==='verified'?'Verified':'—')+'</span>'
-        +'</div>'
-      +'</div>'
-      +'<div style="background:#0f172a;padding:.55rem 1rem;display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0">'+b+'</div>'
-      +'<div style="background:#0f172a;display:flex;border-bottom:2px solid rgba(255,255,255,.06);flex-shrink:0">'
-        +'<button id="vb-dna" onclick="vpSwitch(this)" data-t="dna" style="flex-shrink:0;padding:.55rem .9rem;font-size:.68rem;font-weight:700;cursor:pointer;color:'+lv.color+';border-bottom:2.5px solid '+lv.color+';background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;margin-bottom:-2px">DNA</button>'
-        +'<button id="vb-stats" onclick="vpSwitch(this)" data-t="stats" style="flex-shrink:0;padding:.55rem .9rem;font-size:.68rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;margin-bottom:-2px">Statistik</button>'
-        +'<button id="vb-bio" onclick="vpSwitch(this)" data-t="bio" style="flex-shrink:0;padding:.55rem .9rem;font-size:.68rem;font-weight:600;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2.5px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;margin-bottom:-2px">Biodata</button>'
-      +'</div>'
-      +'<div style="flex:1;overflow-y:auto;background:#0f172a;padding:.75rem .85rem">'
-        +'<div id="vp-dna"><div id="vp-attr-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem"><div style="grid-column:1/-1;text-align:center;padding:2rem;color:rgba(255,255,255,.3)">Memuatkan...</div></div></div>'
-        +'<div id="vp-stats" style="display:none">'
-          +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-bottom:.65rem">'
-            +'<div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:10px;padding:.65rem;text-align:center"><div style="font-size:1.4rem;font-weight:900;color:#fff">—</div><div style="font-size:.58rem;color:rgba(255,255,255,.75)">Penampilan</div></div>'
-            +'<div style="background:linear-gradient(135deg,#5b21b6,#8b5cf6);border-radius:10px;padding:.65rem;text-align:center"><div style="font-size:1.4rem;font-weight:900;color:#fff">—</div><div style="font-size:.58rem;color:rgba(255,255,255,.75)">Gol</div></div>'
-            +'<div style="background:linear-gradient(135deg,#92400e,#f59e0b);border-radius:10px;padding:.65rem;text-align:center"><div style="font-size:1.4rem;font-weight:900;color:#fff">—</div><div style="font-size:.58rem;color:rgba(255,255,255,.75)">Assist</div></div>'
-          +'</div>'
-        +'</div>'
-        +'<div id="vp-bio" style="display:none">'
-          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.65rem">'
-            +'<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.75rem">'
-              +'<div style="font-size:.55rem;font-weight:700;color:'+lv.color+';text-transform:uppercase;margin-bottom:.45rem">Peribadi</div>'
-              +'<div style="margin-bottom:.35rem"><div style="font-size:.48rem;color:rgba(255,255,255,.3)">UMUR</div><div style="font-size:.78rem;font-weight:600;color:#fff">'+age+' tahun</div></div>'
-              +'<div><div style="font-size:.48rem;color:rgba(255,255,255,.3)">FP NO.</div><div style="font-size:.6rem;font-weight:700;color:'+lv.color+';font-family:monospace">'+fpno+'</div></div>'
-            +'</div>'
-            +'<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.75rem">'
-              +'<div style="font-size:.55rem;font-weight:700;color:'+lv.color+';text-transform:uppercase;margin-bottom:.45rem">Fizikal</div>'
-              +'<div style="margin-bottom:.35rem"><div style="font-size:.48rem;color:rgba(255,255,255,.3)">POSISI</div><div style="font-size:.78rem;font-weight:600;color:#fff">'+posCode2(pos)+'</div></div>'
-              +'<div style="margin-bottom:.35rem"><div style="font-size:.48rem;color:rgba(255,255,255,.3)">KAKI</div><div style="font-size:.78rem;font-weight:600;color:#fff">'+foot+'</div></div>'
-              +'<div><div style="font-size:.48rem;color:rgba(255,255,255,.3)">TINGGI</div><div style="font-size:.78rem;font-weight:600;color:#fff">'+ht+'</div></div>'
-            +'</div>'
-          +'</div>'
-          +'<div id="vp-msg-wrap"></div>'
-        +'</div>'
-      +'</div>'
-    +'</div>';
-  modal.style.display='block';
-
-  // Inject msg button
-  var mw=document.getElementById('vp-msg-wrap');
-  if(mw){
-    var btn=document.createElement('button');
-    btn.style.cssText='width:100%;padding:.72rem;border:none;border-radius:10px;font-size:.82rem;font-weight:800;cursor:pointer;font-family:inherit;background:'+lv.color+';color:#000';
-    btn.textContent='Hantar Mesej kepada '+dn;
-    if(!_u){btn.style.background='rgba(0,135,90,.15)';btn.style.color='var(--g)';btn.style.border='1px solid var(--g)';btn.style.fontWeight='600';btn.textContent='Log Masuk untuk Hantar Mesej';btn.onclick=function(){closePlayerModal();showLogin();};}
-    else{btn.onclick=function(){startConvoWith(p.id,dn);};}
-    mw.appendChild(btn);
+  // Tunjuk overlay bar di atas
+  var bar=document.getElementById('other-player-bar');
+  if(!bar){
+    bar=document.createElement('div');
+    bar.id='other-player-bar';
+    bar.style.cssText='position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);padding:.5rem 1rem;display:flex;align-items:center;gap:.75rem;border-bottom:2px solid '+lv.color;
+    document.body.appendChild(bar);
   }
+  bar.innerHTML=''
+    +'<button onclick="closeOtherPassport()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0">&#8592;</button>'
+    +'<div style="width:36px;height:36px;border-radius:50%;background:'+lv.color+'33;border:2px solid '+lv.color+';display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:900;color:#fff;flex-shrink:0">'+dn[0].toUpperCase()+'</div>'
+    +'<div style="flex:1;min-width:0">'
+      +'<div style="font-size:.88rem;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+dn+'</div>'
+      +'<div style="font-size:.6rem;color:rgba(255,255,255,.5)">'+posCode2(pos)+' &nbsp;|&nbsp; '+age+' thn &nbsp;|&nbsp; '+foot+'</div>'
+    +'</div>'
+    +'<div style="text-align:center">'
+      +'<div style="font-size:1rem;font-weight:900;color:'+lv.color+'">'+dna+'</div>'
+      +'<div style="font-size:.45rem;color:rgba(255,255,255,.4)">'+lv.title+'</div>'
+    +'</div>'
+    +(_u?'<button onclick="startConvoWith(''+p.id+'',''+dn+'')" style="padding:.35rem .75rem;background:'+lv.color+';color:#000;border:none;border-radius:8px;font-size:.68rem;font-weight:800;cursor:pointer;font-family:inherit;flex-shrink:0">💬 Mesej</button>':'')
+    +'<span style="font-size:.55rem;font-family:monospace;color:'+lv.color+';padding:.25rem .5rem;background:rgba(0,0,0,.3);border-radius:6px;flex-shrink:0">'+(p.passport_number||'—')+'</span>';
+  bar.style.display='flex';
 
-  loadViewerAttributes(p.id);
+  // Sembunyi header passport sendiri & tunjuk data orang lain
+  // Scroll ke atas dan switch ke tab passport
+  go('profile');
+  
+  // Set flag untuk loadProfile tahu ini bukan profile sendiri
+  window._overrideProfileData = p;
+  
+  // Render data orang lain dalam tab yang ada
+  setTimeout(function(){
+    renderPP2Header(p);
+    loadAttr2ForOther(p.id);
+    renderDNA2Scorecard(p);
+    renderCatBars2(p);
+    renderClubHistory2(p);
+    renderBio2(p);
+    loadStats2Other(p.id);
+    
+    // Tunjuk tab DNA
+    pp2Tab('dna');
+  }, 100);
 }
+
+function closeOtherPassport(){
+  var bar=document.getElementById('other-player-bar');
+  if(bar) bar.style.display='none';
+  window._viewingOtherPlayer=null;
+  window._overrideProfileData=null;
+  // Restore passport sendiri
+  loadProfile();
+}
+
+async function loadAttr2ForOther(pid){
+  try{
+    var{data}=await SB.from('player_attributes')
+      .select('attribute_code,current_value,attribute_definitions(label,category,display_order)')
+      .eq('player_id',pid).eq('is_public',true);
+    window._attrData2=data||[];
+    window._attrScale2=Math.max(1,...(data||[]).map(function(r){return r.current_value||0;}))<=20?20:100;
+    renderRadar2('all');
+    renderAttrCards2('all');
+    var el=document.getElementById('dna2-count');
+    if(el) el.textContent=(data||[]).length+' atribut dinilai';
+    if((data||[]).length>0){
+      var b=document.getElementById('dna2-badge');
+      if(b){b.className='dna2-badge dna2-badge-coach';b.innerHTML='🏋️ Coach Assessed';}
+    }
+  }catch(e){console.error(e);}
+}
+
+async function loadStats2Other(pid){
+  try{
+    var{data}=await SB.from('player_match_stats')
+      .select('goals,assists,yellow_cards,red_cards,minutes_played')
+      .eq('player_id',pid).limit(200);
+    if(!data||!data.length){buildSeasonChart2(0,0,0);return;}
+    var sum=function(a,k){return a.reduce(function(t,r){return t+(r[k]||0);},0);};
+    var apps=data.length,mins=sum(data,'minutes_played'),goals=sum(data,'goals'),ast=sum(data,'assists'),yk=sum(data,'yellow_cards'),rk=sum(data,'red_cards');
+    var el;
+    el=document.getElementById('s2-apps');if(el)el.textContent=apps;
+    el=document.getElementById('s2-mins');if(el)el.textContent=mins||0;
+    el=document.getElementById('s2-goals');if(el)el.textContent=goals;
+    el=document.getElementById('s2-ast');if(el)el.textContent=ast;
+    el=document.getElementById('s2-yk');if(el)el.textContent=yk;
+    el=document.getElementById('s2-rk');if(el)el.textContent=rk;
+    buildSeasonChart2(apps,goals,ast);
+  }catch(e){buildSeasonChart2(0,0,0);}
+}
+
 
 function vpTab(el){
   var t=el.dataset?el.dataset.tab:el;
