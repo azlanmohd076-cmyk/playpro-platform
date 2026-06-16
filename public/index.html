@@ -3031,10 +3031,11 @@ async function saveClubHistoryOnboarding(playerId){
 
 /* ── EDIT PROFILE ── */
 function openEditModal(){
+  if(!_u){showLogin();return;}
+  // Kalau _pd null, load dulu lepas buka modal
   if(!_pd){
-    toast('⚠️ Sila refresh halaman dan cuba semula');
-    console.warn('_pd is null, trying to reload profile');
     loadProfile();
+    setTimeout(function(){openEditModal();},1000);
     return;
   }
   // Pre-fill fields
