@@ -547,13 +547,13 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   0%,100% { box-shadow: 0 0 14px #0077B6, 0 0 28px rgba(0,119,182,.25), 0 6px 20px rgba(0,0,0,.8); }
   50%      { box-shadow: 0 0 28px #0077B6, 0 0 55px rgba(0,119,182,.4), 0 6px 20px rgba(0,0,0,.8); }
 }
-/* 🎨 🧬 TEMA BARU: ULTRA-SLEEK PRO SCOUT TRANSFERMARKT (KEMAS, KOMPAK & PREMIUM) */
+/* 🎨 🧬 TEMA BARU: ULTRA-SLIM PRO SCOUT TRANSFERMARKT (PROPORSI 1:1 TEPAT & PREMIUM) */
 .bg-matrix-light {
   background: #ffffff !important; /* Latar belakang putih bersih premium */
   border: 1px solid #e2e8f0 !important; /* Border perak nipis eksklusif */
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
   border-radius: 10px !important;
-  padding: 14px 18px !important; /* Ruang kontainer dikecilkan supaya fit & premium */
+  padding: 14px 18px !important;
   margin-top: 1.5rem;
 }
 .matrix-title {
@@ -563,23 +563,23 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   padding-bottom: 6px; text-transform: uppercase;
 }
 .matrix-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; font-size: .8rem;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; font-size: 11px;
 }
 @media (max-width: 768px) {
   .matrix-grid { grid-template-columns: 1fr; gap: 1.5rem; }
   .border-end-matrix { border-right: none !important; border-bottom: 2px solid #f1f5f9; padding-bottom: 1.1rem; }
 }
-.matrix-col { display: flex; flex-direction: column; gap: 4px; /* Baris dirapatkan */ }
+.matrix-col { display: flex; flex-direction: column; gap: 4px; }
 .matrix-hdr { font-size: 11px !important; font-weight: 850; letter-spacing: 0.5px; margin-bottom: .4rem; color: #1e3a8a !important; text-transform: uppercase; }
 .border-end-matrix { border-right: 2px solid #f1f5f9 !important; padding-right: 1.25rem; }
 
-/* Kapsul Atribut - Lebih Nipis & Kemas (Compact Pills) */
+/* Kapsul Atribut - Lebih Nipis & Compact (Ultra-Slim Row) */
 .matrix-row {
   background-color: #f8fafc !important; 
   border: 1px solid #f1f5f9 !important; 
   border-radius: 6px !important; 
-  padding: 6px 10px !important; /* Padding nipis untuk sensasi pro dashboard */
   margin-bottom: 4px !important;
+  padding: 4px 10px !important; /* Dipendekkan lagi height baris untuk look pro */
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
@@ -592,25 +592,27 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 }
 
 /* Teks Label (Acceleration, Pace, dsb.) - Kelabu Slate Premium */
-.matrix-row span:first-child { color: #475569 !important; font-size: 12px !important; font-weight: 650 !important; letter-spacing: 0.2px; text-shadow: none !important; font-family: inherit; }
+.matrix-row span:first-child { color: #475569 !important; font-size: 11px !important; font-weight: 600 !important; letter-spacing: 0.1px; text-shadow: none !important; font-family: inherit; }
 
-/* Kotak Skor Angka 1-20 Monospace (Slim Size) */
+/* Nombor Skor - Kini 100% Seimbang & Ikut Proporsi Teks (1:1 Exact Proportion) */
 .attr-val {
   font-family: 'Courier New', Courier, monospace !important;
-  font-size: 14px !important; /* Dikecilkan dari 17px supaya seimbang & premium */
-  font-weight: 850 !important;
+  font-size: 11px !important; /* Disamakan tepat dengan saiz teks label (11px)! */
+  font-weight: 900 !important;
   background: #ffffff !important;
-  padding: 2px 7px !important;
+  padding: 1px 5px !important; /* Padding halus supaya kotak tidak kembung/oversized */
   border-radius: 4px !important;
-  border: 1px solid #e2e8f0 !important;
-  min-width: 26px;
+  border: 1px solid currentColor !important; /* Automatic border color matching */
+  min-width: 20px;
   text-align: center;
+  line-height: 1.2 !important;
+  display: inline-block;
 }
 
 /* Pewarnaan Angka Atas Latar Putih */
-.attr-high { color: #ea580c !important; border-color: #ea580c !important; background: #fff7ed !important; text-shadow: none !important; } /* 15-20: Oren Gelap Pekat */
-.attr-mid  { color: #1d4ed8 !important; border-color: #1d4ed8 !important; background: #eff6ff !important; text-shadow: none !important; } /* 10-14: Biru Diraja Pro */
-.attr-low  { color: #94a3b8 !important; text-shadow: none !important; } /* Bawah 10 / 0: Kelabu Muted */
+.attr-high { color: #ea580c !important; background: #fff7ed !important; text-shadow: none !important; } /* 15-20: Oren Pro */
+.attr-mid  { color: #1d4ed8 !important; background: #eff6ff !important; text-shadow: none !important; } /* 10-14: Biru Pro */
+.attr-low  { color: #94a3b8 !important; text-shadow: none !important; background: transparent !important; border-color: #e2e8f0 !important; } /* Bawah 10 / 0: Kelabu Muted */
 
 /* Shimmer diagonal Pokemon style */
 @keyframes pokeShimmer {
