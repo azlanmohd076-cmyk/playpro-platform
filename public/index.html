@@ -1597,7 +1597,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
       <span>👤</span> LOG MASUK
     </button>
     <!-- Logged in: show user chip -->
-    <div class="hdr-user-chip" id="hdr-user-chip" style="display:none" onclick="go('profile')">
+    <div class="hdr-user-chip" id="hdr-user-chip" style="display:none;cursor:pointer" onclick="patahKeProfilPemilik()" title="Kembali ke Passport Peribadi">
       <div class="hdr-av" id="hdr-av">A</div>
       <span class="hdr-uname" id="hdr-uname">Azlan</span>
     </div>
@@ -2470,6 +2470,26 @@ async function init(){  var params = new URLSearchParams(window.location.search)
 }
 
 /* ── TABS ── */
+function patahKeProfilPemilik() {
+  window._overrideProfileData = null;
+  window._viewingOtherPlayer = null;
+  currentActivePlayerKey = "Azlan";
+  window.currentActivePlayerKey = "Azlan";
+  
+  var ppMain = document.getElementById('pp-main');     if(ppMain) ppMain.style.display='block';
+  var ppData = document.getElementById('pp-data-wrap');if(ppData) ppData.style.display='block';
+  var ppLoad = document.getElementById('pp-loading');  if(ppLoad) ppLoad.style.display='none';
+  var ppGuest= document.getElementById('pp-guest');    if(ppGuest) ppGuest.style.display='none';
+  var ppNorec= document.getElementById('pp-norec');    if(ppNorec) ppNorec.style.display='none';
+
+  var topBar = document.getElementById('other-player-bar');
+  if(topBar) topBar.style.display = 'none';
+
+  go('profile');
+  loadProfile();
+  toast('👤 Kembali ke profil peribadi Azlan');
+}
+
 function go(t){
   ['home','explore','team','profile'].forEach(x=>{
     document.getElementById('tab-'+x).style.display=x===t?'block':'none';
@@ -3338,12 +3358,15 @@ var DEFAULT_PLAYER_REGISTRY = {
   }
 };
 
-// 💾 Load dari LocalStorage jika ada supaya 100% kalis refresh!
-if (!localStorage.getItem('PLAYPRO_REGISTRY_V3')) {
+// 🛡️ SISTEM STORAN KALIS CORRUPT & AUTO-RECOVERY MUTLAK
+if (!localStorage.getItem('PLAYPRO_REGISTRY_V3') || !JSON.parse(localStorage.getItem('PLAYPRO_REGISTRY_V3'))["Azlan"]) {
+  console.warn("⚠️ Mengesan rekod induk rosak atau kosong. Membina semula storan bersih...");
   localStorage.setItem('PLAYPRO_REGISTRY_V3', JSON.stringify(DEFAULT_PLAYER_REGISTRY));
 }
-var PLAYPRO_PLAYER_REGISTRY = JSON.parse(localStorage.getItem('PLAYPRO_REGISTRY_V3'));
+var PLAYPRO_PLAYER_REGISTRY = JSON.parse(localStorage.getItem('PLAYPRO_REGISTRY_V3')) || {};
 window.PLAYPRO_PLAYER_REGISTRY = PLAYPRO_PLAYER_REGISTRY;
+window.currentActivePlayerKey = "Azlan";
+var currentActivePlayerKey = "Azlan";
 
 function syncWithLocalRegistry(p) {
   if(!p) return p;
@@ -4293,9 +4316,8 @@ async function saveEditProfile(){
       reg.avatarCustomUrl = _tempCustomPhotoBase64; reg.photo_url = _tempCustomPhotoBase64;
     }
 
-    // 💾 SIMPAN PERSISTENT KE LOCALSTORAGE MUTLAK!
+    // 💾 SIMPAN PERSISTENT KE LOCALSTORAGE MUTLAK TANPA USIK KUNCI INDUK ASAL!
     PLAYPRO_PLAYER_REGISTRY[activePlayerKey] = reg;
-    if(nick && nick !== activePlayerKey) PLAYPRO_PLAYER_REGISTRY[nick] = reg;
     localStorage.setItem('PLAYPRO_REGISTRY_V3', JSON.stringify(PLAYPRO_PLAYER_REGISTRY));
     window.PLAYPRO_PLAYER_REGISTRY = PLAYPRO_PLAYER_REGISTRY;
 
