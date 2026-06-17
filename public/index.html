@@ -547,18 +547,18 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   0%,100% { box-shadow: 0 0 14px #0077B6, 0 0 28px rgba(0,119,182,.25), 0 6px 20px rgba(0,0,0,.8); }
   50%      { box-shadow: 0 0 28px #0077B6, 0 0 55px rgba(0,119,182,.4), 0 6px 20px rgba(0,0,0,.8); }
 }
-/* 🧬 CM0102 RETRO LUXURY DNA MATRIX */
+/* 🧬 CM0102 PREMIUM LUXURY MATRIX (KONTRA TINGGI & ZEBRA STRIPING) */
 .bg-matrix-dark {
-  background-color: #0b0f26 !important; /* Biru korporat gelap yang sangat bersih & premium */
+  background-color: #0d1527 !important; /* Biru korporat legap eksklusif */
   border: 2px solid #1e293b !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.65);
   margin-top: 1.25rem;
-  padding: 1.25rem !important;
-  border-radius: 14px;
+  padding: 18px !important;
+  border-radius: 12px;
 }
 .matrix-title {
   font-size: .85rem; font-weight: 900; color: #00B4D8;
-  letter-spacing: .12em; margin-bottom: 1.2rem; border-bottom: 2px solid rgba(0,180,216,.25);
+  letter-spacing: .12em; margin-bottom: 1.2rem; border-bottom: 2px solid rgba(0,180,216,.3);
   padding-bottom: .6rem; text-transform: uppercase;
 }
 .matrix-grid {
@@ -568,22 +568,28 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   .matrix-grid { grid-template-columns: 1fr; gap: 1.75rem; }
   .border-end-matrix { border-right: none !important; border-bottom: 2px solid rgba(255,255,255,.08); padding-bottom: 1.25rem; }
 }
-.matrix-col { display: flex; flex-direction: column; gap: .2rem; }
+.matrix-col { display: flex; flex-direction: column; gap: 1px; }
 .matrix-hdr { font-size: .68rem; font-weight: 900; letter-spacing: .1em; margin-bottom: .5rem; color: #00B4D8; text-transform: uppercase; }
 .border-end-matrix { border-right: 2px solid rgba(255,255,255,.08); padding-right: 1.25rem; }
+
+/* Barisan Atribut Selang-Seli (Zebra Striping High Contrast) */
 .matrix-row {
   display: flex; justify-content: space-between; align-items: center;
-  padding: .35rem .5rem; border-bottom: 1px solid rgba(255,255,255,.05);
-  border-radius: 6px;
-  transition: background .2s;
+  padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.06);
+  border-radius: 6px; background-color: rgba(255, 255, 255, 0.012);
+  transition: transform .15s, background-color .15s;
 }
-.matrix-row:hover { background-color: rgba(255,255,255,.04); }
-.matrix-row span:first-child { color: #94a3b8 !important; font-size: .78rem; font-weight: 600; letter-spacing: .02em; }
-/* Gaya No Font Angka CM0102 Retro (Monospace Retro Realistic) */
-.attr-val { font-family: 'Courier New', Courier, monospace; font-size: 1.1rem; font-weight: 900; padding: 1px 6px; border-radius: 4px; text-align: right; min-width: 32px; }
-.attr-high { color: #ff9f43 !important; text-shadow: 0 0 10px rgba(255,159,67,.6); } /* 15-20: Oren/Emas Menyala Luxury */
-.attr-mid  { color: #ffffff !important; } /* 10-14: Putih Bersih */
-.attr-low  { color: #475569 !important; font-weight: 700; } /* Bawah 10 / 0: Kelabu Malap */
+.matrix-row:nth-child(even) { background-color: rgba(255, 255, 255, 0.04); }
+.matrix-row:hover { background-color: rgba(255,255,255,.08); transform: translateX(3px); }
+
+/* Teks Label Kalis Tenggelam (Putih Perak Cerah Tajam) */
+.matrix-row span:first-child { color: #e2e8f0 !important; font-size: 13px; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.8); font-family: inherit; }
+
+/* Gaya No Font Angka CM0102 */
+.attr-val { font-family: 'Courier New', Courier, monospace; font-size: 16px; font-weight: 900; text-align: right; min-width: 32px; padding: 1px 6px; border-radius: 4px; }
+.attr-high { color: #ff9f43 !important; text-shadow: 0 0 10px rgba(255,159,67,.8); } /* 15-20: Oren/Emas Menyala Luxury */
+.attr-mid  { color: #00ffff !important; text-shadow: 0 0 8px rgba(0,255,255,.6); } /* 10-14: Sian Cyan Neon Tajam */
+.attr-low  { color: #64748b !important; font-weight: 700; } /* Bawah 10: Kelabu Malap */
 
 /* Shimmer diagonal Pokemon style */
 @keyframes pokeShimmer {
@@ -2641,33 +2647,41 @@ async function loadProfile(){
 }
 
 function renderPP2Header(p){
+  if(!p) return;
   const dn=p.preferred_name||p.full_name||'Pemain';
   const dna=p.dna_overall||0;
   const lv=dnaLevel2(dna);
-  document.getElementById('pp2-name').textContent=dn;
-  document.getElementById('pp2-club').textContent=p.clubs?.name||'Tiada Kelab';
+  
+  function safeSet(id, val){var el=document.getElementById(id);if(el)el.textContent=val;}
+  
+  safeSet('pp2-name', dn);
+  safeSet('pp2-club', p.clubs?.name||'Tiada Kelab');
+  
   const nickEl=document.getElementById('pp2-nickname');
   const nickVal = p.nickname || (p.preferred_name !== p.full_name ? p.preferred_name : null);
   if(nickEl){nickEl.style.display=nickVal?'block':'none';if(nickVal)nickEl.textContent='Dikenali sebagai: '+nickVal;}
+  
   const posVal2=p.best_position||p.position||'';
-  document.getElementById('pp2-pos-code').textContent=posCode2(posVal2);
-  document.getElementById('pp2-pos-full').textContent='— '+posFull2(posVal2||p.position);
-  document.getElementById('pp2-dna-num').textContent=dna||'—';
-  document.getElementById('pp2-dna-circle').style.borderColor=lv.color;
-  document.getElementById('pp2-dna-circle').style.border='3px solid '+lv.color;
-  document.getElementById('pp2-dna-num').style.color=lv.color;
+  safeSet('pp2-pos-code', posCode2(posVal2));
+  safeSet('pp2-pos-full', '— '+posFull2(posVal2||p.position));
+  safeSet('pp2-dna-num', dna||'—');
+  
+  const dEl=document.getElementById('pp2-dna-num'); if(dEl)dEl.style.color=lv.color;
+  const cEl=document.getElementById('pp2-dna-circle'); if(cEl){cEl.style.borderColor=lv.color;cEl.style.border='3px solid '+lv.color;}
+  
   const lvlEl=document.getElementById('pp2-dna-level');
   if(lvlEl){lvlEl.textContent=lv.title;lvlEl.style.color=lv.color;}
-  if(p.height_cm||p.weight_kg){
-    document.getElementById('pp2-hw').style.display='';
-    document.getElementById('pp2-hw-val').textContent=(p.height_cm?p.height_cm+'cm':'')+((p.height_cm&&p.weight_kg)?' · ':'')+((p.weight_kg?p.weight_kg+'kg':''));
+  
+  const hwEl=document.getElementById('pp2-hw');
+  if(hwEl && (p.height_cm||p.weight_kg)){
+    hwEl.style.display='';
+    safeSet('pp2-hw-val', (p.height_cm?p.height_cm+'cm':'')+((p.height_cm&&p.weight_kg)?' · ':'')+((p.weight_kg?p.weight_kg+'kg':'')));
   }
-  if(p.preferred_foot){
-    document.getElementById('pp2-foot-wrap').style.display='';
-    document.getElementById('pp2-foot').textContent=p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—';
+  const footWrap=document.getElementById('pp2-foot-wrap');
+  if(footWrap && p.preferred_foot){
+    footWrap.style.display='';
+    safeSet('pp2-foot', p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—');
   }
-  // Mini kad dirender selepas atribut load (dalam loadAttr2)
-  // _kadData akan diset dalam renderMiniKad
 }
 
 
@@ -2890,20 +2904,20 @@ function renderBio2(p){
   var jerseyStr = reg.jersey || (p.jersey_number ? '#'+p.jersey_number : '—');
   var clubStr = reg.kelab || p.clubs?.name || 'Tiada Kelab';
 
-  var el;
-  el=document.getElementById('bio2-name');  if(el) el.textContent=fullName;
-  el=document.getElementById('bio2-dob');   if(el) el.textContent=dob;
-  el=document.getElementById('bio2-age');   if(el) el.textContent=ageStr;
-  el=document.getElementById('bio2-ppno');  if(el) el.textContent=ppno;
-  el=document.getElementById('bio2-phone'); if(el) el.textContent=phoneStr;
-  el=document.getElementById('bio2-height');if(el) el.textContent=heightStr;
-  el=document.getElementById('bio2-weight');if(el) el.textContent=weightStr;
-  el=document.getElementById('bio2-foot');  if(el) el.textContent=footStr;
-  el=document.getElementById('bio2-pos');   if(el) el.textContent=posCode + ' — ' + posFullStr;
-  el=document.getElementById('bio2-jersey');if(el) el.textContent=jerseyStr;
-  el=document.getElementById('bio2-club');  if(el) el.textContent=clubStr;
+  function safeSet(id, val){var el=document.getElementById(id);if(el)el.textContent=val;}
 
-  // Header kad atas Bio
+  safeSet('bio2-name', fullName);
+  safeSet('bio2-dob', dob);
+  safeSet('bio2-age', ageStr);
+  safeSet('bio2-ppno', ppno);
+  safeSet('bio2-phone', phoneStr);
+  safeSet('bio2-height', heightStr);
+  safeSet('bio2-weight', weightStr);
+  safeSet('bio2-foot', footStr);
+  safeSet('bio2-pos', posCode + ' — ' + posFullStr);
+  safeSet('bio2-jersey', jerseyStr);
+  safeSet('bio2-club', clubStr);
+
   var fpAvatar=document.getElementById('bio2-fp-avatar');
   var fpName=document.getElementById('bio2-fp-name');
   var fpNo=document.getElementById('bio2-fp-no');
