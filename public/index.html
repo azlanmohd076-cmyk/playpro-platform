@@ -612,7 +612,43 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 /* Pewarnaan Angka Atas Latar Putih */
 .attr-high { color: #ea580c !important; background: #fff7ed !important; text-shadow: none !important; } /* 15-20: Oren Pro */
 .attr-mid  { color: #1d4ed8 !important; background: #eff6ff !important; text-shadow: none !important; } /* 10-14: Biru Pro */
-.attr-low  { color: #94a3b8 !important; text-shadow: none !important; background: transparent !important; border-color: #e2e8f0 !important; } /* Bawah 10 / 0: Kelabu Muted */
+.attr-low  { color: #000000 !important; font-weight: 900 !important; text-shadow: none !important; background: transparent !important; border-color: #000000 !important; } /* Bawah 10 / 0: Hitam Solid Tajam */
+
+/* 📸 STYLES BARU: GAMBAR GERGASI GAYA STICKER CUTOUT FIFA ULTIMATE TEAM */
+.passport-avatar-container {
+  position: relative;
+  width: 100%;
+  height: 240px; /* Naikkan ketinggian biar muka & badan nampak gah */
+  display: flex;
+  justify-content: center;
+  align-items: flex-end; /* Paksa gambar duduk tegap dari tapak bawah */
+  margin-top: -10px;
+  margin-bottom: 5px;
+  z-index: 6;
+}
+.passport-avatar-sticker {
+  width: auto !important;
+  height: 100% !important;
+  max-height: 240px !important;
+  object-fit: contain !important; /* Kekal bentuk asal tanpa stretch */
+  filter: drop-shadow(0px 12px 20px rgba(0, 0, 0, 0.65)); /* Efek bayang sticker 3D */
+  z-index: 6;
+}
+.passport-avatar-fallback {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.07);
+  border: 3px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #fff;
+  box-shadow: 0 0 18px rgba(255,255,255,.3), inset 0 0 12px rgba(0,0,0,.4);
+  margin-bottom: 20px;
+}
 
 /* Shimmer diagonal Pokemon style */
 @keyframes pokeShimmer {
@@ -2749,6 +2785,24 @@ async function loadAttr2(pid){
       .select('attribute_code,current_value,attribute_definitions(label,category,display_order)')
       .eq('player_id',pid).eq('is_public',true);
     _attrData2=data||[];
+    
+    /* Stabilkan DNA Radar: Jika Supabase kosong, automatik petakan dari PLAYPRO_PLAYER_REGISTRY */
+    if (!_attrData2 || !_attrData2.length) {
+      var nameKey = window.currentActivePlayerKey || 'Azlan';
+      var reg = PLAYPRO_PLAYER_REGISTRY[nameKey] || PLAYPRO_PLAYER_REGISTRY['Azlan'];
+      if (reg && reg.dnaAttributes) {
+        var aList = [];
+        Object.keys(reg.dnaAttributes).forEach(function(k){
+          aList.push({
+            attribute_code: k,
+            current_value: reg.dnaAttributes[k] * 5,
+            attribute_definitions: { label: k.toUpperCase(), category: 'technical', display_order: 1 }
+          });
+        });
+        _attrData2 = aList; window._attrData2 = aList;
+      }
+    }
+    
     window._attrScale2=Math.max(1,..._attrData2.map(r=>r.current_value||0))<=20?20:100;
     renderRadar2('all');
     renderAttrCards2('all');
@@ -3369,7 +3423,25 @@ async function loadAttr2ForOther(pid){
       .select('attribute_code,current_value,attribute_definitions(label,category,display_order)')
       .eq('player_id',pid).eq('is_public',true);
     window._attrData2=data||[];
-    window._attrScale2=Math.max(1,...(data||[]).map(function(r){return r.current_value||0;}))<=20?20:100;
+    
+    /* Stabilkan DNA Radar untuk pemain lain */
+    if (!window._attrData2 || !window._attrData2.length) {
+      var nameKey = window.currentActivePlayerKey || 'Azlan';
+      var reg = PLAYPRO_PLAYER_REGISTRY[nameKey] || PLAYPRO_PLAYER_REGISTRY['Azlan'];
+      if (reg && reg.dnaAttributes) {
+        var aList = [];
+        Object.keys(reg.dnaAttributes).forEach(function(k){
+          aList.push({
+            attribute_code: k,
+            current_value: reg.dnaAttributes[k] * 5,
+            attribute_definitions: { label: k.toUpperCase(), category: 'technical', display_order: 1 }
+          });
+        });
+        window._attrData2 = aList; _attrData2 = aList;
+      }
+    }
+    
+    window._attrScale2=Math.max(1,...(window._attrData2||[]).map(function(r){return r.current_value||0;}))<=20?20:100;
     renderRadar2('all');
     renderAttrCards2('all');
     /* Render Mini Kad supaya _kadData dikemas kini untuk profil pemain lain */
@@ -4612,20 +4684,20 @@ function openKadModal(){
   document.getElementById('kad-full-tier').style.color=col;
   document.getElementById('kad-full-tier').style.opacity='.7';
   document.getElementById('kad-full-avatar').textContent=_kadData.init||'A';
-  var wrapEl=document.getElementById('kad-full-avatar-wrap');
-  if(wrapEl){
-    wrapEl.style.color=col; wrapEl.style.borderColor=col;
-    wrapEl.style.boxShadow='0 0 18px '+col+'55, inset 0 0 12px rgba(0,0,0,.4)';
+  var kFall=document.getElementById('kad-full-avatar-wrap');
+  if(kFall){
+    kFall.style.color=col; kFall.style.borderColor=col;
   }
-  var customUrl = _kadData.photo_url || _kadData.avatarCustomUrl;
+  var customUrl = _kadData.photo_url || _kadData.avatarCustomUrl || _tempCustomPhotoBase64;
   var kImg = document.getElementById('kad-custom-img');
   var kTxt = document.getElementById('kad-full-avatar');
   if(customUrl){
     if(kImg){kImg.src=customUrl;kImg.style.display='block';}
-    if(kTxt){kTxt.style.display='none';}
+    if(kFall){kFall.style.display='none';}
   } else {
     if(kImg){kImg.style.display='none';}
-    if(kTxt){kTxt.style.display='inline';}
+    if(kFall){kFall.style.display='flex';}
+    if(kTxt){kTxt.textContent=_kadData.init||'A';}
   }
   document.getElementById('kad-full-name').textContent=_kadData.name||'\u2014';
   document.getElementById('kad-full-pos').textContent=_kadData.posFull||_kadData.pos||'\u2014';
@@ -4934,10 +5006,12 @@ init();
         </div>
         <!-- Stars -->
         <div class="kad-stars" id="kad-stars"></div>
-        <!-- Avatar -->
-        <div class="kad-full-avatar" id="kad-full-avatar-wrap" style="position:relative;overflow:hidden">
-          <img id="kad-custom-img" src="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:none;position:absolute;inset:0;z-index:10"/>
-          <span id="kad-full-avatar">A</span>
+        <!-- Ruang Avatar Gergasi Gaya Sticker Cutout -->
+        <div class="passport-avatar-container" id="passport-avatar-container">
+          <img id="kad-custom-img" class="passport-avatar-sticker" src="" style="display:none" alt="Player Sticker"/>
+          <div id="kad-full-avatar-wrap" class="passport-avatar-fallback">
+            <span id="kad-full-avatar">A</span>
+          </div>
         </div>
         <!-- Nama + Posisi -->
         <div class="kad-full-name" id="kad-full-name">—</div>
