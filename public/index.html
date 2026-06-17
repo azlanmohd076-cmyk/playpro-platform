@@ -460,6 +460,49 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   50%  { background-position: 100% 100%; filter: hue-rotate(180deg); }
   100% { background-position: 0% 0%; filter: hue-rotate(360deg); }
 }
+/* Drop shadow glow untuk Mini Kad Wrap */
+@keyframes miniKadWrapGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px var(--mkw-glow, rgba(255,255,255,0.5))) drop-shadow(0 4px 12px rgba(0,0,0,0.7));
+  }
+  50% {
+    filter: drop-shadow(0 0 24px var(--mkw-glow, rgba(255,255,255,1))) drop-shadow(0 0 45px var(--mkw-glow, rgba(255,255,255,0.8))) drop-shadow(0 6px 18px rgba(0,0,0,0.9));
+  }
+}
+
+/* Floating animation interaktif & natural 3D */
+@keyframes kadModalFloatNatural {
+  0%   { transform: rotateY(-10deg) rotateX(3deg) rotateZ(-1deg) translateY(0px); }
+  25%  { transform: rotateY(0deg)   rotateX(-2deg) rotateZ(0deg) translateY(-8px); }
+  50%  { transform: rotateY(10deg)  rotateX(3deg) rotateZ(1deg)  translateY(0px); }
+  75%  { transform: rotateY(0deg)   rotateX(-2deg) rotateZ(0deg) translateY(-8px); }
+  100% { transform: rotateY(-10deg) rotateX(3deg) rotateZ(-1deg) translateY(0px); }
+}
+
+/* Gaya DNA Status Badge */
+.dna-badge {
+  font-size: .45rem; font-weight: 900;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: .25rem .6rem; border-radius: 999px;
+  position: relative; z-index: 6;
+  box-shadow: 0 2px 8px rgba(0,0,0,.5);
+  display: inline-block;
+  text-align: center;
+  margin: .15rem 0;
+  letter-spacing: .05em;
+}
+.dna-badge.badge-verified {
+  background: linear-gradient(135deg, #25D366, #128C7E);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.4);
+  text-shadow: 0 0 8px rgba(255,255,255,.5);
+}
+.dna-badge.badge-unverified {
+  background: linear-gradient(135deg, #d32f2f, #c62828);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.3);
+}
+
 /* Swing kiri kanan dalam modal */
 @keyframes kadSwing {
   0%   { transform: rotateY(-8deg) rotateZ(-1deg) translateY(0px); }
@@ -521,21 +564,20 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   flex-shrink: 0;
   cursor: pointer;
   perspective: 800px;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,.5));
+  animation: miniKadWrapGlow 3s ease-in-out infinite, kadFloat 4s ease-in-out infinite;
   transition: filter .2s;
 }
-.mini-kad-wrap:active { filter: drop-shadow(0 2px 6px rgba(0,0,0,.4)); }
+.mini-kad-wrap:active { filter: drop-shadow(0 2px 6px rgba(0,0,0,.8)); }
 .mini-kad {
-  width: 54px;
-  height: 76px; /* ratio 2.5:3.5 — kad standard */
+  width: 56px;
+  height: 78px; /* ratio 2.5:3.5 — kad standard */
   border-radius: 8px;
   position: relative;
   overflow: hidden;
-  animation: kadFloat 4s ease-in-out infinite, kadGlowPulse 3s ease-in-out infinite;
   transition: transform .15s;
   background: #111;
-  /* Tiada border visible — shadow sahaja bagi nampak kad bukan kotak */
-  border: none;
+  border: 2px solid var(--kad-border, rgba(255, 255, 255, 0.5));
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.25);
   outline: none;
 }
 .mini-kad:active { transform: scale(.91) rotate(0deg) !important; }
@@ -576,32 +618,32 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 /* ── Tier backgrounds ── */
 .mini-kad.tier-starter  {
   --kad-glow:#9ca3af;
-  --kad-border: rgba(156,163,175,.4);
+  --kad-border: #9ca3af;
   background: linear-gradient(160deg,#3a3a3a 0%,#1c1c1c 100%);
 }
 .mini-kad.tier-foundation {
   --kad-glow:#cd7f32;
-  --kad-border: rgba(205,127,50,.6);
+  --kad-border: #cd7f32;
   background: linear-gradient(160deg,#4a3020 0%,#2a1505 100%);
 }
 .mini-kad.tier-developing {
   --kad-glow:#00B4D8;
-  --kad-border: rgba(0,180,216,.55);
+  --kad-border: #00B4D8;
   background: linear-gradient(160deg,#0a2d40 0%,#031620 100%);
 }
 .mini-kad.tier-developed  {
   --kad-glow:#60a5fa;
-  --kad-border: rgba(96,165,250,.6);
+  --kad-border: #60a5fa;
   background: linear-gradient(160deg,#0d2060 0%,#020e30 100%);
 }
 .mini-kad.tier-advanced   {
   --kad-glow:#a78bfa;
-  --kad-border: rgba(167,139,250,.65);
+  --kad-border: #a78bfa;
   background: linear-gradient(160deg,#200d55 0%,#0e0630 100%);
 }
 .mini-kad.tier-elite {
   --kad-glow:#f9a825;
-  --kad-border: rgba(249,168,37,.7);
+  --kad-border: #f9a825;
   background: linear-gradient(160deg,#221900 0%,#3d2c00 40%,#221900 100%);
 }
 /* ── Holo sweep layers ── */
@@ -716,7 +758,7 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 
 /* Floating animation — swing kiri kanan + sedikit naik turun */
 .kad-modal-card.floating {
-  animation: kadSwing 5s ease-in-out infinite;
+  animation: kadModalFloatNatural 6s ease-in-out infinite;
 }
 /* Bila hover — paused, tilt via mouse */
 .kad-modal-card.floating:hover {
@@ -4113,28 +4155,30 @@ function tierClass(dna){
 
 /* Render mini kad dalam header passport */
 function renderMiniKad(p, attrs){
-  var dna=p.dna_overall||0;
+  var realDna=p.dna_overall||0;
+  var isVerified=p.kyc_status==='verified';
+  var dna=isVerified?realDna:0;
   var lv=dnaLevel2(dna);
   var tc=tierClass(dna);
   var dn=p.preferred_name||p.full_name||'Pemain';
-  var init=dn[0].toUpperCase();
+  var init=dn?dn[0].toUpperCase():'A';
   var pos=posCode2(p.best_position||p.position||'');
   var jersey=p.jersey_number||'—';
 
-  /* Stats dari atribut */
+  /* Stats dari atribut (jika tak verified, semua lock 0) */
   var aMap={};
   if(attrs){attrs.forEach(function(r){aMap[r.attribute_code]=r.current_value||0;});}
 
-  var pac=aMap['pace']||0;
-  var sho=aMap['finishing']||0;
-  var pas=aMap['passing']||0;
-  var dri=aMap['dribbling']||0;
-  var def=aMap['tackling']||0;
-  var phy=aMap['strength']||0;
+  var pac=isVerified?(aMap['pace']||0):0;
+  var sho=isVerified?(aMap['finishing']||0):0;
+  var pas=isVerified?(aMap['passing']||0):0;
+  var dri=isVerified?(aMap['dribbling']||0):0;
+  var def=isVerified?(aMap['tackling']||0):0;
+  var phy=isVerified?(aMap['strength']||0):0;
 
   /* Simpan data untuk modal besar */
   _kadData={
-    dna:dna, lv:lv, tc:tc, name:dn, init:init,
+    dna:dna, realDna:realDna, isVerified:isVerified, lv:lv, tc:tc, name:dn, init:init,
     pos:pos, posFull:posFull2(p.best_position||p.position||''),
     jersey:jersey, fpno:p.passport_number||'—',
     pac:pac, sho:sho, pas:pas, dri:dri, def:def, phy:phy,
@@ -4149,7 +4193,7 @@ function renderMiniKad(p, attrs){
   /* Set glow wrapper supaya drop-shadow luar nampak */
   var mkw=document.getElementById('mini-kad-wrap');
   if(mkw) mkw.style.setProperty('--mkw-glow', lv.color);
-  document.getElementById('mini-kad-ovr').textContent=dna||'—';
+  document.getElementById('mini-kad-ovr').textContent=isVerified?dna:'\uD83D\uDD12 0';
   document.getElementById('mini-kad-init').textContent=init;
   document.getElementById('mini-kad-init').style.background='rgba(255,255,255,.12)';
   document.getElementById('mini-kad-pos').textContent=pos||'—';
@@ -4179,10 +4223,22 @@ function openKadModal(){
   var col=_kadData.lv.color;
 
   /* Isi kandungan */
-  document.getElementById('kad-full-ovr').textContent=_kadData.dna||'\u2014';
+  document.getElementById('kad-full-ovr').textContent=_kadData.isVerified?_kadData.dna:'\uD83D\uDD12 0';
   document.getElementById('kad-full-ovr').style.color=col;
   document.getElementById('kad-full-ovr').style.textShadow='0 0 28px '+col;
   document.getElementById('kad-full-tier').textContent=_kadData.lv.title||'\u2014';
+  
+  /* Update DNA Status Badge */
+  var dnaBadge=document.getElementById('dna-verified-badge');
+  if(dnaBadge){
+    if(_kadData.isVerified){
+      dnaBadge.textContent='\u26A1 OFFICIAL DNA VERIFIED';
+      dnaBadge.className='dna-badge badge-verified';
+    } else {
+      dnaBadge.textContent='\uD83D\uDD12 UNVERIFIED DNA (STATS LOCK)';
+      dnaBadge.className='dna-badge badge-unverified';
+    }
+  }
   document.getElementById('kad-full-tier').style.color=col;
   document.getElementById('kad-full-tier').style.opacity='.7';
   document.getElementById('kad-full-avatar').textContent=_kadData.init||'A';
@@ -4495,6 +4551,8 @@ init();
         <!-- Nama + Posisi -->
         <div class="kad-full-name" id="kad-full-name">—</div>
         <div class="kad-full-pos" id="kad-full-pos">—</div>
+        <!-- DNA Status Badge -->
+        <div id="dna-verified-badge" class="dna-badge">—</div>
         <!-- Stats grid -->
         <div class="kad-full-stats">
           <div class="kad-stat-item">
