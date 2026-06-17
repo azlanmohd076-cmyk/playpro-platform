@@ -641,7 +641,11 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   margin-bottom: auto; margin-top: 5rem;
 }
 
-/* ✍️ Lapisan 2: Kandungan Maklumat Teks & Atribut (Relative ON TOP of the picture) */
+/* ✍️ 🏆 REKA LETAK PREMIUM EA EA FC PRO KAD PASPORT (ANTI-BERTINDIH MUKA & KEMAS MUTLAK) */
+#kad-modal-card { width: min(320px, 85vw); }
+.kad-modal-card { aspect-ratio: 2.5/3.55; }
+.passport-avatar-sticker { transform: translateY(10px); }
+
 .card-overlay-content {
   position: absolute !important;
   inset: 0 !important;
@@ -649,23 +653,44 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 1.25rem 1rem;
+  padding: 20px 16px;
   pointer-events: none; /* Biar grab modal berfungsi */
+  box-sizing: border-box;
 }
+
+/* 1. KELOMPOK STATS ATAS (OVR & POSISI) - Penjuru Kiri Atas EA FC */
+.kad-full-top { margin-bottom: auto; width: fit-content; }
+.kad-full-ovr { font-size: 44px !important; font-weight: 900 !important; line-height: 0.9 !important; }
+.kad-full-tier { font-size: 13px !important; font-weight: 850 !important; letter-spacing: 1px; color: #fff !important; margin-top: 2px; }
+
+/* 2. KELOMPOK MAKLUMAT BAWAH (NAMA, POSISI PENUH, & BADGE VERIFIED) */
 .card-bottom-zone {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: .2rem;
-  margin-top: auto; /* Ditolak rapat ke bawah */
+  gap: 3px;
+  margin-top: auto; /* Ditolak rapat ke tapak kad */
+  margin-bottom: 3px;
   width: 100%;
 }
 .card-player-name {
-  font-size: 1.05rem !important; font-weight: 900 !important;
-  text-align: center; text-transform: uppercase; letter-spacing: .08em;
-  color: #0f172a !important; background: rgba(255, 255, 255, 0.92) !important;
-  border-radius: 6px; padding: .15rem .85rem; margin-bottom: .1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5); pointer-events: auto;
+  font-size: 17px !important; font-weight: 900 !important;
+  text-align: center; text-transform: uppercase; letter-spacing: 0.8px;
+  color: #000000 !important; background: #ffffff !important;
+  border-radius: 6px; padding: 3px 22px; margin-bottom: 2px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4); pointer-events: auto;
+}
+.kad-full-pos { color: #e2e8f0 !important; font-size: 11.5px !important; font-weight: 750 !important; text-transform: uppercase; text-shadow: 1px 1px 2px rgba(0,0,0,0.9); }
+
+/* 3. KOTAK ATRIBUT ENAM (PAC, GOL, PAS...) - Dikunci mati di tapak bawah kad */
+.kad-full-stats {
+  width: 100% !important;
+  background: rgba(0, 0, 0, 0.68) !important;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px !important;
+  padding: 8px 10px !important;
+  margin-top: 2px !important;
 }
 
 /* Shimmer diagonal Pokemon style */
@@ -2722,6 +2747,7 @@ async function loadProfile(){
       return;
     }
     window._obJustCompleted=false;
+    p = syncWithLocalRegistry(p);
     _pd=p; window._pd=p;
     el.data.style.display='block';
     renderPP2Header(p);
@@ -2744,6 +2770,14 @@ function renderPP2Header(p){
   const lv=dnaLevel2(dna);
   
   function safeSet(id, val){var el=document.getElementById(id);if(el)el.textContent=val;}
+  
+  /* 🔒 SEMAKAN PRIVASI: Hanya tunjuk butang edit kepada Pemilik Akaun Sahaja */
+  var loggedInUser = "Azlan";
+  var isOwnProfile = dn.toLowerCase() === loggedInUser.toLowerCase() || p.id === window._pd?.id;
+  var editWrap = document.getElementById('pp2-edit-btn-wrap');
+  if(editWrap){
+    editWrap.style.display = isOwnProfile ? 'flex' : 'none';
+  }
   
   safeSet('pp2-name', dn);
   safeSet('pp2-club', p.clubs?.name||'Tiada Kelab');
@@ -3027,6 +3061,14 @@ function renderBio2(p){
   safeSet('bio2-jersey', jerseyStr);
   safeSet('bio2-club', clubStr);
 
+    /* 🔒 SEMAKAN PRIVASI BIODATA: Sorok butang edit di tab Biodata untuk orang lain */
+  var loggedInUser = "Azlan";
+  var isOwnProfileBio = dn.toLowerCase() === loggedInUser.toLowerCase() || p.id === window._pd?.id;
+  var bioEditBtn = document.querySelector('#pp2t-bio button[onclick="openEditModal()"]');
+  if(bioEditBtn){
+    bioEditBtn.style.display = isOwnProfileBio ? 'inline-block' : 'none';
+  }
+
   var fpAvatar=document.getElementById('bio2-fp-avatar');
   var fpName=document.getElementById('bio2-fp-name');
   var fpNo=document.getElementById('bio2-fp-no');
@@ -3303,6 +3345,26 @@ if (!localStorage.getItem('PLAYPRO_REGISTRY_V3')) {
 var PLAYPRO_PLAYER_REGISTRY = JSON.parse(localStorage.getItem('PLAYPRO_REGISTRY_V3'));
 window.PLAYPRO_PLAYER_REGISTRY = PLAYPRO_PLAYER_REGISTRY;
 
+function syncWithLocalRegistry(p) {
+  if(!p) return p;
+  var key = p.preferred_name || p.full_name || p.nickname || p.nama || 'Azlan';
+  var reg = PLAYPRO_PLAYER_REGISTRY[key] || PLAYPRO_PLAYER_REGISTRY[key.toLowerCase()] || PLAYPRO_PLAYER_REGISTRY['Azlan'] || {};
+  return {
+    ...p,
+    full_name: reg.namaPenuh || reg.full_name || p.full_name || key,
+    preferred_name: reg.nama || reg.preferred_name || p.preferred_name || key,
+    nickname: reg.nama || reg.nickname || p.nickname || key,
+    position: reg.posisi || p.position || '—',
+    best_position: reg.posisi || p.best_position || '—',
+    jersey_number: reg.jersey ? reg.jersey.replace('#','') : p.jersey_number,
+    height_cm: reg.tinggi ? reg.tinggi.replace(/\D/g,'') : p.height_cm,
+    weight_kg: reg.berat ? reg.berat.replace(/\D/g,'') : p.weight_kg,
+    photo_url: reg.photo_url || reg.avatarCustomUrl || p.photo_url,
+    avatarCustomUrl: reg.avatarCustomUrl || reg.photo_url || p.avatarCustomUrl || p.photo_url,
+    clubs: { name: reg.kelab || reg.clubs?.name || p.clubs?.name || 'Tiada Kelab' }
+  };
+}
+
 async function viewPlayerProfile(elOrId){
   const playerId = typeof elOrId === 'string' ? elOrId : (elOrId?.dataset?.pid || elOrId || '');
   if(!playerId){toast('❌ ID pemain tidak ditemui');return;}
@@ -3355,6 +3417,7 @@ async function viewPlayerProfile(elOrId){
       toast('❌ Profil tidak dijumpai atau tidak awam');
       return;
     }
+    p = syncWithLocalRegistry(p);
     showPlayerModal(p);
   }catch(e){
     console.error('viewPlayer exception:',e.message);
@@ -3375,6 +3438,7 @@ function showPlayerModal(p){
 
 function renderOtherPassport(p){
   if(!p) return;
+  p = syncWithLocalRegistry(p);
   var dn = p.preferred_name || p.full_name || p.nama || 'Pemain';
   window.currentActivePlayerKey = dn;
   currentActivePlayerKey = dn;
@@ -4206,17 +4270,22 @@ async function saveEditProfile(){
     var nick=document.getElementById('edit-nickname')?.value?.trim()||null;
 
     var update={};
-    if(nick!==null){ update.nickname=nick; activePlayer.nickname=nick; activePlayer.preferred_name=nick; reg.nama=nick; currentActivePlayerKey=nick; window.currentActivePlayerKey=nick; }
+    if(nick!==null){ 
+      update.nickname=nick; update.preferred_name=nick; update.full_name=nick;
+      activePlayer.nickname=nick; activePlayer.preferred_name=nick; activePlayer.full_name=nick;
+      reg.nama=nick; reg.namaPenuh=nick; reg.full_name=nick; reg.preferred_name=nick; reg.nickname=nick;
+      currentActivePlayerKey=nick; window.currentActivePlayerKey=nick;
+    }
     if(fullPhone)  { update.phone=fullPhone; activePlayer.phone=fullPhone; reg.phone=fullPhone; }
     if(pos){
       update.position=pos; update.best_position=pos.toUpperCase();
       activePlayer.position=pos; activePlayer.best_position=pos.toUpperCase();
-      reg.posisi=pos.toUpperCase(); reg.posisiPenuh=posFull2(pos);
+      reg.posisi=pos.toUpperCase(); reg.posisiPenuh=posFull2(pos); reg.position=pos;
     }
-    if(foot) { update.preferred_foot=foot; activePlayer.preferred_foot=foot; reg.kaki=(foot==='left'?'Kiri':'Kanan'); }
-    if(jersey) { update.jersey_number=parseInt(jersey); activePlayer.jersey_number=parseInt(jersey); reg.jersey='#'+jersey; }
-    if(height) { update.height_cm=parseInt(height); activePlayer.height_cm=parseInt(height); reg.tinggi=height+' cm'; }
-    if(weight) { update.weight_kg=parseInt(weight); activePlayer.weight_kg=parseInt(weight); reg.berat=weight+' kg'; }
+    if(foot) { update.preferred_foot=foot; activePlayer.preferred_foot=foot; reg.kaki=(foot==='left'?'Kiri':'Kanan'); reg.preferred_foot=foot; }
+    if(jersey) { update.jersey_number=parseInt(jersey); activePlayer.jersey_number=parseInt(jersey); reg.jersey='#'+jersey; reg.jersey_number=parseInt(jersey); }
+    if(height) { update.height_cm=parseInt(height); activePlayer.height_cm=parseInt(height); reg.tinggi=height+' cm'; reg.height_cm=parseInt(height); }
+    if(weight) { update.weight_kg=parseInt(weight); activePlayer.weight_kg=parseInt(weight); reg.berat=weight+' kg'; reg.weight_kg=parseInt(weight); }
 
     if(_tempCustomPhotoBase64){
       activePlayer.photo_url = _tempCustomPhotoBase64;
@@ -4226,6 +4295,7 @@ async function saveEditProfile(){
 
     // 💾 SIMPAN PERSISTENT KE LOCALSTORAGE MUTLAK!
     PLAYPRO_PLAYER_REGISTRY[activePlayerKey] = reg;
+    if(nick && nick !== activePlayerKey) PLAYPRO_PLAYER_REGISTRY[nick] = reg;
     localStorage.setItem('PLAYPRO_REGISTRY_V3', JSON.stringify(PLAYPRO_PLAYER_REGISTRY));
     window.PLAYPRO_PLAYER_REGISTRY = PLAYPRO_PLAYER_REGISTRY;
 
