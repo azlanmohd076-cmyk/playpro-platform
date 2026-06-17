@@ -4639,12 +4639,15 @@ function renderMiniKad(p, attrs){
   var def = isVerified ? (aMap['tackling']||0) : 0;
   var phy = isVerified ? (aMap['strength']||0) : 0;
 
-  /* Simpan data untuk modal besar */
+  /* Simpan data untuk modal besar berserta Imej Custom Persisten LocalStorage */
+  var customImgUrl = reg.avatarCustomUrl || p.photo_url || p.avatarCustomUrl || _tempCustomPhotoBase64;
   _kadData = {
     dna: dna, realDna: realDna, isVerified: isVerified, lv: lv, tc: tc, name: dn, init: init,
     pos: pos, posFull: posFullStr, jersey: jersey, fpno: p.passport_number || 'PP-000-XX',
     pac: pac, sho: sho, pas: pas, dri: dri, def: def, phy: phy,
-    club: clubStr
+    club: clubStr,
+    photo_url: customImgUrl,
+    avatarCustomUrl: customImgUrl
   };
 
   /* Update mini kad */
@@ -4718,7 +4721,8 @@ function openKadModal(){
   if(kFall){
     kFall.style.color=col; kFall.style.borderColor=col;
   }
-  var customUrl = _kadData.photo_url || _kadData.avatarCustomUrl || _tempCustomPhotoBase64;
+  var activeReg = PLAYPRO_PLAYER_REGISTRY[currentActivePlayerKey] || PLAYPRO_PLAYER_REGISTRY[_kadData.name] || {};
+  var customUrl = _kadData.photo_url || _kadData.avatarCustomUrl || activeReg.avatarCustomUrl || _tempCustomPhotoBase64;
   var kImg = document.getElementById('kad-custom-img');
   var kTxt = document.getElementById('kad-full-avatar');
   if(customUrl){
