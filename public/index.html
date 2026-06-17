@@ -689,8 +689,8 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 #kad-modal-overlay.open { display:flex; }
 
 .kad-modal-scene {
-  perspective: 1200px;
-  width: min(290px, 78vw);
+  perspective: 1400px;
+  width: min(260px, 72vw);
 }
 .kad-modal-card {
   width: 100%;
@@ -699,30 +699,40 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   position: relative;
   transform-style: preserve-3d;
   animation: modalFadeIn .5s cubic-bezier(.22,1,.36,1) forwards;
-  cursor: pointer;
+  cursor: grab;
   user-select: none;
   -webkit-user-select: none;
+  will-change: transform;
 }
+.kad-modal-card:active { cursor: grabbing; }
+
 /* Mouse tilt via JS */
 .kad-modal-card.tilting {
-  transition: transform .08s ease-out;
+  transition: transform .06s ease-out;
+}
+.kad-modal-card.resetting {
+  transition: transform .45s cubic-bezier(.34,1.56,.64,1);
 }
 
-/* Floating animation utk kad dalam modal — swing kiri kanan */
+/* Floating animation — swing kiri kanan + sedikit naik turun */
 .kad-modal-card.floating {
-  animation: kadSwing 4s ease-in-out infinite;
+  animation: kadSwing 5s ease-in-out infinite;
 }
-/* Bila hover/touch — kad berhenti swing, boleh tilt manual */
-.kad-modal-card.floating:hover,
-.kad-modal-card.floating:active {
+/* Bila hover — paused, tilt via mouse */
+.kad-modal-card.floating:hover {
   animation-play-state: paused;
 }
-/* Kad elit — swing + aura glow serentak */
+/* ELITE — swing + aura dramatik */
 .kad-modal-card.floating.is-elite {
-  animation: kadSwing 3.5s ease-in-out infinite, eliteAura 2.2s ease-in-out infinite;
+  animation: kadSwing 4s ease-in-out infinite, eliteAura 2.2s ease-in-out infinite;
 }
+/* ADVANCED — swing + aura ungu */
 .kad-modal-card.floating.is-advanced {
-  animation: kadSwing 4s ease-in-out infinite, advancedAura 2.8s ease-in-out infinite;
+  animation: kadSwing 4.5s ease-in-out infinite, advancedAura 2.8s ease-in-out infinite;
+}
+/* DEVELOPED — swing + aura biru */
+.kad-modal-card.floating.is-developed {
+  animation: kadSwing 5s ease-in-out infinite, developedAura 3.5s ease-in-out infinite;
 }
 
 /* Kad belakang */
@@ -4531,13 +4541,6 @@ init();
   <!-- Action buttons -->
   <div class="kad-modal-actions">
     <button class="kad-btn kad-btn-share" onclick="shareKadWA()">📤 Kongsi ke WhatsApp</button>
-    <button class="kad-btn kad-btn-print" onclick="printKad()">🖨️ Cetak Kad</button>
-    <button class="kad-btn kad-btn-close" onclick="closeKadModal()">✕ Tutup</button>
-  </div>
-</div>
-</body>
-</html>
-tn kad-btn-share" onclick="shareKadWA()">📤 Kongsi ke WhatsApp</button>
     <button class="kad-btn kad-btn-print" onclick="printKad()">🖨️ Cetak Kad</button>
     <button class="kad-btn kad-btn-close" onclick="closeKadModal()">✕ Tutup</button>
   </div>
