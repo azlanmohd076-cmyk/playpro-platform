@@ -694,6 +694,49 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   margin-top: 2px !important;
 }
 
+/* 🏆 MYTEAM 3D SPORTY TYPOGRAPHY */
+.nav-myteam-3d {
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-style: italic;
+  font-weight: bold;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  text-shadow: 1px 1px 0px #fd7e14, 2px 2px 0px #fd7e14, 3px 3px 1px #b85300, 3px 3px 6px rgba(0, 0, 0, 0.7);
+  transition: transform 0.2s ease, text-shadow 0.2s ease;
+}
+.nav-myteam-3d:hover {
+  transform: scale(1.08) translateY(-1px);
+  color: #fd7e14;
+  text-shadow: 1px 1px 0px #ffffff, 2px 2px 0px #ffffff, 3px 3px 1px #0056b3, 3px 3px 9px rgba(0, 0, 0, 0.85);
+}
+
+/* 💬 MYHUB SOSIAL NEWSFEED CSS */
+.hub-post-card {
+  background-color: #1e293b !important;
+  border: 1px solid #334155 !important;
+  border-radius: 14px !important;
+  transition: transform .2s, box-shadow .2s;
+}
+.hub-post-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+.comment-box {
+  background-color: #0f172a !important;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: .88rem;
+  margin-bottom: 6px;
+}
+.btn-like-active {
+  color: #38bdf8 !important;
+  font-weight: 900 !important;
+  text-shadow: 0 0 8px rgba(56,189,248,.6);
+}
+.btn-like-inactive {
+  color: #94a3b8 !important; font-weight: 600;
+}
+
 /* Shimmer diagonal Pokemon style */
 @keyframes pokeShimmer {
   0%   { background-position: -200% 0%; }
@@ -1614,7 +1657,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
   <div class="hn-sep"></div>
   <div class="hn-item on" id="hn-home" onclick="go('home')">HUB</div>
   <div class="hn-item" id="hn-explore" onclick="go('explore')">CARI</div>
-  <div class="hn-item" id="hn-team" onclick="go('team')">PASUKAN</div>
+  <div class="hn-item" id="hn-team" onclick="go('team')"><span class="nav-myteam-3d">MyTeam</span></div>
   <div class="hn-item" id="hn-profile" onclick="go('profile')">PASSPORT</div>
   <div class="hn-item" onclick="mustLogin()">LIGA</div>
   <div class="hn-item" onclick="mustLogin()">KEDAI</div>
@@ -1665,7 +1708,43 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
     <div class="section" style="padding-top:0">
       <div class="section-title">📰 Berita Terkini</div>
     </div>
-    <div class="feed-wrap" id="feed"></div>
+    <!-- ======================================================== -->
+    <!-- 🔥 SOSIAL MYHUB NEWSFEED ENGINE (WHATSAPP + FACEBOOK STYLE) -->
+    <!-- ======================================================== -->
+    <div class="container my-4 px-3" style="max-width: 680px; margin-left:auto; margin-right:auto;">
+      <!-- KOTAK CREATE POST -->
+      <div class="card bg-dark text-white border-secondary mb-4 shadow" style="background:#111827 !important; border:1px solid #374151 !important; border-radius:12px;">
+        <div class="card-body p-3.5">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span style="font-size:1.5rem">💬</span>
+            <h5 class="card-title text-warning mb-0" style="font-weight:850; letter-spacing:.5px; color:#fbbf24;">Status Semasa Otai (MyHub)</h5>
+          </div>
+          <div class="mb-3">
+            <textarea id="hub-status-input" class="form-control text-white border-0 p-3" style="background:#1f2937 !important; border-radius:8px; font-size:.95rem; resize:none; width:100%; box-sizing:border-box;" rows="3" placeholder="Sembang apa malam ni bang? Contoh: Kaki pancit awal... 🏃‍♂️💨"></textarea>
+          </div>
+          
+          <!-- PRESET WHATSAPP STICKERS -->
+          <div class="mb-3">
+            <label class="form-label small text-muted d-block mb-2" style="font-weight:700; color:#9ca3af;">Pilih Sticker Ekspres (WhatsApp Style):</label>
+            <div class="d-flex gap-2 flex-wrap">
+              <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('🔥 Pacing Padu')">🔥 Pacing Padu</button>
+              <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('🏃‍♂️ Pancit FC')">🏃‍♂️ Pancit FC</button>
+              <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('🟨 Kad Kuning')">🟨 Kad Kuning</button>
+              <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('🏆 Otai Match')">🏆 Otai Match</button>
+              <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('⚽ Score 2 Biji')">⚽ Score 2 Biji</button>
+            </div>
+            <div id="sticker-preview" class="badge bg-info mt-2.5 p-2 text-dark" style="display:none; background:#38bdf8; color:#000; font-size:.85rem; font-weight:800; border-radius:6px;">Sticker Terpilih: <span></span></div>
+          </div>
+
+          <div class="d-flex justify-content-end" style="text-align:right">
+            <button class="btn btn-warning px-4 py-2 font-weight-bold text-dark" style="background:#f59e0b !important; color:#000; border:none; border-radius:8px; font-weight:900; font-size:.95rem; padding:8px 20px; cursor:pointer;" onclick="hantarStatusHub()">🚀 Hantar Status</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RUANGAN TIMELINE NEWSFEED -->
+      <div id="myhub-newsfeed-container"></div>
+    </div>
     <!-- Top Scorers from DB -->
     <div style="padding:0 1rem .5rem">
       <div class="section-title">🥇 Penjaring Teratas</div>
@@ -2078,7 +2157,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
 <div id="bnav">
   <div class="bn on" id="bn-home" onclick="go('home')"><div class="bn-ic">🏠</div><div class="bn-lb">Hub</div></div>
   <div class="bn" id="bn-explore" onclick="go('explore')"><div class="bn-ic">🔍</div><div class="bn-lb">Cari</div></div>
-  <div class="bn" id="bn-team" onclick="go('team')"><div class="bn-ic">⚽</div><div class="bn-lb">Pasukan</div></div>
+  <div class="bn" id="bn-team" onclick="go('team')"><div class="bn-ic">⚽</div><div class="bn-lb" style="font-family:'Impact',sans-serif;font-style:italic;letter-spacing:.5px;text-transform:uppercase;">MyTeam</div></div>
   <div class="bn" id="bn-inbox" onclick="go('inbox')" style="position:relative">
     <div class="bn-ic">📥</div>
     <div class="bn-lb">Inbox</div>
@@ -2509,7 +2588,7 @@ function updateBread(t){
   const bread=document.getElementById('hdr-bread');
   const items=bread.querySelectorAll('.hb-item');
   items.forEach(i=>i.classList.remove('on'));
-  if(t==='home')items[0]?.classList.add('on');
+  if(t==='home'){items[0]?.classList.add('on');muatTurunDanPaparHub();}
 }
 
 /* ── DRAWER ── */
@@ -3122,6 +3201,193 @@ function renderBio2(p){
   
   // Update Matriks Atribut FM Style
   paparkanAtributDNA(p, window._attrData2 || []);
+}
+
+/* ======================================================== */
+/* 🔥 SOSIAL MYHUB NEWSFEED ENGINE JS */
+/* ======================================================== */
+var currentSelectedSticker = "";
+
+var DEFAULT_HUB_POSTS = [
+  {
+    id: "post_9901",
+    penulis: "Azlan",
+    mesej: "Malam ni game padu oii! Jangan ada yang pancit awal 🏃‍♂️🔥 Kita gempur piala otai!",
+    sticker: "🔥 Pacing Padu",
+    tarikh: "Malam tadi 11:35 PM",
+    likes: ["Cikyut", "Loko M", "Otai", "Ebob"],
+    comments: [
+      { pengomen: "Cikyut", teksKomen: "Steady bang! Kaki aku dah lama gatal nak rembat ni ⚽", timestamp: 1 },
+      { pengomen: "Haji Boss", teksKomen: "Awal sampai stadium bang, bawa air lebih sikit hehe", timestamp: 2 }
+    ]
+  },
+  {
+    id: "post_9902",
+    penulis: "Cikyut",
+    mesej: "Tali kasut putus pulak masa warm up tadi aduhai... nasib baik ada spare. Ada sesiapa nak join friendly game Jumaat ni?",
+    sticker: "🏆 Otai Match",
+    tarikh: "Semalam 6:15 PM",
+    likes: ["Azlan", "Haji Boss", "Dayak"],
+    comments: [
+      { pengomen: "Loko M", teksKomen: "Jumaat ni on bang! Pasukan Larkin Jaya FC sedia on", timestamp: 3 }
+    ]
+  },
+  {
+    id: "post_9903",
+    penulis: "Loko M",
+    mesej: "Alhamdulillah 3 mata penuh untuk tim Larkin Jaya FC! Terima kasih coach dan rakan-rakan sepasukan atas komitmen 100%",
+    sticker: "⚽ Score 2 Biji",
+    tarikh: "15 Jun 2026",
+    likes: ["Azlan", "Cikyut", "Ebob", "Otai", "Dayak"],
+    comments: []
+  }
+];
+
+if (!localStorage.getItem('PLAYPRO_HUB_POSTS_V2')) {
+  localStorage.setItem('PLAYPRO_HUB_POSTS_V2', JSON.stringify(DEFAULT_HUB_POSTS));
+}
+
+function pilihStickerMesej(namaSticker) {
+  currentSelectedSticker = namaSticker;
+  var preview = document.getElementById('sticker-preview');
+  if (preview) {
+    preview.style.display = 'inline-block';
+    preview.querySelector('span').innerText = namaSticker;
+  }
+}
+
+function hantarStatusHub() {
+  var inputTeks = document.getElementById('hub-status-input');
+  var namaPenulis = window.currentActivePlayerKey || currentActivePlayerKey || "Azlan";
+
+  if (!inputTeks || inputTeks.value.trim() === "") {
+    toast('⚠️ Sila taip sesuatu mesej sebelum up status bang!');
+    return;
+  }
+
+  var store = localStorage.getItem('PLAYPRO_HUB_POSTS_V2');
+  var senaraiPost = store ? JSON.parse(store) : [];
+
+  var statusBaru = {
+    id: "post_" + Date.now(),
+    penulis: namaPenulis,
+    mesej: inputTeks.value.trim(),
+    sticker: currentSelectedSticker || "",
+    tarikh: "Baru sahaja",
+    likes: [],
+    comments: []
+  };
+
+  senaraiPost.unshift(statusBaru);
+  localStorage.setItem('PLAYPRO_HUB_POSTS_V2', JSON.stringify(senaraiPost));
+
+  inputTeks.value = "";
+  currentSelectedSticker = "";
+  var preview = document.getElementById('sticker-preview');
+  if (preview) preview.style.display = 'none';
+
+  muatTurunDanPaparHub();
+  toast('🚀 Status baharu berjaya di-up!');
+}
+
+function muatTurunDanPaparHub() {
+  var container = document.getElementById('myhub-newsfeed-container');
+  if (!container) return;
+
+  var store = localStorage.getItem('PLAYPRO_HUB_POSTS_V2');
+  var senaraiPost = store ? JSON.parse(store) : [];
+  var namaUserSemasa = window.currentActivePlayerKey || currentActivePlayerKey || "Azlan";
+
+  if (senaraiPost.length === 0) {
+    container.innerHTML = '<div class="text-center text-muted p-4 bg-dark rounded border border-secondary" style="background:#1f2937; border-radius:10px; color:#9ca3af;">Belum ada status di-up lagi. Jadi orang pertama yang sembang hari ni bang!</div>';
+    return;
+  }
+
+  var htmlFeed = "";
+
+  senaraiPost.forEach(function(post) {
+    var sudahLike = (post.likes || []).includes(namaUserSemasa);
+    var kelasButangLike = sudahLike ? "btn-like-active" : "btn-like-inactive";
+    var teksButangLike = sudahLike ? "👍 Liked" : "👍 Like";
+
+    var htmlSticker = post.sticker ? '<div class="mt-2.5 mb-2"><span class="badge" style="background:#0284c7; color:#fff; font-size:.85rem; font-weight:800; padding:5px 12px; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,.3);">' + post.sticker + '</span></div>' : "";
+
+    var htmlSenaraiKomen = "";
+    (post.comments || []).forEach(function(k) {
+      htmlSenaraiKomen += '<div class="comment-box text-white mb-2 shadow-sm" style="background:#0f172a; border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 12px; font-size:.88rem;">'
+        + '<strong style="color:#fbbf24;">' + k.pengomen + ':</strong> <span style="color:#f8fafc;">' + k.teksKomen + '</span>'
+      + '</div>';
+    });
+
+    htmlFeed += '<div class="card hub-post-card text-white mb-3.5 shadow" style="background:#1e293b; border:1px solid #334155; border-radius:14px; padding:16px; margin-bottom:14px;">'
+      + '<div class="card-body">'
+        + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">'
+          + '<h6 style="color:#38bdf8; font-size:1.1rem; font-weight:900; margin:0; cursor:pointer;" title="Lihat Profil dan Passport Kad" onclick="viewPlayerProfile('' + post.penulis + '')">⚡ ' + post.penulis + '</h6>'
+          + '<small style="color:#94a3b8; font-size:.78rem;">' + post.tarikh + '</small>'
+        + '</div>'
+        + '<p style="color:#f8fafc; font-size:1rem; line-height:1.5; white-space:pre-wrap; margin-bottom:8px; margin-top:0;">' + post.mesej + '</p>'
+        + htmlSticker
+        + '<hr style="border:none; border-top:1px solid #334155; margin:12px 0;">'
+        + '<div style="display:flex; gap:18px; align-items:center; margin-bottom:12px;">'
+          + '<button class="btn btn-sm ' + kelasButangLike + '" style="background:transparent; border:none; padding:0; font-size:.9rem; cursor:pointer;" onclick="aksiLikeHub('' + post.id + '')">' + teksButangLike + '</button>'
+          + '<span style="color:#94a3b8; font-size:.8rem; font-weight:600;">' + (post.likes || []).length + ' Likes</span>'
+          + '<span style="color:#94a3b8; font-size:.8rem; font-weight:600;">' + (post.comments || []).length + ' Komen</span>'
+        + '</div>'
+        + '<div style="margin-bottom:10px;">' + htmlSenaraiKomen + '</div>'
+        + '<div style="display:flex; gap:8px; margin-top:8px;">'
+          + '<input type="text" id="input_komen_' + post.id + '" class="form-control" style="flex:1; background:#0f172a; border:1px solid #334155; border-radius:8px; color:#fff; font-size:.88rem; padding:6px 12px;" placeholder="Tulis komen ulasan..." onkeydown="if(event.key==='Enter')hantarKomenHub('' + post.id + '')">'
+          + '<button class="btn btn-warning" style="background:#f59e0b; color:#000; border:none; border-radius:8px; font-weight:800; font-size:.85rem; padding:6px 16px; cursor:pointer;" type="button" onclick="hantarKomenHub('' + post.id + '')">Komen</button>'
+        + '</div>'
+      + '</div>'
+    + '</div>';
+  });
+
+  container.innerHTML = htmlFeed;
+}
+
+function aksiLikeHub(postId) {
+  var store = localStorage.getItem('PLAYPRO_HUB_POSTS_V2');
+  var senaraiPost = store ? JSON.parse(store) : [];
+  var namaUserSemasa = window.currentActivePlayerKey || currentActivePlayerKey || "Azlan";
+
+  var post = senaraiPost.find(function(p){ return p.id === postId; });
+  if (!post) return;
+
+  var indeksLike = (post.likes || []).indexOf(namaUserSemasa);
+  if (indeksLike === -1) {
+    post.likes = post.likes || [];
+    post.likes.push(namaUserSemasa);
+  } else {
+    post.likes.splice(indeksLike, 1);
+  }
+
+  localStorage.setItem('PLAYPRO_HUB_POSTS_V2', JSON.stringify(senaraiPost));
+  muatTurunDanPaparHub();
+}
+
+function hantarKomenHub(postId) {
+  var inputKomen = document.getElementById('input_komen_' + postId);
+  var namaUserSemasa = window.currentActivePlayerKey || currentActivePlayerKey || "Azlan";
+
+  if (!inputKomen || inputKomen.value.trim() === "") return;
+
+  var store = localStorage.getItem('PLAYPRO_HUB_POSTS_V2');
+  var senaraiPost = store ? JSON.parse(store) : [];
+
+  var post = senaraiPost.find(function(p){ return p.id === postId; });
+  if (!post) return;
+
+  post.comments = post.comments || [];
+  post.comments.push({
+    pengomen: namaUserSemasa,
+    teksKomen: inputKomen.value.trim(),
+    timestamp: Date.now()
+  });
+
+  localStorage.setItem('PLAYPRO_HUB_POSTS_V2', JSON.stringify(senaraiPost));
+  inputKomen.value = "";
+  muatTurunDanPaparHub();
+  toast('💬 Komen berjaya dihantar!');
 }
 
 function paparkanAtributDNA(pemain, attrs){
