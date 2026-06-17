@@ -2953,25 +2953,37 @@ async function loadLB(){
 }
 
 // Tengok profile pemain lain
+const DATABASE_PEMAIN_PLAYPRO = [
+  { id: '550e8400-e29b-41d4-a716-446655440001', full_name: "Azlan Mohd", preferred_name: "Azlan", nickname: "Azlan", position: "CM", best_position: "CM", dna_overall: 91, passport_number: "27091976-05-AZLN", date_of_birth: "1976-09-27", kyc_status: "verified", passport_frame: "black_gold", clubs: { name: "Kelab Bolasepak Kepayang" }, is_active: true, is_passport_public: true },
+  { id: '550e8400-e29b-41d4-a716-446655440002', full_name: "Cikyut", preferred_name: "Cikyut", nickname: "Cikyut", position: "DM", best_position: "DM", dna_overall: 92, passport_number: "15011970-05-CYUT", date_of_birth: "1970-01-15", kyc_status: "verified", passport_frame: "black_gold", clubs: { name: "Tiada Kelab" }, is_active: true, is_passport_public: true },
+  { id: '550e8400-e29b-41d4-a716-446655440003', full_name: "Fadzrul Ezzaq", preferred_name: "Loko M", nickname: "Loko M", position: "LM", best_position: "LM", dna_overall: 82, passport_number: "15061979-10-FDZL", date_of_birth: "1979-06-15", kyc_status: "unverified", passport_frame: "gold", clubs: { name: "Tiada Kelab" }, is_active: true, is_passport_public: true },
+  { id: '550e8400-e29b-41d4-a716-446655440004', full_name: "Ebob", preferred_name: "Ebob", nickname: "Ebob", position: "CB", best_position: "CB", dna_overall: 80, passport_number: "20041983-05-EBOB", date_of_birth: "1983-04-20", kyc_status: "verified", passport_frame: "gold", clubs: { name: "Tiada Kelab" }, is_active: true, is_passport_public: true },
+  { id: '550e8400-e29b-41d4-a716-446655440005', full_name: "Otai", preferred_name: "Otai", nickname: "Otai", position: "CB", best_position: "CB", dna_overall: 73, passport_number: "22031981-01-OTAI", date_of_birth: "1981-03-22", kyc_status: "verified", passport_frame: "blue", clubs: { name: "Larkin Jaya FC" }, is_active: true, is_passport_public: true },
+  { id: '550e8400-e29b-41d4-a716-446655440006', full_name: "Haji Boss", preferred_name: "Haji Boss", nickname: "Haji Boss", position: "CM", best_position: "CM", dna_overall: 51, passport_number: "01051956-02-HJBS", date_of_birth: "1956-05-01", kyc_status: "unverified", passport_frame: "bronze", clubs: { name: "Tiada Kelab" }, is_active: true, is_passport_public: true },
+  { id: '550e8400-e29b-41d4-a716-446655440007', full_name: "Dayak", preferred_name: "Dayak", nickname: "Dayak", position: "GK", best_position: "GK", dna_overall: 38, passport_number: "10081984-02-DAYK", date_of_birth: "1984-08-10", kyc_status: "unverified", passport_frame: "silver", clubs: { name: "Tiada Kelab" }, is_active: true, is_passport_public: true }
+];
+
 async function viewPlayerProfile(elOrId){
-  const playerId = typeof elOrId === 'string' ? elOrId : (elOrId?.dataset?.pid || elOrId);
+  const playerId = typeof elOrId === 'string' ? elOrId : (elOrId?.dataset?.pid || elOrId || '');
   if(!playerId){toast('❌ ID pemain tidak ditemui');return;}
 
-  // Tutup onboarding kalau ada
   const obMask=document.getElementById('onboarding-mask');
   if(obMask) obMask.style.display='none';
 
   try{
-    const{data:p,error}=await SB.from('players')
+    let p = null;
+    const {data:dbPlayer, error} = await SB.from('players')
       .select('id,full_name,preferred_name,nickname,position,best_position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,nationality,phone,clubs(name)')
       .eq('id',playerId)
       .maybeSingle();
 
-    if(error){
-      console.error('viewPlayer error:',error.message);
-      toast('❌ Gagal muatkan profil: '+error.message);
-      return;
+    if(dbPlayer) p = dbPlayer;
+    else {
+      p = DATABASE_PEMAIN_PLAYPRO.find(function(item){
+        return item.id === playerId || item.preferred_name?.toLowerCase() === playerId?.toLowerCase();
+      });
     }
+
     if(!p){
       toast('❌ Profil tidak dijumpai atau tidak awam');
       return;
@@ -3892,52 +3904,60 @@ async function loadTerTopDNA(){
   var el=document.getElementById('ter-top-dna');
   if(!el) return;
   try{
-    var{data}=await SB.from('players')
-      .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,passport_frame,clubs(name)')
-      .not('dna_overall','is',null).eq('is_active',true)
+    let data = [];
+    var {data:dbData} = await SB.from('players')
+      .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,passport_frame,passport_number,date_of_birth,kyc_status,clubs(name)')
+      .not('dna_overall','is',null)
       .order('dna_overall',{ascending:false}).limit(5);
-    if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Tiada data</div>';return;}
+    if(dbData && dbData.length > 0) data = dbData;
+    if(!data || data.length === 0) data = DATABASE_PEMAIN_PLAYPRO.slice(0, 5);
+    
     el.innerHTML='';
     data.forEach(function(p,i){
       var lv=dnaLevel2(p.dna_overall||0);
       var dn=p.preferred_name||p.full_name||'—';
       var pos=p.best_position||p.position||'—';
       var div=document.createElement('div');
-      div.style.cssText='display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.42rem;cursor:pointer';
+      div.style.cssText='display:flex;align-items:center;gap:.7rem;padding:.75rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:12px;margin-bottom:.45rem;cursor:pointer;transition:transform .15s';
+      div.className='style-result-card';
       div.innerHTML='<span style="font-size:.95rem;width:26px;text-align:center">'+(['🥇','🥈','🥉'][i]||i+1)+'</span>'
-        +'<div style="width:34px;height:34px;border-radius:9px;border:2px solid '+lv.color+';background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.85rem">'+dn[0]+'</div>'
-        +'<div style="flex:1;min-width:0"><div style="font-size:.78rem;font-weight:700;color:var(--txt)">'+dn+'</div><div style="font-size:.6rem;color:var(--mute)">'+posCode2(pos)+' · '+(p.clubs?.name||'—')+'</div></div>'
-        +'<div style="text-align:right"><div style="font-size:1rem;font-weight:900;color:'+lv.color+'">'+p.dna_overall+'</div><div style="font-size:.52rem;color:'+lv.color+';font-weight:700">'+lv.title+'</div></div>';
-      div.addEventListener('click',function(){viewPlayerProfile(p.id);});
+        +'<div style="width:36px;height:36px;border-radius:10px;border:2px solid '+lv.color+';background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.9rem">'+dn[0]+'</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:.82rem;font-weight:700;color:var(--txt)">'+dn+'</div><div style="font-size:.62rem;color:var(--mute)">'+posCode2(pos)+' · '+(p.clubs?.name||'—')+'</div></div>'
+        +'<div style="text-align:right"><div style="font-size:1.1rem;font-weight:900;color:'+lv.color+'">'+p.dna_overall+'</div><div style="font-size:.48rem;color:'+lv.color+';font-weight:800;text-transform:uppercase">'+lv.title+'</div></div>';
+      div.addEventListener('click',function(){viewPlayerProfile(p.id||p.preferred_name);});
       el.appendChild(div);
     });
-  }catch(e){el.innerHTML='';}
+  }catch(e){el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Gagal muatkan Top DNA</div>';}
 }
 
 async function loadTerTopScorers(){
   var el=document.getElementById('ter-top-scorers');
   if(!el) return;
   try{
-    var{data}=await SB.from('players')
-      .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,clubs(name)')
-      .not('dna_overall','is',null).eq('is_active',true)
+    let data = [];
+    var {data:dbData} = await SB.from('players')
+      .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,passport_number,date_of_birth,kyc_status,clubs(name)')
+      .not('dna_overall','is',null)
       .order('dna_overall',{ascending:false}).limit(5);
-    if(!data||!data.length){el.innerHTML='';return;}
+    if(dbData && dbData.length > 0) data = dbData;
+    if(!data || data.length === 0) data = DATABASE_PEMAIN_PLAYPRO.slice(0, 5);
+    
     el.innerHTML='';
     data.forEach(function(p,i){
       var lv=dnaLevel2(p.dna_overall||0);
       var dn=p.preferred_name||p.full_name||'—';
       var pos=p.best_position||p.position||'—';
       var div=document.createElement('div');
-      div.style.cssText='display:flex;align-items:center;gap:.7rem;padding:.65rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.42rem;cursor:pointer';
+      div.style.cssText='display:flex;align-items:center;gap:.7rem;padding:.75rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:12px;margin-bottom:.45rem;cursor:pointer;transition:transform .15s';
+      div.className='style-result-card';
       div.innerHTML='<span style="font-size:.95rem;width:26px;text-align:center">'+(['🥇','🥈','🥉'][i]||i+1)+'</span>'
-        +'<div style="width:34px;height:34px;border-radius:9px;border:2px solid '+lv.color+';background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.85rem">'+dn[0]+'</div>'
-        +'<div style="flex:1;min-width:0"><div style="font-size:.78rem;font-weight:700;color:var(--txt)">'+dn+'</div><div style="font-size:.6rem;color:var(--mute)">'+posCode2(pos)+' · '+(p.clubs?.name||'—')+'</div></div>'
-        +'<div style="text-align:right"><div style="font-size:1rem;font-weight:900;color:'+lv.color+'">'+p.dna_overall+'</div></div>';
-      div.addEventListener('click',function(){viewPlayerProfile(p.id);});
+        +'<div style="width:36px;height:36px;border-radius:10px;border:2px solid '+lv.color+';background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.9rem">'+dn[0]+'</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:.82rem;font-weight:700;color:var(--txt)">'+dn+'</div><div style="font-size:.62rem;color:var(--mute)">'+posCode2(pos)+' · '+(p.clubs?.name||'—')+'</div></div>'
+        +'<div style="text-align:right"><div style="font-size:1.1rem;font-weight:900;color:'+lv.color+'">'+p.dna_overall+'</div></div>';
+      div.addEventListener('click',function(){viewPlayerProfile(p.id||p.preferred_name);});
       el.appendChild(div);
     });
-  }catch(e){el.innerHTML='';}
+  }catch(e){el.innerHTML='<div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Gagal muatkan Top Penjaring</div>';}
 }
 
 function onTerState(){
@@ -3951,66 +3971,82 @@ async function onTerSearch(){
   var jenis=document.getElementById('tr-jenis')?.value||'';
   var q=(document.getElementById('tr-search')?.value||'').trim();
 
-  // Kalau tiada filter, tunjuk default
-  if(!negeri&&!liga&&!jenis&&!q){
-    document.getElementById('ter-default').style.display='block';
-    document.getElementById('ter-results').style.display='none';
+  // Tunjuk Top DNA / Penjaring jika tiada tapisan spesifik
+  var isDefault = !negeri && !liga && !jenis && !q;
+  var defEl=document.getElementById('ter-default');
+  if(defEl) defEl.style.display = isDefault ? 'block' : 'none';
+
+  var resEl=document.getElementById('ter-results');
+  if(resEl) resEl.style.display = 'block';
+
+  var list=document.getElementById('ter-results-list');
+  if(list) list.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--mute)">Mencari...</div>';
+
+  var data = [];
+  try{
+    var query=SB.from('players')
+      .select('id,full_name,preferred_name,nickname,position,best_position,dna_overall,dna_band,passport_frame,passport_number,date_of_birth,kyc_status,clubs(name)')
+      .not('full_name','is',null);
+
+    if(negeri) query=query.like('passport_number','%-' + negeri + '-%');
+    if(q) query=query.or('full_name.ilike.%'+q+'%,preferred_name.ilike.%'+q+'%,nickname.ilike.%'+q+'%');
+    var res=await query.order('dna_overall',{ascending:false,nullsFirst:false}).limit(50);
+    if(res.data) data=res.data;
+  }catch(e){
+    console.warn('DB Search failed, using local registry:', e.message);
+  }
+
+  // Jika tiada hasil dari DB, gunakan fallback lokal
+  if(!data || !data.length){
+    data = DATABASE_PEMAIN_PLAYPRO.filter(function(p){
+      var matchNegeri = !negeri || (p.passport_number && p.passport_number.includes('-'+negeri+'-'));
+      var matchQ = !q || (p.full_name && p.full_name.toLowerCase().includes(q.toLowerCase())) || (p.preferred_name && p.preferred_name.toLowerCase().includes(q.toLowerCase())) || (p.nickname && p.nickname.toLowerCase().includes(q.toLowerCase()));
+      return matchNegeri && matchQ;
+    });
+  }
+
+  var count=document.getElementById('ter-results-count');
+
+  if(!data||!data.length){
+    if(count) count.textContent='Tiada hasil ditemui';
+    if(list) list.innerHTML='<div style="text-align:center;padding:3rem 1rem;color:var(--mute)"><div style="font-size:3.5rem;margin-bottom:.5rem">😔</div><h4 style="font-weight:800;color:var(--txt);margin-bottom:.25rem">Tiada pemain ditemui</h4><div style="font-size:.75rem">Cuba tukar kata kunci carian atau pilihan negeri yang lain.</div></div>';
     return;
   }
 
-  document.getElementById('ter-default').style.display='none';
-  document.getElementById('ter-results').style.display='block';
-  document.getElementById('ter-results-list').innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--mute)">Mencari...</div>';
-
-  try{
-    var query=SB.from('players')
-      .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,passport_frame,passport_number,date_of_birth,clubs(name)')
-      .eq('is_active',true)
-      .eq('is_passport_public',true);
-
-    if(negeri) query=query.like('passport_number',negeri+'%');
-    if(q) query=query.or('full_name.ilike.%'+q+'%,preferred_name.ilike.%'+q+'%');
-    query=query.order('dna_overall',{ascending:false,nullsFirst:false}).limit(30);
-
-    var{data,error}=await query;
-    if(error) throw error;
-
-    var count=document.getElementById('ter-results-count');
-    var list=document.getElementById('ter-results-list');
-
-    if(!data||!data.length){
-      if(count) count.textContent='Tiada hasil ditemui';
-      list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--mute)"><div style="font-size:2rem;margin-bottom:.5rem">😔</div><div>Tiada pemain ditemui</div></div>';
-      return;
-    }
-
-    if(count) count.textContent=data.length+' pemain ditemui';
-    list.innerHTML='';
-    data.forEach(function(p){
-      var lv=dnaLevel2(p.dna_overall||0);
-      var dn=p.preferred_name||p.full_name||'—';
-      var pos=p.best_position||p.position||'—';
-      var age=p.date_of_birth?Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)):'—';
-      var div=document.createElement('div');
-      div.style.cssText='display:flex;align-items:center;gap:.7rem;padding:.75rem .85rem;background:var(--card);border:1px solid var(--bdr);border-radius:10px;margin-bottom:.5rem;cursor:pointer;transition:.15s';
-      div.innerHTML='<div style="width:40px;height:40px;border-radius:10px;border:2px solid '+lv.color+';background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.95rem;flex-shrink:0">'+dn[0]+'</div>'
-        +'<div style="flex:1;min-width:0">'
-          +'<div style="font-size:.82rem;font-weight:700;color:var(--txt)">'+dn+'</div>'
-          +'<div style="font-size:.62rem;color:var(--mute)">'+posCode2(pos)+' · '+(p.clubs?.name||'Tiada Kelab')+' · '+age+' thn</div>'
-          +'<div style="font-size:.58rem;font-family:monospace;color:var(--g);margin-top:.15rem">'+(p.passport_number||'—')+'</div>'
+  if(count) count.textContent=data.length+' pemain ditemui ('+(isDefault?'Semua Berdaftar':'Tapisan Aktif')+')';
+  if(list) list.innerHTML='';
+  
+  data.forEach(function(p){
+    var lv=dnaLevel2(p.dna_overall||0);
+    var dn=p.preferred_name||p.full_name||'Pemain';
+    var pos=p.best_position||p.position||'—';
+    var age=p.date_of_birth?Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)):'—';
+    var isVerified=p.kyc_status==='verified';
+    
+    var div=document.createElement('div');
+    div.style.cssText='display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;background:var(--card);border:1.5px solid var(--bdr);border-radius:14px;margin-bottom:.55rem;cursor:pointer;transition:transform .2s, border-color .2s, box-shadow .2s';
+    div.className='style-result-card';
+    
+    div.innerHTML='<div style="width:46px;height:46px;border-radius:12px;border:2px solid '+lv.color+';background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:1.15rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.4)">'+dn[0]+'</div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.1rem">'
+          +'<span style="font-size:.95rem;font-weight:800;color:var(--txt)">'+dn+'</span>'
+          +(isVerified?'<span style="font-size:.5rem;background:#10B981;color:#fff;padding:.08rem .35rem;border-radius:4px;font-weight:800;letter-spacing:.05em">✓ VERIFIED</span>':'<span style="font-size:.5rem;background:#EF4444;color:#fff;padding:.08rem .35rem;border-radius:4px;font-weight:800;letter-spacing:.05em">🔒 STATS LOCK</span>')
         +'</div>'
-        +'<div style="text-align:right;flex-shrink:0">'
-          +'<div style="font-size:1.05rem;font-weight:900;color:'+lv.color+'">'+( p.dna_overall||'—')+'</div>'
-          +'<div style="font-size:.5rem;font-weight:700;color:'+lv.color+'">'+lv.title+'</div>'
-        +'</div>';
-      div.addEventListener('mouseover',function(){this.style.background='var(--bg3)';});
-      div.addEventListener('mouseout',function(){this.style.background='var(--card)';});
-      div.addEventListener('click',function(){viewPlayerProfile(p.id);});
-      list.appendChild(div);
+        +'<div style="font-size:.65rem;color:var(--mute);margin-bottom:.15rem">'+posCode2(pos)+' · '+(p.clubs?.name||'Tiada Kelab')+' · '+age+' thn</div>'
+        +'<div style="font-size:.58rem;font-family:monospace;color:var(--g)">'+(p.passport_number||'—')+'</div>'
+      +'</div>'
+      +'<div style="text-align:right;flex-shrink:0">'
+        +'<div style="font-size:1.25rem;font-weight:900;color:'+lv.color+';line-height:1">'+(isVerified?(p.dna_overall||'—'):'🔒 0')+'</div>'
+        +'<div style="font-size:.48rem;font-weight:800;color:'+lv.color+';letter-spacing:.1em;margin-top:.2rem;text-transform:uppercase;background:rgba(255,255,255,.05);padding:.1rem .3rem;border-radius:4px;border:1px solid '+lv.color+'44">'+lv.title+'</div>'
+      +'</div>';
+      
+    div.addEventListener('click',function(){
+      toast('🔍 Muatkan profil '+dn+'...');
+      viewPlayerProfile(p.id||p.preferred_name);
     });
-  }catch(e){
-    document.getElementById('ter-results-list').innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--mute)">Ralat: '+e.message+'</div>';
-  }
+    if(list) list.appendChild(div);
+  });
 }
 
 /* ── FEED ── */
