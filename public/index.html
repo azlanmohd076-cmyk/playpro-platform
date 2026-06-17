@@ -1719,7 +1719,10 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
               <div class="mini-kad tier-starter" id="mini-kad">
                 <div class="mini-kad-inner">
                   <div class="mini-kad-ovr" id="mini-kad-ovr">—</div>
-                  <div class="mini-kad-init" id="mini-kad-init">A</div>
+                  <div class="mini-kad-init" id="mini-kad-init-wrap" style="position:relative;overflow:hidden">
+                    <img id="mk-custom-img" src="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:none;position:absolute;inset:0"/>
+                    <span id="mini-kad-init">A</span>
+                  </div>
                   <div class="mini-kad-pos" id="mini-kad-pos">—</div>
                 </div>
               </div>
@@ -2339,7 +2342,15 @@ const SB = supabase.createClient(
 );
 let _u=null,_lang=localStorage.getItem('pp_lang')||'ms',_tab='home',_pd=null;
 
-async function init(){
+async function init(){  var params = new URLSearchParams(window.location.search);
+  var targetPlayer = params.get('player');
+  if(targetPlayer){
+    setTimeout(function(){
+      toast('🔍 Muatkan pasport ' + targetPlayer + '...');
+      viewPlayerProfile(targetPlayer);
+    }, 450);
+  }
+
   const{data:{session}}=await SB.auth.getSession();
   if(session){_u=session.user;updateUI();}
   buildFeed();
@@ -3259,60 +3270,61 @@ function showPlayerModal(p){
 
 function renderOtherPassport(p){
   if(!p) return;
-  
-  var dn=p.preferred_name||p.full_name||'Pemain';
-  var dna=p.dna_overall||0;
-  var lv=dnaLevel2(dna);
-  var pos=p.best_position||p.position||'';
-  var age=p.date_of_birth?Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)):'—';
-  var foot=p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—';
+  var dn = p.preferred_name || p.full_name || p.nama || 'Pemain';
+  currentActivePlayerKey = dn;
+  window._overrideProfileData = p;
+
+  // Ubah terus state display ke block supaya tak sangkut/blank jika tak klik Azlan dulu!
+  var ppMain=document.getElementById('pp-main');     if(ppMain) ppMain.style.display='block';
+  var ppData=document.getElementById('pp-data-wrap');if(ppData) ppData.style.display='block';
+  var ppLoad=document.getElementById('pp-loading');  if(ppLoad) ppLoad.style.display='none';
+  var ppGuest=document.getElementById('pp-guest');   if(ppGuest) ppGuest.style.display='none';
+  var ppNorec=document.getElementById('pp-norec');   if(ppNorec) ppNorec.style.display='none';
+
+  go('profile');
+  renderMiniKad(p, window._attrData2 || []);
 
   // Tunjuk overlay bar di atas
-  var bar=document.getElementById('other-player-bar');
+  var dna = p.dna_overall || 0;
+  var lv = dnaLevel2(dna);
+  var pos = p.best_position || p.position || '';
+  var age = p.date_of_birth ? Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)) : '—';
+  var foot = p.preferred_foot === 'left' ? 'Kiri' : p.preferred_foot === 'right' ? 'Kanan' : '—';
+
+  var bar = document.getElementById('other-player-bar');
   if(!bar){
-    bar=document.createElement('div');
-    bar.id='other-player-bar';
+    bar=document.createElement('div'); bar.id='other-player-bar';
     bar.style.cssText='position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);padding:.5rem 1rem;display:flex;align-items:center;gap:.75rem;border-bottom:2px solid '+lv.color;
     document.body.appendChild(bar);
   }
   bar.innerHTML=''
     +'<button onclick="closeOtherPassport()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0">&#8592;</button>'
-    +'<div style="width:36px;height:36px;border-radius:50%;background:'+lv.color+'33;border:2px solid '+lv.color+';display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:900;color:#fff;flex-shrink:0">'+dn[0].toUpperCase()+'</div>'
+    +'<div onclick="openKadModal()" title="Lihat Passport Kad" style="cursor:pointer;width:36px;height:36px;border-radius:50%;background:'+lv.color+'33;border:2px solid '+lv.color+';display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:900;color:#fff;flex-shrink:0">'+dn[0].toUpperCase()+'</div>'
     +'<div style="flex:1;min-width:0">'
       +'<div style="font-size:.88rem;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+dn+'</div>'
       +'<div style="font-size:.6rem;color:rgba(255,255,255,.5)">'+posCode2(pos)+' &nbsp;|&nbsp; '+age+' thn &nbsp;|&nbsp; '+foot+'</div>'
     +'</div>'
-    +'<div style="text-align:center">'
+    +'<div style="text-align:center;cursor:pointer" onclick="openKadModal()" title="Lihat Passport Kad">'
       +'<div style="font-size:1rem;font-weight:900;color:'+lv.color+'">'+dna+'</div>'
       +'<div style="font-size:.45rem;color:rgba(255,255,255,.4)">'+lv.title+'</div>'
     +'</div>'
-    +(_u?'<button onclick="startConvoWith(this.dataset.pid,this.dataset.name)" data-pid="'+p.id+'" data-name="'+dn+'" style="padding:.35rem .75rem;background:'+lv.color+';color:#000;border:none;border-radius:8px;font-size:.68rem;font-weight:800;cursor:pointer;font-family:inherit;flex-shrink:0">💬 Mesej</button>':'')
+    +(_u?'<button onclick="startConvoWith(this.dataset.pid,this.dataset.name)" data-pid="'+(p.id||p)+'" data-name="'+dn+'" style="padding:.35rem .75rem;background:'+lv.color+';color:#000;border:none;border-radius:8px;font-size:.68rem;font-weight:800;cursor:pointer;font-family:inherit;flex-shrink:0">💬 Mesej</button>':'')
     +'<span style="font-size:.55rem;font-family:monospace;color:'+lv.color+';padding:.25rem .5rem;background:rgba(0,0,0,.3);border-radius:6px;flex-shrink:0">'+(p.passport_number||'—')+'</span>';
   bar.style.display='flex';
 
-  // Sembunyi header passport sendiri & tunjuk data orang lain
-  // Set flag untuk go('profile') tahu ini bukan profile sendiri supaya tak silap load Azlan
-  window._overrideProfileData = p;
-  
-  // Scroll ke atas dan switch ke tab passport
-  go('profile');
-  
-  // Segera kemas kini _kadData untuk profil orang lain
-  renderMiniKad(p, []);
-  
-  // Render data orang lain dalam tab yang ada
+  // Render data di tab dan serta-merta buka Modal Kad Pasport!
   setTimeout(function(){
     renderPP2Header(p);
-    loadAttr2ForOther(p.id);
+    loadAttr2ForOther(p.id || p.preferred_name || p.full_name);
     renderDNA2Scorecard(p);
     renderCatBars2(p);
     renderClubHistory2(p);
     renderBio2(p);
-    loadStats2Other(p.id);
-    
-    // Tunjuk tab DNA
     pp2Tab('dna');
-  }, 100);
+    
+    // 🔥 TINDAKAN AGRESIF: Terus sembulkan / Auto-open Modal Passport Kad!
+    openKadModal();
+  }, 80);
 }
 
 function closeOtherPassport(){
@@ -4045,15 +4057,18 @@ function previewPhoto(event){
     var ph=document.getElementById('photo-placeholder');
     if(img){img.src=e.target.result;img.style.display='block';}
     if(ph) ph.style.display='none';
+    _tempCustomPhotoBase64 = e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
 async function saveEditProfile(){
-  if(!_u||!_pd) return;
+  var activePlayer = window._overrideProfileData || window._pd || _pd || {};
+  var nameKey = activePlayer.preferred_name || activePlayer.full_name || currentActivePlayerKey || 'Azlan';
+  var reg = PLAYPRO_PLAYER_REGISTRY[nameKey] || PLAYPRO_PLAYER_REGISTRY[nameKey.toLowerCase()] || PLAYPRO_PLAYER_REGISTRY['Azlan'] || {};
+
   var btn=document.getElementById('edit-save-btn');
-  btn.disabled=true;
-  btn.textContent='Menyimpan...';
+  if(btn){ btn.disabled=true; btn.textContent='Menyimpan...'; }
 
   try{
     var phoneCode=document.getElementById('edit-phone-code')?.value||'+60';
@@ -4067,46 +4082,40 @@ async function saveEditProfile(){
     var nick=document.getElementById('edit-nickname')?.value?.trim()||null;
 
     var update={};
-    if(nick!==null) update.nickname=nick;
-    if(fullPhone) update.phone=fullPhone;
-    if(pos){update.position=pos;update.best_position=pos.toUpperCase();}
-    if(foot) update.preferred_foot=foot;
-    if(jersey) update.jersey_number=parseInt(jersey);
-    if(height) update.height_cm=parseInt(height);
-    if(weight) update.weight_kg=parseInt(weight);
+    if(nick!==null){ update.nickname=nick; activePlayer.nickname=nick; activePlayer.preferred_name=nick; reg.nama=nick; currentActivePlayerKey=nick; }
+    if(fullPhone)  { update.phone=fullPhone; activePlayer.phone=fullPhone; reg.phone=fullPhone; }
+    if(pos){
+      update.position=pos; update.best_position=pos.toUpperCase();
+      activePlayer.position=pos; activePlayer.best_position=pos.toUpperCase();
+      reg.posisi=pos.toUpperCase(); reg.posisiPenuh=posFull2(pos);
+    }
+    if(foot) { update.preferred_foot=foot; activePlayer.preferred_foot=foot; reg.kaki=(foot==='left'?'Kiri':'Kanan'); }
+    if(jersey) { update.jersey_number=parseInt(jersey); activePlayer.jersey_number=parseInt(jersey); reg.jersey='#'+jersey; }
+    if(height) { update.height_cm=parseInt(height); activePlayer.height_cm=parseInt(height); reg.tinggi=height+' cm'; }
+    if(weight) { update.weight_kg=parseInt(weight); activePlayer.weight_kg=parseInt(weight); reg.berat=weight+' kg'; }
 
-    // Upload gambar jika ada
-    var photoFile=document.getElementById('photo-input')?.files[0];
-    if(photoFile){
-      var fileName='player-'+_pd.id+'-'+Date.now()+'.'+photoFile.name.split('.').pop();
-      var{data:uploadData,error:uploadErr}=await SB.storage
-        .from('player-photos')
-        .upload(fileName,photoFile,{upsert:true});
-      if(!uploadErr&&uploadData){
-        var{data:urlData}=SB.storage.from('player-photos').getPublicUrl(fileName);
-        if(urlData?.publicUrl) update.photo_url=urlData.publicUrl;
-      } else {
-        console.warn('Photo upload:', uploadErr?.message);
-        toast('⚠️ Gambar gagal diupload tapi maklumat lain akan disimpan');
-      }
+    if(_tempCustomPhotoBase64){
+      activePlayer.photo_url = _tempCustomPhotoBase64;
+      activePlayer.avatarCustomUrl = _tempCustomPhotoBase64;
+      reg.avatarCustomUrl = _tempCustomPhotoBase64;
     }
 
-    if(Object.keys(update).length>0){
-      var{error}=await SB.from('players').update(update).eq('id',_pd.id);
-      if(error) throw new Error(error.message);
+    if(activePlayer.id && activePlayer.id.length === 36){
+      await SB.from('players').update(update).eq('id',activePlayer.id);
     }
 
-    toast('✅ Profil dikemaskini!');
+    renderPP2Header(activePlayer);
+    renderBio2(activePlayer);
+    renderMiniKad(activePlayer, window._attrData2 || []);
+
+    toast('✅ Biodata dan gambar berjaya dikemaskini!');
     closeEditModal();
-    _pd=null;
-    loadProfile();
 
   }catch(e){
-    toast('❌ Gagal: '+e.message);
+    toast('❌ Ralat: '+e.message);
     console.error('saveEdit:',e);
   }finally{
-    btn.disabled=false;
-    btn.textContent='Simpan Perubahan →';
+    if(btn){ btn.disabled=false; btn.textContent='Simpan Perubahan →'; }
   }
 }
 
@@ -4520,6 +4529,16 @@ function renderMiniKad(p, attrs){
   document.getElementById('mini-kad-ovr').textContent=isVerified?dna:'\uD83D\uDD12 0';
   document.getElementById('mini-kad-init').textContent=init;
   document.getElementById('mini-kad-init').style.background='rgba(255,255,255,.12)';
+  var customImgUrl = reg.avatarCustomUrl || p.photo_url || p.avatarCustomUrl;
+  var mkImgEl = document.getElementById('mk-custom-img');
+  var mkTxtEl = document.getElementById('mini-kad-init');
+  if(customImgUrl){
+    if(mkImgEl){mkImgEl.src=customImgUrl;mkImgEl.style.display='block';}
+    if(mkTxtEl){mkTxtEl.style.display='none';}
+  } else {
+    if(mkImgEl){mkImgEl.style.display='none';}
+    if(mkTxtEl){mkTxtEl.style.display='inline';}
+  }
   document.getElementById('mini-kad-pos').textContent=pos||'—';
   document.getElementById('mini-kad-jersey').textContent='#'+jersey;
 
@@ -4566,9 +4585,21 @@ function openKadModal(){
   document.getElementById('kad-full-tier').style.color=col;
   document.getElementById('kad-full-tier').style.opacity='.7';
   document.getElementById('kad-full-avatar').textContent=_kadData.init||'A';
-  document.getElementById('kad-full-avatar').style.color=col;
-  document.getElementById('kad-full-avatar').style.borderColor=col;
-  document.getElementById('kad-full-avatar').style.boxShadow='0 0 18px '+col+'55, inset 0 0 12px rgba(0,0,0,.4)';
+  var wrapEl=document.getElementById('kad-full-avatar-wrap');
+  if(wrapEl){
+    wrapEl.style.color=col; wrapEl.style.borderColor=col;
+    wrapEl.style.boxShadow='0 0 18px '+col+'55, inset 0 0 12px rgba(0,0,0,.4)';
+  }
+  var customUrl = _kadData.photo_url || _kadData.avatarCustomUrl;
+  var kImg = document.getElementById('kad-custom-img');
+  var kTxt = document.getElementById('kad-full-avatar');
+  if(customUrl){
+    if(kImg){kImg.src=customUrl;kImg.style.display='block';}
+    if(kTxt){kTxt.style.display='none';}
+  } else {
+    if(kImg){kImg.style.display='none';}
+    if(kTxt){kTxt.style.display='inline';}
+  }
   document.getElementById('kad-full-name').textContent=_kadData.name||'\u2014';
   document.getElementById('kad-full-pos').textContent=_kadData.posFull||_kadData.pos||'\u2014';
   document.getElementById('kad-full-fpno').textContent=_kadData.fpno||'\u2014';
@@ -4736,7 +4767,7 @@ function shareKadWA(){
     +'🎯 PAS: '+pas+' | 🔥 DRI: '+dri+'\n'
     +'🛡 DEF: '+def+' | 💪 FIZ: '+phy+'\n\n'
     +'🔖 FP: '+fpno+'\n'
-    +'🔗 playpro-platform.vercel.app';
+    +'🔗 ' + window.location.origin + window.location.pathname + '?player=' + encodeURIComponent(name);
   var url='https://wa.me/?text='+encodeURIComponent(msg);
   window.open(url,'_blank');
 }
@@ -4877,7 +4908,10 @@ init();
         <!-- Stars -->
         <div class="kad-stars" id="kad-stars"></div>
         <!-- Avatar -->
-        <div class="kad-full-avatar" id="kad-full-avatar">A</div>
+        <div class="kad-full-avatar" id="kad-full-avatar-wrap" style="position:relative;overflow:hidden">
+          <img id="kad-custom-img" src="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:none;position:absolute;inset:0;z-index:10"/>
+          <span id="kad-full-avatar">A</span>
+        </div>
         <!-- Nama + Posisi -->
         <div class="kad-full-name" id="kad-full-name">—</div>
         <div class="kad-full-pos" id="kad-full-pos">—</div>
