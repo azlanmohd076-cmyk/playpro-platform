@@ -614,40 +614,58 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 .attr-mid  { color: #1d4ed8 !important; background: #eff6ff !important; text-shadow: none !important; } /* 10-14: Biru Pro */
 .attr-low  { color: #000000 !important; font-weight: 900 !important; text-shadow: none !important; background: transparent !important; border-color: #000000 !important; } /* Bawah 10 / 0: Hitam Solid Tajam */
 
-/* 📸 STYLES BARU: GAMBAR GERGASI GAYA STICKER CUTOUT FIFA ULTIMATE TEAM */
+/* 📸 Lapisan 1: Ruang Gambar Gergasi Gaya Sticker Cutout (Absolute in background) */
 .passport-avatar-container {
-  position: relative;
-  width: 100%;
-  height: 240px; /* Naikkan ketinggian biar muka & badan nampak gah */
-  display: flex;
-  justify-content: center;
-  align-items: flex-end; /* Paksa gambar duduk tegap dari tapak bawah */
-  margin-top: -10px;
-  margin-bottom: 5px;
-  z-index: 6;
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-end !important; /* Tapak gambar rapat ke bawah kad */
+  z-index: 2 !important; /* Di atas texture, di belakang overlay content */
+  pointer-events: none;
+  padding-bottom: 2.5rem; /* Berikan sedikit ruang dari paras bawah */
 }
 .passport-avatar-sticker {
   width: auto !important;
-  height: 100% !important;
-  max-height: 240px !important;
-  object-fit: contain !important; /* Kekal bentuk asal tanpa stretch */
-  filter: drop-shadow(0px 12px 20px rgba(0, 0, 0, 0.65)); /* Efek bayang sticker 3D */
-  z-index: 6;
+  height: 90% !important; /* Gambar gergasi & gah */
+  max-height: 90% !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0px 8px 18px rgba(0, 0, 0, 0.75));
 }
 .passport-avatar-fallback {
-  width: 86px;
-  height: 86px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.07);
-  border: 3px solid currentColor;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.2rem;
-  font-weight: 900;
-  color: #fff;
+  width: 86px; height: 86px; border-radius: 50%;
+  background: rgba(255,255,255,.08); border: 3px solid currentColor;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.2rem; font-weight: 900; color: #fff;
   box-shadow: 0 0 18px rgba(255,255,255,.3), inset 0 0 12px rgba(0,0,0,.4);
-  margin-bottom: 20px;
+  margin-bottom: auto; margin-top: 5rem;
+}
+
+/* ✍️ Lapisan 2: Kandungan Maklumat Teks & Atribut (Relative ON TOP of the picture) */
+.card-overlay-content {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 10 !important; /* Wajib mengatasi gambar! */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.25rem 1rem;
+  pointer-events: none; /* Biar grab modal berfungsi */
+}
+.card-bottom-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .2rem;
+  margin-top: auto; /* Ditolak rapat ke bawah */
+  width: 100%;
+}
+.card-player-name {
+  font-size: 1.05rem !important; font-weight: 900 !important;
+  text-align: center; text-transform: uppercase; letter-spacing: .08em;
+  color: #0f172a !important; background: rgba(255, 255, 255, 0.92) !important;
+  border-radius: 6px; padding: .15rem .85rem; margin-bottom: .1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5); pointer-events: auto;
 }
 
 /* Shimmer diagonal Pokemon style */
@@ -3221,7 +3239,7 @@ const DATABASE_PEMAIN_PLAYPRO = [
   { id: '550e8400-e29b-41d4-a716-446655440007', full_name: "Dayak", preferred_name: "Dayak", nickname: "Dayak", position: "GK", best_position: "GK", dna_overall: 38, passport_number: "10081984-02-DAYK", date_of_birth: "1984-08-10", kyc_status: "unverified", passport_frame: "silver", clubs: { name: "Tiada Kelab" }, is_active: true, is_passport_public: true }
 ];
 
-const PLAYPRO_PLAYER_REGISTRY = {
+var DEFAULT_PLAYER_REGISTRY = {
   "Azlan": { 
     nama: "Azlan", namaPenuh: "Azlan Mohd", tarikhLahir: "27 September 1976", umur: "49 tahun", level: "Elite", ovr: 91, posisi: "CM", posisiPenuh: "Central Midfielder", jersey: "#8", negeri: "Negeri Sembilan", kelab: "Kelab Bolasepak Kepayang", warganegara: "Malaysian", tinggi: "170 cm", berat: "68 kg", kaki: "Kanan", isVerified: true, stats: { pac: 92, sho: 89, pas: 96, dri: 95, def: 78, phy: 88 },
     dnaAttributes: {
@@ -3277,6 +3295,13 @@ const PLAYPRO_PLAYER_REGISTRY = {
     nama: "faro", namaPenuh: "Fahrul Faro (faro)", tarikhLahir: "19 September 1997", umur: "28 tahun", level: "Starter", ovr: 0, posisi: "—", posisiPenuh: "Position Unassigned", jersey: "#--", negeri: "Negeri Sembilan", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "170 cm", berat: "68 kg", kaki: "Kanan", isVerified: false, stats: null, dnaAttributes: null
   }
 };
+
+// 💾 Load dari LocalStorage jika ada supaya 100% kalis refresh!
+if (!localStorage.getItem('PLAYPRO_REGISTRY_V3')) {
+  localStorage.setItem('PLAYPRO_REGISTRY_V3', JSON.stringify(DEFAULT_PLAYER_REGISTRY));
+}
+var PLAYPRO_PLAYER_REGISTRY = JSON.parse(localStorage.getItem('PLAYPRO_REGISTRY_V3'));
+window.PLAYPRO_PLAYER_REGISTRY = PLAYPRO_PLAYER_REGISTRY;
 
 async function viewPlayerProfile(elOrId){
   const playerId = typeof elOrId === 'string' ? elOrId : (elOrId?.dataset?.pid || elOrId || '');
@@ -4162,9 +4187,9 @@ function previewPhoto(event){
 }
 
 async function saveEditProfile(){
+  var activePlayerKey = window.currentActivePlayerKey || currentActivePlayerKey || 'Azlan';
+  var reg = PLAYPRO_PLAYER_REGISTRY[activePlayerKey] || PLAYPRO_PLAYER_REGISTRY[activePlayerKey.toLowerCase()] || PLAYPRO_PLAYER_REGISTRY['Azlan'] || {};
   var activePlayer = window._overrideProfileData || window._pd || _pd || {};
-  var nameKey = activePlayer.preferred_name || activePlayer.full_name || currentActivePlayerKey || 'Azlan';
-  var reg = PLAYPRO_PLAYER_REGISTRY[nameKey] || PLAYPRO_PLAYER_REGISTRY[nameKey.toLowerCase()] || PLAYPRO_PLAYER_REGISTRY['Azlan'] || {};
 
   var btn=document.getElementById('edit-save-btn');
   if(btn){ btn.disabled=true; btn.textContent='Menyimpan...'; }
@@ -4181,7 +4206,7 @@ async function saveEditProfile(){
     var nick=document.getElementById('edit-nickname')?.value?.trim()||null;
 
     var update={};
-    if(nick!==null){ update.nickname=nick; activePlayer.nickname=nick; activePlayer.preferred_name=nick; reg.nama=nick; currentActivePlayerKey=nick; }
+    if(nick!==null){ update.nickname=nick; activePlayer.nickname=nick; activePlayer.preferred_name=nick; reg.nama=nick; currentActivePlayerKey=nick; window.currentActivePlayerKey=nick; }
     if(fullPhone)  { update.phone=fullPhone; activePlayer.phone=fullPhone; reg.phone=fullPhone; }
     if(pos){
       update.position=pos; update.best_position=pos.toUpperCase();
@@ -4196,8 +4221,13 @@ async function saveEditProfile(){
     if(_tempCustomPhotoBase64){
       activePlayer.photo_url = _tempCustomPhotoBase64;
       activePlayer.avatarCustomUrl = _tempCustomPhotoBase64;
-      reg.avatarCustomUrl = _tempCustomPhotoBase64;
+      reg.avatarCustomUrl = _tempCustomPhotoBase64; reg.photo_url = _tempCustomPhotoBase64;
     }
+
+    // 💾 SIMPAN PERSISTENT KE LOCALSTORAGE MUTLAK!
+    PLAYPRO_PLAYER_REGISTRY[activePlayerKey] = reg;
+    localStorage.setItem('PLAYPRO_REGISTRY_V3', JSON.stringify(PLAYPRO_PLAYER_REGISTRY));
+    window.PLAYPRO_PLAYER_REGISTRY = PLAYPRO_PLAYER_REGISTRY;
 
     if(activePlayer.id && activePlayer.id.length === 36){
       await SB.from('players').update(update).eq('id',activePlayer.id);
@@ -4207,7 +4237,7 @@ async function saveEditProfile(){
     renderBio2(activePlayer);
     renderMiniKad(activePlayer, window._attrData2 || []);
 
-    toast('✅ Biodata dan gambar berjaya dikemaskini!');
+    toast('✅ Biodata dan gambar berjaya dikemaskini secara kekal!');
     closeEditModal();
 
   }catch(e){
@@ -4992,61 +5022,49 @@ init();
 <div id="kad-modal-overlay" onclick="handleKadOverlayClick(event)">
   <div class="kad-modal-scene">
     <div class="kad-modal-card tilting" id="kad-modal-card" onmousemove="tiltKad(event)" onmouseleave="resetKadTilt()" ontouchmove="tiltKad(event)" ontouchend="resetKadTilt()" onclick="flipKad()">
-      <!-- Front face -->
+      <!-- Front face Two-Layer FUT Structure -->
       <div class="kad-full-front tier-starter" id="kad-full-front">
         <!-- Lapisan Grafik Sunburst -->
         <div class="card-graphic-texture"></div>
-        <!-- Top row: OVR + Logo -->
-        <div class="kad-full-top">
-          <div>
-            <div class="kad-full-ovr" id="kad-full-ovr">—</div>
-            <div class="kad-full-tier" id="kad-full-tier">—</div>
-          </div>
-          <div class="kad-full-logo">⚽ PLAYPRO<br>FOOTBALL PASSPORT</div>
-        </div>
-        <!-- Stars -->
-        <div class="kad-stars" id="kad-stars"></div>
-        <!-- Ruang Avatar Gergasi Gaya Sticker Cutout -->
+        
+        <!-- Lapisan 1: Ruang Gambar Gergasi Gaya Sticker Cutout (Absolute in background) -->
         <div class="passport-avatar-container" id="passport-avatar-container">
           <img id="kad-custom-img" class="passport-avatar-sticker" src="" style="display:none" alt="Player Sticker"/>
           <div id="kad-full-avatar-wrap" class="passport-avatar-fallback">
             <span id="kad-full-avatar">A</span>
           </div>
         </div>
-        <!-- Nama + Posisi -->
-        <div class="kad-full-name" id="kad-full-name">—</div>
-        <div class="kad-full-pos" id="kad-full-pos">—</div>
-        <!-- DNA Status Badge -->
-        <div id="dna-verified-badge" class="dna-badge">—</div>
-        <!-- Stats grid -->
-        <div class="kad-full-stats">
-          <div class="kad-stat-item">
-            <div class="kad-stat-val" id="ks-pac">—</div>
-            <div class="kad-stat-lbl">PAC</div>
+
+        <!-- Lapisan 2: Kandungan Maklumat Teks & Atribut (Relative ON TOP of the picture) -->
+        <div class="card-overlay-content">
+          <!-- Top row: OVR + Logo -->
+          <div class="kad-full-top">
+            <div>
+              <div class="kad-full-ovr" id="kad-full-ovr" style="text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0 4px 12px rgba(0,0,0,0.8); color: #0f172a;">—</div>
+              <div class="kad-full-tier" id="kad-full-tier" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.9); font-weight: 900;">—</div>
+            </div>
+            <div class="kad-full-logo" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.9);">⚽ PLAYPRO<br>FOOTBALL PASSPORT</div>
           </div>
-          <div class="kad-stat-item">
-            <div class="kad-stat-val" id="ks-sho">—</div>
-            <div class="kad-stat-lbl">GOL</div>
-          </div>
-          <div class="kad-stat-item">
-            <div class="kad-stat-val" id="ks-pas">—</div>
-            <div class="kad-stat-lbl">PAS</div>
-          </div>
-          <div class="kad-stat-item">
-            <div class="kad-stat-val" id="ks-dri">—</div>
-            <div class="kad-stat-lbl">DRI</div>
-          </div>
-          <div class="kad-stat-item">
-            <div class="kad-stat-val" id="ks-def">—</div>
-            <div class="kad-stat-lbl">DEF</div>
-          </div>
-          <div class="kad-stat-item">
-            <div class="kad-stat-val" id="ks-phy">—</div>
-            <div class="kad-stat-lbl">FIZ</div>
+          <!-- Stars -->
+          <div class="kad-stars" id="kad-stars" style="margin-bottom:auto"></div>
+          
+          <!-- Bawah: Nama, Posisi, Badge, dan Matriks Atribut EA EA EA style -->
+          <div class="card-bottom-zone">
+            <div class="card-player-name" id="kad-full-name">—</div>
+            <div class="kad-full-pos" id="kad-full-pos" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.9); font-weight: 850;">—</div>
+            <div id="dna-verified-badge" class="dna-badge" style="margin:.25rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.6);">—</div>
+            <!-- Stats grid -->
+            <div class="kad-full-stats">
+              <div class="kad-stat-item"><div class="kad-stat-val" id="ks-pac">—</div><div class="kad-stat-lbl">PAC</div></div>
+              <div class="kad-stat-item"><div class="kad-stat-val" id="ks-sho">—</div><div class="kad-stat-lbl">GOL</div></div>
+              <div class="kad-stat-item"><div class="kad-stat-val" id="ks-pas">—</div><div class="kad-stat-lbl">PAS</div></div>
+              <div class="kad-stat-item"><div class="kad-stat-val" id="ks-dri">—</div><div class="kad-stat-lbl">DRI</div></div>
+              <div class="kad-stat-item"><div class="kad-stat-val" id="ks-def">—</div><div class="kad-stat-lbl">DEF</div></div>
+              <div class="kad-stat-item"><div class="kad-stat-val" id="ks-phy">—</div><div class="kad-stat-lbl">FIZ</div></div>
+            </div>
+            <div class="kad-full-fpno" id="kad-full-fpno" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.9);">—</div>
           </div>
         </div>
-        <!-- FP Number -->
-        <div class="kad-full-fpno" id="kad-full-fpno">—</div>
       </div>
       <!-- Belakang kad -->
       <div class="kad-full-back" id="kad-full-back">
