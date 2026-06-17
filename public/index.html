@@ -547,6 +547,41 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   0%,100% { box-shadow: 0 0 14px #0077B6, 0 0 28px rgba(0,119,182,.25), 0 6px 20px rgba(0,0,0,.8); }
   50%      { box-shadow: 0 0 28px #0077B6, 0 0 55px rgba(0,119,182,.4), 0 6px 20px rgba(0,0,0,.8); }
 }
+/* 🧬 FM STYLE DNA MATRIX */
+.bg-matrix-dark {
+  background-color: rgba(6, 11, 40, 0.88) !important;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  margin-top: 1rem;
+}
+.border-matrix { border-color: rgba(0,180,216,.3) !important; }
+.matrix-title {
+  font-size: .78rem; font-weight: 800; color: #00B4D8;
+  letter-spacing: .12em; margin-bottom: 1rem; border-bottom: 1px solid rgba(0,180,216,.2);
+  padding-bottom: .5rem;
+}
+.matrix-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; font-size: .78rem;
+}
+@media (max-width: 768px) {
+  .matrix-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .border-end-matrix { border-right: none !important; border-bottom: 1px solid rgba(255,255,255,.1); padding-bottom: 1rem; }
+}
+.matrix-col { display: flex; flex-direction: column; gap: .25rem; }
+.matrix-hdr { font-size: .65rem; font-weight: 800; letter-spacing: .08em; margin-bottom: .4rem; }
+.border-end-matrix { border-right: 1px solid rgba(255,255,255,.1); padding-right: 1rem; }
+.matrix-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: .2rem 0; border-bottom: 1px solid rgba(255,255,255,.05);
+  color: rgba(255,255,255,.8);
+}
+.matrix-row span:first-child { font-family: inherit; font-size: .75rem; }
+/* Pewarnaan FM Atribut */
+.attr-val { font-weight: 900; font-family: monospace; font-size: .88rem; }
+.attr-high { color: #fbbf24 !important; text-shadow: 0 0 8px rgba(251,191,36,.5); } /* 15-20 */
+.attr-mid  { color: #e2e8f0 !important; } /* 10-14 */
+.attr-low  { color: #64748b !important; opacity: .8; } /* Bawah 10 / 0 */
+
 /* Shimmer diagonal Pokemon style */
 @keyframes pokeShimmer {
   0%   { background-position: -200% 0%; }
@@ -1873,6 +1908,46 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
                 <div class="bio2-row"><div class="bio2-label">Status Kontrak</div><div class="bio2-val" id="bio2-contract" style="color:#f59e0b">Tiada Kontrak</div></div>
               </div>
             </div>
+            
+            <!-- Matriks Atribut DNA FM Style -->
+            <div class="p-3.5 bg-matrix-dark rounded-4 border border-matrix mb-3" id="bio2-matrix-wrap">
+              <div class="matrix-title">🧬 MATRIKS ATRIBUT DNA PLAYPRO (SKALA 1 - 20)</div>
+              <div class="matrix-grid font-monospace">
+                <!-- Kolum 1 -->
+                <div class="matrix-col border-end-matrix">
+                  <div class="matrix-hdr text-cyan">⚡ FIZIKAL & BIOMETRIK</div>
+                  <div class="matrix-row"><span>Acceleration</span><span id="mat-acceleration" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Pace</span><span id="mat-pace" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Agility</span><span id="mat-agility" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Balance</span><span id="mat-balance" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Stamina</span><span id="mat-stamina" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Strength</span><span id="mat-strength" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Jumping</span><span id="mat-jumping" class="attr-val">--</span></div>
+                </div>
+                <!-- Kolum 2 -->
+                <div class="matrix-col border-end-matrix">
+                  <div class="matrix-hdr text-cyan">⚽ TEKNIKAL & KEMAHIRAN</div>
+                  <div class="matrix-row"><span>Passing</span><span id="mat-passing" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Dribbling</span><span id="mat-dribbling" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Finishing</span><span id="mat-finishing" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Technique</span><span id="mat-technique" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Tackling</span><span id="mat-tackling" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Heading</span><span id="mat-heading" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Crossing</span><span id="mat-crossing" class="attr-val">--</span></div>
+                </div>
+                <!-- Kolum 3 -->
+                <div class="matrix-col">
+                  <div class="matrix-hdr text-cyan">🧠 TAKTIKAL & MINDA</div>
+                  <div class="matrix-row"><span>Positioning</span><span id="mat-positioning" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Work Rate</span><span id="mat-workrate" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Determination</span><span id="mat-determination" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Anticipation</span><span id="mat-anticipation" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Teamwork</span><span id="mat-teamwork" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Decisions</span><span id="mat-decisions" class="attr-val">--</span></div>
+                  <div class="matrix-row"><span>Bravery</span><span id="mat-bravery" class="attr-val">--</span></div>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div><!-- /bio -->
@@ -2835,6 +2910,72 @@ function renderBio2(p){
   if(fpNo)     fpNo.textContent=ppno;
   if(fpMeta)   fpMeta.innerHTML=(posCode||'—')+' &nbsp;·&nbsp; '+clubStr+'<br>DNA: '+(p.dna_overall||'0')+' &nbsp;·&nbsp; '+(lv2.title||'—');
   if(fpAvatar){fpAvatar.style.border=lv2.border||'2px solid #9ca3af';fpAvatar.style.boxShadow=lv2.shadow||'none';}
+  
+  // Update Matriks Atribut FM Style
+  paparkanAtributDNA(p, window._attrData2 || []);
+}
+
+function paparkanAtributDNA(pemain, attrs){
+  if(!pemain) return;
+  var nameKey = pemain.preferred_name || pemain.full_name || pemain.nama || '';
+  var reg = PLAYPRO_PLAYER_REGISTRY[nameKey] || PLAYPRO_PLAYER_REGISTRY[nameKey.toLowerCase()] || {};
+  
+  var isVerified = reg.isVerified !== undefined ? reg.isVerified : (pemain.kyc_status === 'verified');
+  
+  const senaraiAtribut = [
+    "acceleration", "pace", "agility", "balance", "stamina", "strength", "jumping",
+    "passing", "dribbling", "finishing", "technique", "tackling", "heading", "crossing",
+    "positioning", "workrate", "determination", "anticipation", "teamwork", "decisions", "bravery"
+  ];
+
+  // Map dari Supabase attrs jika ada
+  var aMap = {};
+  if (attrs) { attrs.forEach(function(r){ aMap[r.attribute_code] = r.current_value || 0; }); }
+  
+  senaraiAtribut.forEach(function(attr){
+    var el = document.getElementById('mat-' + attr);
+    if (!el) return;
+
+    if (!isVerified) {
+      el.innerText = "0";
+      el.className = "attr-val attr-low";
+      return;
+    }
+
+    // Ambil dari slip keputusan PlayPro (dnaAttributes) jika ada, atau map dari Supabase
+    let markah100 = aMap[attr];
+    if (markah100 === undefined) {
+      if (reg.dnaAttributes && reg.dnaAttributes[attr] !== undefined) {
+        markah100 = reg.dnaAttributes[attr] * 5;
+      } else if (reg.stats) {
+        var baseStat = reg.stats.pac;
+        if (["passing", "crossing", "teamwork"].includes(attr)) baseStat = reg.stats.pas;
+        else if (["dribbling", "technique", "agility", "balance"].includes(attr)) baseStat = reg.stats.dri;
+        else if (["finishing"].includes(attr)) baseStat = reg.stats.sho;
+        else if (["tackling", "heading", "positioning", "anticipation", "decisions"].includes(attr)) baseStat = reg.stats.def;
+        else if (["strength", "stamina", "jumping", "workrate", "determination", "bravery"].includes(attr)) baseStat = reg.stats.phy;
+        markah100 = baseStat;
+      } else {
+        markah100 = 60; // fallback standard
+      }
+    }
+
+    // Convert ke skala 1-20
+    let nilai20 = Math.round((markah100 || 0) / 5);
+    if (nilai20 > 20) nilai20 = 20;
+    if (nilai20 < 1) nilai20 = 1;
+
+    el.innerText = nilai20;
+    el.className = "attr-val";
+
+    if (nilai20 >= 15) {
+      el.classList.add("attr-high");
+    } else if (nilai20 >= 10) {
+      el.classList.add("attr-mid");
+    } else {
+      el.classList.add("attr-low");
+    }
+  });
 }
 
 function pp2Tab(t){
@@ -2974,13 +3115,60 @@ const DATABASE_PEMAIN_PLAYPRO = [
 ];
 
 const PLAYPRO_PLAYER_REGISTRY = {
-  "Azlan": { nama: "Azlan", namaPenuh: "Azlan Mohd", tarikhLahir: "27 September 1976", umur: "49 tahun", level: "Elite", ovr: 91, posisi: "CM", posisiPenuh: "Central Midfielder", jersey: "#8", negeri: "Negeri Sembilan", kelab: "Kelab Bolasepak Kepayang", warganegara: "Malaysian", tinggi: "170 cm", berat: "68 kg", kaki: "Kanan", isVerified: true, stats: { pac: 92, sho: 89, pas: 96, dri: 95, def: 78, phy: 88 } },
-  "Cikyut": { nama: "Cikyut", namaPenuh: "Cikyut Ahmad", tarikhLahir: "15 Januari 1970", umur: "56 tahun", level: "Elite", ovr: 92, posisi: "DM", posisiPenuh: "Defensive Midfielder", jersey: "#6", negeri: "Negeri Sembilan", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "166 cm", berat: "65 kg", kaki: "Kiri", isVerified: true, stats: { pac: 94, sho: 86, pas: 85, dri: 90, def: 88, phy: 78 } },
-  "Loko M": { nama: "Loko M", namaPenuh: "Lokman Hakim (Loko M)", tarikhLahir: "04 Mac 1994", umur: "32 tahun", level: "Advanced", ovr: 82, posisi: "LM", posisiPenuh: "Left Midfielder", jersey: "#7", negeri: "Selangor", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "168 cm", berat: "72 kg", kaki: "Kiri", isVerified: true, stats: { pac: 83, sho: 78, pas: 81, dri: 84, def: 65, phy: 74 } },
-  "Otai": { nama: "Otai", namaPenuh: "Khairul Otai", tarikhLahir: "22 Mac 1981", umur: "45 tahun", level: "Developed", ovr: 73, posisi: "CB", posisiPenuh: "Center-Back", jersey: "#3", negeri: "Negeri Sembilan", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "176 cm", berat: "80 kg", kaki: "Kanan", isVerified: true, stats: { pac: 75, sho: 60, pas: 78, dri: 70, def: 88, phy: 85 } },
-  "Haji Boss": { nama: "Haji Boss", namaPenuh: "Haji Mustaffa Boss", tarikhLahir: "01 Ogos 1956", umur: "70 tahun", level: "Foundation", ovr: 51, posisi: "SS", posisiPenuh: "Second Striker", jersey: "#99", negeri: "Kedah", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "163 cm", berat: "75 kg", kaki: "Kanan", isVerified: true, stats: { pac: 50, sho: 58, pas: 62, dri: 55, def: 40, phy: 48 } },
-  "Dayak": { nama: "Dayak", namaPenuh: "Dayak Bin Sukiman", tarikhLahir: "10 Ogos 1984", umur: "41 tahun", level: "Starter", ovr: 38, posisi: "GK", posisiPenuh: "Goalkeeper", jersey: "#4", negeri: "Kedah", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "175 cm", berat: "70 kg", kaki: "Kanan", isVerified: false, stats: null },
-  "faro": { nama: "faro", namaPenuh: "Fahrul Faro (faro)", tarikhLahir: "19 September 1997", umur: "28 tahun", level: "Starter", ovr: 0, posisi: "—", posisiPenuh: "Position Unassigned", jersey: "#--", negeri: "Negeri Sembilan", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "170 cm", berat: "68 kg", kaki: "Kanan", isVerified: false, stats: null }
+  "Azlan": { 
+    nama: "Azlan", namaPenuh: "Azlan Mohd", tarikhLahir: "27 September 1976", umur: "49 tahun", level: "Elite", ovr: 91, posisi: "CM", posisiPenuh: "Central Midfielder", jersey: "#8", negeri: "Negeri Sembilan", kelab: "Kelab Bolasepak Kepayang", warganegara: "Malaysian", tinggi: "170 cm", berat: "68 kg", kaki: "Kanan", isVerified: true, stats: { pac: 92, sho: 89, pas: 96, dri: 95, def: 78, phy: 88 },
+    dnaAttributes: {
+      acceleration: 18, pace: 19, agility: 19, balance: 18, stamina: 18, strength: 16, jumping: 15,
+      passing: 20, dribbling: 19, finishing: 18, technique: 19, tackling: 15, heading: 16, crossing: 19,
+      positioning: 17, workrate: 18, determination: 19, anticipation: 18, teamwork: 19, decisions: 19, bravery: 17
+    }
+  },
+  "Cikyut": { 
+    nama: "Cikyut", namaPenuh: "Cikyut Ahmad", tarikhLahir: "15 Januari 1970", umur: "56 tahun", level: "Elite", ovr: 92, posisi: "DM", posisiPenuh: "Defensive Midfielder", jersey: "#6", negeri: "Negeri Sembilan", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "166 cm", berat: "65 kg", kaki: "Kiri", isVerified: true, stats: { pac: 94, sho: 86, pas: 85, dri: 90, def: 88, phy: 78 },
+    dnaAttributes: {
+      acceleration: 19, pace: 19, agility: 18, balance: 18, stamina: 19, strength: 17, jumping: 16,
+      passing: 17, dribbling: 18, finishing: 17, technique: 18, tackling: 18, heading: 17, crossing: 17,
+      positioning: 19, workrate: 19, determination: 20, anticipation: 19, teamwork: 19, decisions: 19, bravery: 19
+    }
+  },
+  "Loko M": { 
+    nama: "Loko M", namaPenuh: "Lokman Hakim (Loko M)", tarikhLahir: "04 Mac 1994", umur: "32 tahun", level: "Advanced", ovr: 82, posisi: "LM", posisiPenuh: "Left Midfielder", jersey: "#7", negeri: "Selangor", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "168 cm", berat: "72 kg", kaki: "Kiri", isVerified: true, stats: { pac: 83, sho: 78, pas: 81, dri: 84, def: 65, phy: 74 },
+    dnaAttributes: {
+      acceleration: 17, pace: 17, agility: 17, balance: 16, stamina: 17, strength: 14, jumping: 13,
+      passing: 16, dribbling: 17, finishing: 16, technique: 17, tackling: 13, heading: 13, crossing: 17,
+      positioning: 15, workrate: 17, determination: 16, anticipation: 16, teamwork: 16, decisions: 16, bravery: 15
+    }
+  },
+  "Ebob": {
+    nama: "Ebob", namaPenuh: "Ebob", tarikhLahir: "20 April 1983", umur: "43 tahun", level: "Advanced", ovr: 80, posisi: "CB", posisiPenuh: "Center-Back", jersey: "#5", negeri: "Negeri Sembilan", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "178 cm", berat: "78 kg", kaki: "Kanan", isVerified: true, stats: { pac: 76, sho: 55, pas: 74, dri: 72, def: 86, phy: 86 },
+    dnaAttributes: {
+      acceleration: 15, pace: 15, agility: 14, balance: 15, stamina: 17, strength: 18, jumping: 18,
+      passing: 15, dribbling: 14, finishing: 11, technique: 14, tackling: 18, heading: 18, crossing: 13,
+      positioning: 18, workrate: 17, determination: 18, anticipation: 17, teamwork: 18, decisions: 17, bravery: 18
+    }
+  },
+  "Otai": { 
+    nama: "Otai", namaPenuh: "Khairul Otai", tarikhLahir: "22 Mac 1981", umur: "45 tahun", level: "Developed", ovr: 73, posisi: "CB", posisiPenuh: "Center-Back", jersey: "#3", negeri: "Negeri Sembilan", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "176 cm", berat: "80 kg", kaki: "Kanan", isVerified: true, stats: { pac: 75, sho: 60, pas: 78, dri: 70, def: 88, phy: 85 },
+    dnaAttributes: {
+      acceleration: 15, pace: 15, agility: 14, balance: 15, stamina: 17, strength: 17, jumping: 17,
+      passing: 16, dribbling: 14, finishing: 12, technique: 15, tackling: 18, heading: 18, crossing: 14,
+      positioning: 17, workrate: 17, determination: 17, anticipation: 16, teamwork: 17, decisions: 16, bravery: 17
+    }
+  },
+  "Haji Boss": { 
+    nama: "Haji Boss", namaPenuh: "Haji Mustaffa Boss", tarikhLahir: "01 Ogos 1956", umur: "70 tahun", level: "Foundation", ovr: 51, posisi: "SS", posisiPenuh: "Second Striker", jersey: "#99", negeri: "Kedah", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "163 cm", berat: "75 kg", kaki: "Kanan", isVerified: true, stats: { pac: 50, sho: 58, pas: 62, dri: 55, def: 40, phy: 48 },
+    dnaAttributes: {
+      acceleration: 10, pace: 10, agility: 11, balance: 10, stamina: 10, strength: 9, jumping: 8,
+      passing: 12, dribbling: 11, finishing: 12, technique: 13, tackling: 8, heading: 8, crossing: 11,
+      positioning: 11, workrate: 10, determination: 14, anticipation: 13, teamwork: 12, decisions: 13, bravery: 11
+    }
+  },
+  "Dayak": { 
+    nama: "Dayak", namaPenuh: "Dayak Bin Sukiman", tarikhLahir: "10 Ogos 1984", umur: "41 tahun", level: "Starter", ovr: 38, posisi: "GK", posisiPenuh: "Goalkeeper", jersey: "#4", negeri: "Kedah", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "175 cm", berat: "70 kg", kaki: "Kanan", isVerified: false, stats: null, dnaAttributes: null
+  },
+  "faro": { 
+    nama: "faro", namaPenuh: "Fahrul Faro (faro)", tarikhLahir: "19 September 1997", umur: "28 tahun", level: "Starter", ovr: 0, posisi: "—", posisiPenuh: "Position Unassigned", jersey: "#--", negeri: "Negeri Sembilan", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "170 cm", berat: "68 kg", kaki: "Kanan", isVerified: false, stats: null, dnaAttributes: null
+  }
 };
 
 async function viewPlayerProfile(elOrId){
