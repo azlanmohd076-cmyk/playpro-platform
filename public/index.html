@@ -3690,7 +3690,7 @@ function kiraDinamikCoach() {
 
 function simpanPenilaianCoach() {
   var key = document.getElementById('ca-select-player')?.value || 'Azlan';
-  var reg Semasa = JSON.parse(localStorage.getItem('PLAYPRO_REGISTRY_V3')) || window.PLAYPRO_PLAYER_REGISTRY || PLAYPRO_PLAYER_REGISTRY;
+  var regSemasa = JSON.parse(localStorage.getItem('PLAYPRO_REGISTRY_V3')) || window.PLAYPRO_PLAYER_REGISTRY || PLAYPRO_PLAYER_REGISTRY;
   var p = regSemasa[key] || regSemasa[key.toLowerCase()] || {};
 
   var senarai = [
