@@ -576,28 +576,33 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 /* ── Tier backgrounds ── */
 .mini-kad.tier-starter  {
   --kad-glow:#9ca3af;
+  --kad-border: rgba(156,163,175,.4);
   background: linear-gradient(160deg,#3a3a3a 0%,#1c1c1c 100%);
 }
 .mini-kad.tier-foundation {
   --kad-glow:#cd7f32;
+  --kad-border: rgba(205,127,50,.6);
   background: linear-gradient(160deg,#4a3020 0%,#2a1505 100%);
 }
 .mini-kad.tier-developing {
   --kad-glow:#00B4D8;
+  --kad-border: rgba(0,180,216,.55);
   background: linear-gradient(160deg,#0a2d40 0%,#031620 100%);
 }
 .mini-kad.tier-developed  {
   --kad-glow:#60a5fa;
+  --kad-border: rgba(96,165,250,.6);
   background: linear-gradient(160deg,#0d2060 0%,#020e30 100%);
 }
 .mini-kad.tier-advanced   {
   --kad-glow:#a78bfa;
+  --kad-border: rgba(167,139,250,.65);
   background: linear-gradient(160deg,#200d55 0%,#0e0630 100%);
 }
 .mini-kad.tier-elite {
   --kad-glow:#f9a825;
+  --kad-border: rgba(249,168,37,.7);
   background: linear-gradient(160deg,#221900 0%,#3d2c00 40%,#221900 100%);
-  animation: kadFloat 4s ease-in-out infinite, kadGlowPulse 2.5s ease-in-out infinite;
 }
 /* ── Holo sweep layers ── */
 .mini-kad::before {
@@ -4131,6 +4136,9 @@ function renderMiniKad(p, attrs){
   if(!mk) return;
   mk.className='mini-kad '+tc;
   mk.style.setProperty('--kad-glow', lv.color);
+  /* Set glow wrapper supaya drop-shadow luar nampak */
+  var mkw=document.getElementById('mini-kad-wrap');
+  if(mkw) mkw.style.setProperty('--mkw-glow', lv.color);
   document.getElementById('mini-kad-ovr').textContent=dna||'—';
   document.getElementById('mini-kad-init').textContent=init;
   document.getElementById('mini-kad-init').style.background='rgba(255,255,255,.12)';
@@ -4259,6 +4267,8 @@ function flipKad(){
 function tiltKad(e){
   var card=document.getElementById('kad-modal-card');
   if(!card||_kadFlipped) return;
+  /* Pause floating bila tilt */
+  card.classList.remove('floating');
   var rect=card.getBoundingClientRect();
   var cx=rect.left+rect.width/2;
   var cy=rect.top+rect.height/2;
@@ -4266,17 +4276,34 @@ function tiltKad(e){
   var my=e.touches?e.touches[0].clientY:e.clientY;
   var dx=(mx-cx)/(rect.width/2);
   var dy=(my-cy)/(rect.height/2);
-  var rx=dy*-12;
-  var ry=dx*12;
-  card.style.transition='transform .05s ease-out';
-  card.style.transform='rotateX('+rx+'deg) rotateY('+ry+'deg)';
+  /* Clamp supaya tak terlalu extreme */
+  dx=Math.max(-1,Math.min(1,dx));
+  dy=Math.max(-1,Math.min(1,dy));
+  var rx=dy*-16;
+  var ry=dx*16;
+  card.style.transition='transform .06s ease-out';
+  card.style.transform='rotateX('+rx+'deg) rotateY('+ry+'deg) scale(1.03)';
+  /* Holo shine effect ikut posisi */
+  var front=document.getElementById('kad-full-front');
+  if(front){
+    var px=Math.round((dx+1)/2*100);
+    var py=Math.round((dy+1)/2*100);
+    front.style.setProperty('--mx',px+'%');
+    front.style.setProperty('--my',py+'%');
+  }
 }
 
 function resetKadTilt(){
   var card=document.getElementById('kad-modal-card');
   if(!card||_kadFlipped) return;
-  card.style.transition='transform .4s ease-out';
-  card.style.transform='rotateX(0deg) rotateY(0deg)';
+  card.style.transition='transform .45s cubic-bezier(.22,1,.36,1)';
+  card.style.transform='rotateX(0deg) rotateY(0deg) scale(1)';
+  /* Sambung semula float lepas reset */
+  setTimeout(function(){
+    if(!_kadFlipped){
+      card.classList.add('floating');
+    }
+  }, 460);
 }
 
 /* Floating animation utk kad dalam modal */
@@ -4440,7 +4467,7 @@ init();
 ═══════════════════════════════════ -->
 <div id="kad-modal-overlay" onclick="handleKadOverlayClick(event)">
   <div class="kad-modal-scene">
-    <div class="kad-modal-card tilting" id="kad-modal-card" onmousemove="tiltKad(event)" onmouseleave="resetKadTilt()" onclick="flipKad()">
+    <div class="kad-modal-card tilting" id="kad-modal-card" onmousemove="tiltKad(event)" onmouseleave="resetKadTilt()" ontouchmove="tiltKad(event)" ontouchend="resetKadTilt()" onclick="flipKad()">
       <!-- Front face -->
       <div class="kad-full-front tier-starter" id="kad-full-front">
         <!-- Top row: OVR + Logo -->
@@ -4500,10 +4527,17 @@ init();
     </div>
   </div>
   <!-- Tip tilt -->
-  <div style="font-size:.6rem;color:rgba(255,255,255,.3);text-align:center">Gerak tetikus / jari untuk tilt &nbsp;·&nbsp; Klik kad untuk flip</div>
+  <div style="font-size:.58rem;color:rgba(255,255,255,.28);text-align:center;letter-spacing:.04em">👆 Gerak jari untuk tilt &nbsp;·&nbsp; Ketik kad untuk flip</div>
   <!-- Action buttons -->
   <div class="kad-modal-actions">
     <button class="kad-btn kad-btn-share" onclick="shareKadWA()">📤 Kongsi ke WhatsApp</button>
+    <button class="kad-btn kad-btn-print" onclick="printKad()">🖨️ Cetak Kad</button>
+    <button class="kad-btn kad-btn-close" onclick="closeKadModal()">✕ Tutup</button>
+  </div>
+</div>
+</body>
+</html>
+tn kad-btn-share" onclick="shareKadWA()">📤 Kongsi ke WhatsApp</button>
     <button class="kad-btn kad-btn-print" onclick="printKad()">🖨️ Cetak Kad</button>
     <button class="kad-btn kad-btn-close" onclick="closeKadModal()">✕ Tutup</button>
   </div>
