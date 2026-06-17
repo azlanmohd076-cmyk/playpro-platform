@@ -3526,7 +3526,7 @@ function muatTurunDanPaparHub() {
         + '</div>'
         + '<div style="margin-bottom:10px;">' + htmlSenaraiKomen + '</div>'
         + '<div style="display:flex; gap:8px; margin-top:8px;">'
-          + '<input type="text" id="input_komen_' + post.id + '" class="form-control" style="flex:1; background:#0f172a; border:1px solid #334155; border-radius:8px; color:#fff; font-size:.88rem; padding:6px 12px;" placeholder="Tulis komen ulasan..." onkeydown="if(event.key==='Enter')hantarKomenHub(\'' + post.id + '\')">'
+          + '<input type="text" id="input_komen_' + post.id + '" class="form-control" style="flex:1; background:#0f172a; border:1px solid #334155; border-radius:8px; color:#fff; font-size:.88rem; padding:6px 12px;" placeholder="Tulis komen ulasan..." onkeydown="if(event.keyCode===13)hantarKomenHub(\'' + post.id + '\')">'
           + '<button class="btn btn-warning" style="background:#f59e0b; color:#000; border:none; border-radius:8px; font-weight:800; font-size:.85rem; padding:6px 16px; cursor:pointer;" type="button" onclick="hantarKomenHub(\'' + post.id + '\')">Komen</button>'
         + '</div>'
       + '</div>'
