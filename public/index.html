@@ -737,6 +737,16 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   color: #94a3b8 !important; font-weight: 600;
 }
 
+/* 🏋️ COACH ASSESSMENT & MYTEAM COMMAND CENTER CSS */
+.mt-roster-search { background:#1e293b; border:1px solid #334155; color:#fff; border-radius:10px; }
+.coach-assess-card { background:#0b0f26; border:2px solid #1e293b; border-radius:16px; }
+.ca-slider-row { display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:6px 12px; border-radius:8px; margin-bottom:6px; border:1px solid #334155; }
+.ca-rng-lbl { font-size:12px; font-weight:750; color:#cbd5e1; }
+.ca-rng-ctrl { display:flex; align-items:center; gap:12px; }
+.ca-rng-ctrl input[type="range"] { -webkit-appearance:none; background:#334155; height:6px; border-radius:3px; outline:none; width:130px; }
+.ca-rng-ctrl input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#00B4D8; cursor:pointer; box-shadow:0 0 8px rgba(0,180,216,.6); }
+.ca-rng-ctrl .badge { font-family:'Courier New', monospace; font-size:14px; font-weight:900; min-width:28px; padding:3px 6px; }
+
 /* Shimmer diagonal Pokemon style */
 @keyframes pokeShimmer {
   0%   { background-position: -200% 0%; }
@@ -1812,9 +1822,190 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
     </div>
   </div>
 
-  <!-- TEAM -->
-  <div id="tab-team" style="display:none">
-    <div class="ph"><div class="ph-ic">⚽</div><div class="ph-title">Pasukan Saya — Akan Datang</div><div class="ph-sub">Urus pasukan, jadual dan kedudukan liga kau</div></div>
+  <!-- MYTEAM & COACH ASSESSMENT COMMAND CENTER -->
+  <div id="tab-team" style="display:none; padding-bottom: 5rem;">
+    <!-- Banner Pengepala MyTeam Portal -->
+    <div class="card bg-dark text-white mb-4 shadow" style="background:#0f172a !important; border:2px solid #1e293b !important; border-radius:14px; overflow:hidden;">
+      <div class="card-body p-4" style="background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+          <span style="font-size:2.6rem; line-height:1; filter:drop-shadow(0 4px 8px rgba(0,0,0,.6));">⚽</span>
+          <div>
+            <h3 style="color:#fbbf24; font-weight:900; margin:0; font-size:1.5rem; letter-spacing:0.5px; text-transform:uppercase;">MyTeam & Coach Command Center</h3>
+            <p style="color:#e2e8f0; font-size:.92rem; margin:6px 0 0; line-height:1.5;">Pusat kawalan kejurulatihan kelab, pengurusan roster pemain, dan borang penilaian saintifik (Coach Assessment) untuk kemajuan DNA bakat Malaysia.</p>
+          </div>
+        </div>
+        
+        <!-- Mode Switcher Tabs -->
+        <div style="display:flex; gap:10px; flex-wrap:wrap; border-top:1px solid rgba(255,255,255,0.08); padding-top:16px;">
+          <button class="btn btn-sm mt-tab-btn on" id="mt-btn-list" style="background:#2563eb; color:#fff; border:none; font-weight:800; padding:8px 18px; border-radius:8px; font-size:.88rem; cursor:pointer; box-shadow:0 4px 12px rgba(37,99,235,.4);" onclick="switchMyTeamMode('list')">👥 Senarai Pemain Kelab (Roster)</button>
+          <button class="btn btn-sm mt-tab-btn text-white-50" id="mt-btn-assess" style="background:#334155; color:#cbd5e1; border:none; font-weight:750; padding:8px 18px; border-radius:8px; font-size:.88rem; cursor:pointer;" onclick="switchMyTeamMode('assess')">🏋️ Borang Penilaian Jurulatih (Coach Assessment)</button>
+          <button class="btn btn-sm mt-tab-btn text-white-50" id="mt-btn-rm150" style="background:#334155; color:#cbd5e1; border:none; font-weight:750; padding:8px 18px; border-radius:8px; font-size:.88rem; cursor:pointer;" onclick="switchMyTeamMode('rm150')">⚡ PlayPro RM150 Official Test Center</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANE 1: SENARAI ROSTER PEMAIN (👥) -->
+    <div id="mt-pane-list">
+      <div style="margin-bottom:18px;">
+        <input type="text" class="form-control p-3" style="background:#1e293b !important; border:1px solid #334155 !important; border-radius:10px; color:#fff; font-size:.95rem; width:100%; box-sizing:border-box;" placeholder="🔍 Cari nama pemain atau otai di MyTeam..." id="mt-roster-search" oninput="saringRosterMyTeam()"/>
+      </div>
+      <div id="mt-roster-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px;"></div>
+    </div>
+
+    <!-- PANE 2: COACH ASSESSMENT FORM DASHBOARD (🏋️) -->
+    <div id="mt-pane-assess" style="display:none;">
+      <div class="card shadow-lg" style="background:#0b0f26 !important; border:2px solid #1e293b !important; border-radius:16px; color:#fff;">
+        <div class="card-body p-4">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; flex-wrap:wrap; gap:16px;">
+            <div>
+              <h4 style="color:#00B4D8; font-weight:900; margin:0; letter-spacing:0.5px; text-transform:uppercase;">Borang Penilaian Saintifik Kejurulatihan</h4>
+              <p style="color:#94a3b8; font-size:.88rem; margin:4px 0 0;">Ukur dan kemas kini 21 sub-atribut DNA pemain kelab secara terperinci berskala 1–20.</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-weight:800; color:#cbd5e1; font-size:.9rem;">Pilih Pemain:</span>
+              <select class="form-select" id="ca-select-player" style="background:#1e293b; color:#fbbf24; border:2px solid #3b82f6; border-radius:8px; font-weight:850; font-size:.95rem; padding:8px 16px; cursor:pointer;" onchange="muatFormPenilaianCoach(this.value)">
+                <option value="Azlan">Azlan Mohd (OVR 91)</option>
+                <option value="L.Rom">L.Rom (OVR 91)</option>
+                <option value="Cikyut">Cikyut (OVR 92)</option>
+                <option value="Loko M">Loko M (OVR 82)</option>
+                <option value="Ebob">Ebob (OVR 80)</option>
+                <option value="Otai">Otai (OVR 73)</option>
+                <option value="Haji Boss">Haji Boss (OVR 51)</option>
+                <option value="Dayak">Dayak (OVR 0 - Lock)</option>
+                <option value="faro">faro (OVR 0 - Lock)</option>
+              </select>
+            </div>
+          </div>
+
+          <hr style="border:none; border-top:1px solid rgba(255,255,255,0.08); margin:16px 0 22px;"/>
+
+          <!-- Real-Time Impact Dashboard Box -->
+          <div style="background:#050926; border:1px solid #1e293b; border-radius:12px; padding:18px; margin-bottom:24px; display:flex; justify-content:space-around; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div style="text-align:center;">
+              <span style="color:#94a3b8; font-size:.8rem; font-weight:700; text-transform:uppercase; display:block;">Unjuran OVR Purata:</span>
+              <span id="ca-proj-ovr" style="font-size:2.4rem; font-weight:900; color:#fbbf24; line-height:1; filter:drop-shadow(0 2px 6px rgba(251,191,36,.5));">91</span>
+            </div>
+            <div style="width:2px; height:50px; background:rgba(255,255,255,0.08);"></div>
+            <div style="text-align:center;">
+              <span style="color:#94a3b8; font-size:.8rem; font-weight:700; text-transform:uppercase; display:block;">Hierarki Kumpulan:</span>
+              <span id="ca-proj-tier" style="font-size:1.35rem; font-weight:900; color:#38bdf8; letter-spacing:1px; margin-top:4px; display:block;">ELITE ⭐⭐⭐⭐⭐</span>
+            </div>
+            <div style="width:2px; height:50px; background:rgba(255,255,255,0.08);"></div>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <input type="checkbox" id="ca-verify-check" checked style="width:24px; height:24px; cursor:pointer;" onchange="kiraDinamikCoach()"/>
+              <div>
+                <span id="ca-verify-lbl" style="font-weight:850; color:#10B981; font-size:1rem; display:block;">⚡ OFFICIAL RM150 VERIFIED</span>
+                <small style="color:#94a3b8; font-size:.7rem;">Mengaktifkan & Membuka Kunci Stats</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive 21 Sliders Grid (3 Kolum ala Football Manager) -->
+          <div style="background:#0d1527; border:2px solid #1e293b; border-radius:14px; padding:20px;">
+            <div style="font-size:.88rem; font-weight:900; color:#00B4D8; letter-spacing:.1em; margin-bottom:18px; text-transform:uppercase; border-bottom:2px solid rgba(0,180,216,.3); padding-bottom:8px;">
+              🎛️ Interactive Scoring Grid: Laraskan Slider Kemahiran (Skala 1 – 20)
+            </div>
+            
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:20px;">
+              
+              <!-- Kolum 1: Fizikal -->
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <div style="font-size:.72rem; font-weight:900; color:#00B4D8; letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px;">⚡ Fizikal & Biometrik</div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Acceleration</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="18" id="ca-rng-acceleration" oninput="updateCaRng('acceleration')"/><span class="badge" id="ca-val-acceleration">18</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Pace</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="19" id="ca-rng-pace" oninput="updateCaRng('pace')"/><span class="badge" id="ca-val-pace">19</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Agility</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="19" id="ca-rng-agility" oninput="updateCaRng('agility')"/><span class="badge" id="ca-val-agility">19</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Balance</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="18" id="ca-rng-balance" oninput="updateCaRng('balance')"/><span class="badge" id="ca-val-balance">18</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Stamina</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="18" id="ca-rng-stamina" oninput="updateCaRng('stamina')"/><span class="badge" id="ca-val-stamina">18</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Strength</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="16" id="ca-rng-strength" oninput="updateCaRng('strength')"/><span class="badge" id="ca-val-strength">16</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Jumping</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="15" id="ca-rng-jumping" oninput="updateCaRng('jumping')"/><span class="badge" id="ca-val-jumping">15</span></div></div>
+              </div>
+
+              <!-- Kolum 2: Teknikal -->
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <div style="font-size:.72rem; font-weight:900; color:#00B4D8; letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px;">⚽ Teknikal & Kemahiran</div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Passing</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="20" id="ca-rng-passing" oninput="updateCaRng('passing')"/><span class="badge" id="ca-val-passing">20</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Dribbling</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="19" id="ca-rng-dribbling" oninput="updateCaRng('dribbling')"/><span class="badge" id="ca-val-dribbling">19</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Finishing</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="18" id="ca-rng-finishing" oninput="updateCaRng('finishing')"/><span class="badge" id="ca-val-finishing">18</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Technique</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="19" id="ca-rng-technique" oninput="updateCaRng('technique')"/><span class="badge" id="ca-val-technique">19</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Tackling</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="15" id="ca-rng-tackling" oninput="updateCaRng('tackling')"/><span class="badge" id="ca-val-tackling">15</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Heading</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="16" id="ca-rng-heading" oninput="updateCaRng('heading')"/><span class="badge" id="ca-val-heading">16</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Crossing</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="19" id="ca-rng-crossing" oninput="updateCaRng('crossing')"/><span class="badge" id="ca-val-crossing">19</span></div></div>
+              </div>
+
+              <!-- Kolum 3: Taktikal -->
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <div style="font-size:.72rem; font-weight:900; color:#00B4D8; letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px;">🧠 Taktikal & Minda</div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Positioning</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="17" id="ca-rng-positioning" oninput="updateCaRng('positioning')"/><span class="badge" id="ca-val-positioning">17</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Work Rate</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="18" id="ca-rng-workrate" oninput="updateCaRng('workrate')"/><span class="badge" id="ca-val-workrate">18</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Determination</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="19" id="ca-rng-determination" oninput="updateCaRng('determination')"/><span class="badge" id="ca-val-determination">19</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Anticipation</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="18" id="ca-rng-anticipation" oninput="updateCaRng('anticipation')"/><span class="badge" id="ca-val-anticipation">18</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Teamwork</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="19" id="ca-rng-teamwork" oninput="updateCaRng('teamwork')"/><span class="badge" id="ca-val-teamwork">19</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Decisions</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="19" id="ca-rng-decisions" oninput="updateCaRng('decisions')"/><span class="badge" id="ca-val-decisions">19</span></div></div>
+                <div class="ca-slider-row font-monospace"><div class="ca-rng-lbl">Bravery</div><div class="ca-rng-ctrl"><input type="range" min="1" max="20" value="17" id="ca-rng-bravery" oninput="updateCaRng('bravery')"/><span class="badge" id="ca-val-bravery">17</span></div></div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Nota Ulasan Jurulatih & Simpan -->
+          <div style="margin-top:22px;">
+            <label style="font-weight:800; color:#cbd5e1; font-size:.9rem; display:block; margin-bottom:8px;">📝 Ulasan Kejurulatihan (Coach Assessment Notes):</label>
+            <textarea id="ca-notes-input" class="form-control p-3" style="background:#1e293b !important; border:1px solid #334155 !important; border-radius:10px; color:#fff; font-size:.95rem; width:100%; box-sizing:border-box; resize:none;" rows="3" placeholder="Tuliskan ulasan peribadi jurulatih terhadap kemajuan DNA dan kecergasan anak buah anda... (Contoh: Prestasi meningkat 25% selepas menyertai kem latihan taktikal di Nilai)"></textarea>
+            
+            <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:16px;">
+              <button class="btn btn-secondary px-4 font-weight-bold" style="background:#334155; color:#cbd5e1; border:none; border-radius:8px; padding:10px 20px; font-weight:700; cursor:pointer;" onclick="switchMyTeamMode('list')">Kembali ke Senarai</button>
+              <button class="btn btn-warning px-5 font-weight-bold shadow" style="background:#f59e0b !important; color:#000; border:none; border-radius:8px; font-weight:900; font-size:1.05rem; padding:10px 28px; cursor:pointer;" onclick="simpanPenilaianCoach()">💾 Simpan & Mutlakkan Penilaian Atribut</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- PANE 3: PLAYPRO RM150 REVENUE OPS PORTAL (⚡) -->
+    <div id="mt-pane-rm150" style="display:none;">
+      <div class="card shadow-lg" style="background:#0b0f26 !important; border:2px solid #1e293b !important; border-radius:16px; color:#fff;">
+        <div class="card-body p-4">
+          <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px;">
+            <span style="font-size:3.2rem; filter:drop-shadow(0 0 12px rgba(245,158,11,.6));">⚡</span>
+            <div>
+              <h3 style="color:#fbbf24; font-weight:900; margin:0; text-transform:uppercase; letter-spacing:0.5px;">PlayPro Official RM150 Assessment Command Center</h3>
+              <p style="color:#94a3b8; font-size:.92rem; margin:6px 0 0; line-height:1.5;">Pusat operasi eksklusif pengesahan slip ujian fizikal/teknikal RM150 untuk mengaktifkan teras OVR dan membuka kunci kemahiran pemain amatur Malaysia.</p>
+            </div>
+          </div>
+
+          <hr style="border:none; border-top:1px solid rgba(255,255,255,0.08); margin:16px 0 24px;"/>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
+            
+            <!-- Box 1: Tempahan Slip B2C -->
+            <div style="background:#050926; border:2px solid #38bdf8; border-radius:14px; padding:20px; display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <h5 style="color:#38bdf8; font-weight:900; text-transform:uppercase; margin:0 0 10px; letter-spacing:0.5px;">🎟️ Tempahan Slot Ujian Bakat B2C</h5>
+                <p style="color:#cbd5e1; font-size:.9rem; line-height:1.5; margin:0 0 16px;">Pemain amatur tanpa kelab berhak menempah slot ujian rasmi di akademi PlayPro terdekat untuk dinilai secara saintifik oleh pakar penguji rasmi platform.</p>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; background:#0d1527; padding:12px 16px; border-radius:10px; border:1px solid #1e293b;">
+                <span style="color:#fbbf24; font-weight:900; font-size:1.1rem;">YURAN: RM150 / SESI</span>
+                <button class="btn btn-info font-weight-bold" style="background:#00B4D8; color:#000; border:none; border-radius:8px; font-weight:850; padding:8px 16px; cursor:pointer;" onclick="toast('🎟️ Pautan borang bayaran rasmi RM150 berjaya disalin!')">Jana Pautan Bayaran</button>
+              </div>
+            </div>
+
+            <!-- Box 2: Senarai Kelulusan Ujian Pending -->
+            <div style="background:#050926; border:2px solid #10B981; border-radius:14px; padding:20px; display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <h5 style="color:#10B981; font-weight:900; text-transform:uppercase; margin:0 0 10px; letter-spacing:0.5px;">⚡ Senarai Luluskan Pemain Terkunci (Stats Lock)</h5>
+                <p style="color:#cbd5e1; font-size:.9rem; line-height:1.5; margin:0 0 16px;">Luluskan serta-merta keputusan ujian fizikal pemain yang dikunci untuk menukarkan angka OVR 0 mereka menjadi status Elit / Verified secara mutlak.</p>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="btn btn-success font-weight-bold shadow-sm" style="background:#10B981; color:#fff; border:none; border-radius:8px; font-weight:850; font-size:.95rem; padding:10px; cursor:pointer;" onclick="luluskanPemainSegera('Dayak')">⚡ ✓ Luluskan Ujian Kelajuan & Taktikal Dayak (RM150)</button>
+                <button class="btn btn-success font-weight-bold shadow-sm" style="background:#10B981; color:#fff; border:none; border-radius:8px; font-weight:850; font-size:.95rem; padding:10px; cursor:pointer;" onclick="luluskanPemainSegera('faro')">⚡ ✓ Luluskan Ujian Kelajuan & Taktikal faro (RM150)</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- INBOX -->
@@ -3345,6 +3536,207 @@ function muatTurunDanPaparHub() {
   container.innerHTML = htmlFeed;
 }
 
+/* ======================================================== */
+/* 🏋️ MYTEAM & COACH ASSESSMENT COMMAND CENTER JS */
+/* ======================================================== */
+function switchMyTeamMode(mode) {
+  ['list', 'assess', 'rm150'].forEach(function(m){
+    var btn = document.getElementById('mt-btn-' + m);
+    if(btn) {
+      if(m === mode) { btn.className = 'btn btn-sm mt-tab-btn on'; btn.style.background = '#2563eb'; btn.style.color = '#fff'; btn.style.boxShadow = '0 4px 12px rgba(37,99,235,.4)'; }
+      else { btn.className = 'btn btn-sm mt-tab-btn text-white-50'; btn.style.background = '#334155'; btn.style.color = '#cbd5e1'; btn.style.boxShadow = 'none'; }
+    }
+    var pane = document.getElementById('mt-pane-' + m);
+    if(pane) { pane.style.display = (m === mode) ? 'block' : 'none'; }
+  });
+  if(mode === 'list') { muatSenaraiRosterMyTeam(); }
+  else if(mode === 'assess') { muatFormPenilaianCoach(document.getElementById('ca-select-player')?.value || 'Azlan'); }
+}
+
+function muatSenaraiRosterMyTeam() {
+  var grid = document.getElementById('mt-roster-grid');
+  if(!grid) return;
+  var reg = window.PLAYPRO_PLAYER_REGISTRY || PLAYPRO_PLAYER_REGISTRY || {};
+  var q = (document.getElementById('mt-roster-search')?.value || '').trim().toLowerCase();
+
+  var pKeys = ['Azlan', 'L.Rom', 'Cikyut', 'Loko M', 'Ebob', 'Otai', 'Haji Boss', 'Dayak', 'faro'];
+  grid.innerHTML = '';
+
+  pKeys.forEach(function(k){
+    var p = reg[k] || reg[k.toLowerCase()] || {};
+    var nm = p.namaPenuh || p.full_name || p.nama || k;
+    if(q && !nm.toLowerCase().includes(q)) return;
+
+    var ovr = p.ovr !== undefined ? p.ovr : (p.dna_overall || 0);
+    var isVer = p.isVerified !== undefined ? p.isVerified : (p.kyc_status === 'verified');
+    var realOvr = isVer ? ovr : '🔒 0';
+    var lv = dnaLevel2(isVer ? ovr : 0);
+    var pos = p.posisi || p.position || 'CM';
+    var club = p.kelab || p.clubs?.name || 'Tiada Kelab';
+
+    var card = document.createElement('div');
+    card.style.cssText = 'background:#1e293b; border:1px solid #334155; border-radius:14px; padding:18px; display:flex; flex-direction:column; justify-content:space-between; transition:transform .2s, box-shadow .2s; box-shadow:0 4px 12px rgba(0,0,0,.3);';
+    card.onmouseover = function(){ this.style.transform = 'translateY(-3px)'; this.style.boxShadow = '0 8px 24px rgba(0,0,0,.5)'; };
+    card.onmouseout  = function(){ this.style.transform = 'none'; this.style.boxShadow = '0 4px 12px rgba(0,0,0,.3)'; };
+
+    var tagCol = '#9ca3af';
+    if(lv.title === 'ELITE') tagCol = '#fbbf24';
+    else if(lv.title === 'ADVANCED') tagCol = '#c084fc';
+    else if(lv.title === 'DEVELOPED') tagCol = '#38bdf8';
+
+    card.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">'
+      + '<div style="display:flex; align-items:center; gap:12px;">'
+        + '<div style="width:48px; height:48px; border-radius:12px; background:linear-gradient(135deg, ' + lv.color + ', #050926); border:2px solid ' + lv.color + '; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:1.3rem; color:#fff; box-shadow:0 4px 10px rgba(0,0,0,.4);">' + nm[0].toUpperCase() + '</div>'
+        + '<div>'
+          + '<h5 style="color:#fff; font-weight:900; margin:0 0 3px; font-size:1.15rem; letter-spacing:0.5px;">' + nm + '</h5>'
+          + '<div style="display:flex; align-items:center; gap:6px;">'
+            + '<span style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#cbd5e1; font-weight:800; font-size:.7rem; padding:2px 6px; border-radius:4px;">' + pos + '</span>'
+            + (isVer ? '<span style="background:#10B981; color:#fff; font-weight:800; font-size:.65rem; padding:2px 6px; border-radius:4px;">✓ VERIFIED</span>' : '<span style="background:#EF4444; color:#fff; font-weight:800; font-size:.65rem; padding:2px 6px; border-radius:4px;">🔒 LOCK</span>')
+          + '</div>'
+        + '</div>'
+      + '</div>'
+      + '<div style="text-align:right">'
+        + '<span style="font-size:1.6rem; font-weight:900; color:' + lv.color + '; line-height:1; display:block; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));">' + realOvr + '</span>'
+        + '<span style="background:' + tagCol + '; color:#000; font-weight:900; font-size:.6rem; padding:2px 6px; border-radius:4px; letter-spacing:0.5px; text-transform:uppercase; margin-top:4px; display:inline-block;">' + lv.title + '</span>'
+      + '</div>'
+    + '</div>'
+    + '<div style="background:#0f172a; border:1px solid rgba(255,255,255,0.05); padding:10px 12px; border-radius:8px; margin-bottom:16px; font-size:.82rem; color:#94a3b8; display:flex; justify-content:space-between; align-items:center;">'
+      + '<span>🛡️ ' + club + '</span>'
+      + '<span style="color:#00B4D8; font-weight:700; cursor:pointer;" onclick="viewPlayerProfile('' + k + '')">Lihat Pasport ↗</span>'
+    + '</div>'
+    + '<button class="btn btn-warning w-100 font-weight-bold py-2" style="background:#f59e0b !important; color:#000; border:none; border-radius:8px; font-weight:900; font-size:.9rem; cursor:pointer; box-shadow:0 4px 10px rgba(245,158,11,.3);" onclick="bukaRosterAssess('' + k + '')">🏋️ Penilaian Atribut (Coach Score) →</button>';
+
+    grid.appendChild(card);
+  });
+}
+
+function saringRosterMyTeam() { muatSenaraiRosterMyTeam(); }
+
+function bukaRosterAssess(key) {
+  var sel = document.getElementById('ca-select-player');
+  if(sel) sel.value = key;
+  switchMyTeamMode('assess');
+}
+
+function muatFormPenilaianCoach(key) {
+  var reg = window.PLAYPRO_PLAYER_REGISTRY || PLAYPRO_PLAYER_REGISTRY || {};
+  var p = reg[key] || reg[key.toLowerCase()] || {};
+  var dnaAttrs = p.dnaAttributes || {};
+
+  var senarai = [
+    "acceleration", "pace", "agility", "balance", "stamina", "strength", "jumping",
+    "passing", "dribbling", "finishing", "technique", "tackling", "heading", "crossing",
+    "positioning", "workrate", "determination", "anticipation", "teamwork", "decisions", "bravery"
+  ];
+
+  senarai.forEach(function(attr){
+    var rng = document.getElementById('ca-rng-' + attr);
+    var badge = document.getElementById('ca-val-' + attr);
+    if(!rng || !badge) return;
+
+    var val = dnaAttrs[attr];
+    if(val === undefined) {
+      if(p.stats) {
+        var bs = Math.round((p.stats.pac || 60) / 5);
+        if(["passing", "crossing", "teamwork"].includes(attr)) bs = Math.round((p.stats.pas || 60) / 5);
+        else if(["dribbling", "technique", "agility", "balance"].includes(attr)) bs = Math.round((p.stats.dri || 60) / 5);
+        else if(["finishing"].includes(attr)) bs = Math.round((p.stats.sho || 60) / 5);
+        else if(["tackling", "heading", "positioning", "anticipation", "decisions"].includes(attr)) bs = Math.round((p.stats.def || 60) / 5);
+        else if(["strength", "stamina", "jumping", "workrate", "determination", "bravery"].includes(attr)) bs = Math.round((p.stats.phy || 60) / 5);
+        val = bs;
+      } else { val = 12; }
+    }
+    rng.value = val; badge.textContent = val;
+    var wCol = dapatkanWarnaKotakAtribut(val);
+    badge.className = 'badge ' + wCol;
+  });
+
+  var verChk = document.getElementById('ca-verify-check');
+  if(verChk) { verChk.checked = (p.isVerified !== undefined ? p.isVerified : true); }
+  var noteInp = document.getElementById('ca-notes-input');
+  if(noteInp) { noteInp.value = p.coachNotes || ''; }
+
+  kiraDinamikCoach();
+}
+
+function updateCaRng(attr) {
+  var rng = document.getElementById('ca-rng-' + attr);
+  var badge = document.getElementById('ca-val-' + attr);
+  if(rng && badge) { badge.textContent = rng.value; badge.className = 'badge ' + dapatkanWarnaKotakAtribut(rng.value); }
+  kiraDinamikCoach();
+}
+
+function kiraDinamikCoach() {
+  var senarai = [
+    "acceleration", "pace", "agility", "balance", "stamina", "strength", "jumping",
+    "passing", "dribbling", "finishing", "technique", "tackling", "heading", "crossing",
+    "positioning", "workrate", "determination", "anticipation", "teamwork", "decisions", "bravery"
+  ];
+  var sum = 0;
+  senarai.forEach(function(attr){ var v = parseInt(document.getElementById('ca-rng-' + attr)?.value) || 12; sum += v; });
+  var purata20 = sum / senarai.length;
+  var skor100  = Math.round(purata20 * 5);
+  if(skor100 > 99) skor100 = 99; if(skor100 < 1) skor100 = 1;
+
+  var isVer = document.getElementById('ca-verify-check')?.checked;
+  var elOvr = document.getElementById('ca-proj-ovr');
+  if(elOvr) { elOvr.textContent = isVer ? skor100 : '🔒 0'; elOvr.style.color = isVer ? '#fbbf24' : '#ef4444'; }
+  var lv = dnaLevel2(isVer ? skor100 : 0);
+  var elTier = document.getElementById('ca-proj-tier');
+  if(elTier) { elTier.textContent = lv.title + ' ' + '⭐'.repeat(lv.stars); elTier.style.color = lv.color; }
+  var elVerLbl = document.getElementById('ca-verify-lbl');
+  if(elVerLbl) { elVerLbl.textContent = isVer ? '⚡ OFFICIAL RM150 VERIFIED' : '🔒 STATS TERKUNCI (TRAINING)'; elVerLbl.style.color = isVer ? '#10B981' : '#ef4444'; }
+}
+
+function simpanPenilaianCoach() {
+  var key = document.getElementById('ca-select-player')?.value || 'Azlan';
+  var reg Semasa = JSON.parse(localStorage.getItem('PLAYPRO_REGISTRY_V3')) || window.PLAYPRO_PLAYER_REGISTRY || PLAYPRO_PLAYER_REGISTRY;
+  var p = regSemasa[key] || regSemasa[key.toLowerCase()] || {};
+
+  var senarai = [
+    "acceleration", "pace", "agility", "balance", "stamina", "strength", "jumping",
+    "passing", "dribbling", "finishing", "technique", "tackling", "heading", "crossing",
+    "positioning", "workrate", "determination", "anticipation", "teamwork", "decisions", "bravery"
+  ];
+  var baruAttrs = {}; var sum = 0;
+  senarai.forEach(function(attr){ var v = parseInt(document.getElementById('ca-rng-' + attr)?.value) || 12; baruAttrs[attr] = v; sum += v; });
+  
+  var purata20 = sum / senarai.length;
+  var skor100  = Math.round(purata20 * 5);
+  if(skor100 > 99) skor100 = 99; if(skor100 < 1) skor100 = 1;
+
+  var isVer = document.getElementById('ca-verify-check')?.checked;
+  p.dnaAttributes = baruAttrs;
+  p.ovr = skor100; p.dna_overall = skor100;
+  p.isVerified = isVer; p.kyc_status = isVer ? 'verified' : 'unverified';
+  p.coachNotes = document.getElementById('ca-notes-input')?.value || '';
+
+  // Simpan ke storage dan RAM
+  regSemasa[key] = p;
+  PLAYPRO_PLAYER_REGISTRY = regSemasa; window.PLAYPRO_PLAYER_REGISTRY = regSemasa;
+  localStorage.setItem('PLAYPRO_REGISTRY_V3', JSON.stringify(regSemasa));
+
+  // Re-render
+  pilihDanPaparkanPemain(key);
+  switchMyTeamMode('list');
+  toast('✅ 🧬 Penilaian atribut saintifik ' + p.nama + ' berjaya disimpan kekal!');
+}
+
+function luluskanPemainSegera(key) {
+  var regSemasa = JSON.parse(localStorage.getItem('PLAYPRO_REGISTRY_V3')) || window.PLAYPRO_PLAYER_REGISTRY || PLAYPRO_PLAYER_REGISTRY;
+  var p = regSemasa[key] || regSemasa[key.toLowerCase()];
+  if(!p) { toast('⚠️ Pemain tidak dijumpai'); return; }
+
+  p.isVerified = true; p.kyc_status = 'verified';
+  if(p.ovr === 0 || p.ovr === undefined) { p.ovr = 85; p.dna_overall = 85; }
+
+  regSemasa[key] = p;
+  PLAYPRO_PLAYER_REGISTRY = regSemasa; window.PLAYPRO_PLAYER_REGISTRY = regSemasa;
+  localStorage.setItem('PLAYPRO_REGISTRY_V3', JSON.stringify(regSemasa));
+
+  switchMyTeamMode('list');
+  toast('⚡ ✓ Slip Ujian Atribut RM150 ' + key + ' diluluskan! Teras stat sedia aktif');
+}
 function aksiLikeHub(postId) {
   var store = localStorage.getItem('PLAYPRO_HUB_POSTS_V2');
   var senaraiPost = store ? JSON.parse(store) : [];
