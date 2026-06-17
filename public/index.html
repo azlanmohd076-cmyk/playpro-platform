@@ -547,40 +547,43 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   0%,100% { box-shadow: 0 0 14px #0077B6, 0 0 28px rgba(0,119,182,.25), 0 6px 20px rgba(0,0,0,.8); }
   50%      { box-shadow: 0 0 28px #0077B6, 0 0 55px rgba(0,119,182,.4), 0 6px 20px rgba(0,0,0,.8); }
 }
-/* 🧬 FM STYLE DNA MATRIX */
+/* 🧬 CM0102 RETRO LUXURY DNA MATRIX */
 .bg-matrix-dark {
-  background-color: rgba(6, 11, 40, 0.88) !important;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px rgba(0,0,0,.6);
-  margin-top: 1rem;
+  background-color: #0b0f26 !important; /* Biru korporat gelap yang sangat bersih & premium */
+  border: 2px solid #1e293b !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  margin-top: 1.25rem;
+  padding: 1.25rem !important;
+  border-radius: 14px;
 }
-.border-matrix { border-color: rgba(0,180,216,.3) !important; }
 .matrix-title {
-  font-size: .78rem; font-weight: 800; color: #00B4D8;
-  letter-spacing: .12em; margin-bottom: 1rem; border-bottom: 1px solid rgba(0,180,216,.2);
-  padding-bottom: .5rem;
+  font-size: .85rem; font-weight: 900; color: #00B4D8;
+  letter-spacing: .12em; margin-bottom: 1.2rem; border-bottom: 2px solid rgba(0,180,216,.25);
+  padding-bottom: .6rem; text-transform: uppercase;
 }
 .matrix-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; font-size: .78rem;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; font-size: .82rem;
 }
 @media (max-width: 768px) {
-  .matrix-grid { grid-template-columns: 1fr; gap: 1.5rem; }
-  .border-end-matrix { border-right: none !important; border-bottom: 1px solid rgba(255,255,255,.1); padding-bottom: 1rem; }
+  .matrix-grid { grid-template-columns: 1fr; gap: 1.75rem; }
+  .border-end-matrix { border-right: none !important; border-bottom: 2px solid rgba(255,255,255,.08); padding-bottom: 1.25rem; }
 }
-.matrix-col { display: flex; flex-direction: column; gap: .25rem; }
-.matrix-hdr { font-size: .65rem; font-weight: 800; letter-spacing: .08em; margin-bottom: .4rem; }
-.border-end-matrix { border-right: 1px solid rgba(255,255,255,.1); padding-right: 1rem; }
+.matrix-col { display: flex; flex-direction: column; gap: .2rem; }
+.matrix-hdr { font-size: .68rem; font-weight: 900; letter-spacing: .1em; margin-bottom: .5rem; color: #00B4D8; text-transform: uppercase; }
+.border-end-matrix { border-right: 2px solid rgba(255,255,255,.08); padding-right: 1.25rem; }
 .matrix-row {
   display: flex; justify-content: space-between; align-items: center;
-  padding: .2rem 0; border-bottom: 1px solid rgba(255,255,255,.05);
-  color: rgba(255,255,255,.8);
+  padding: .35rem .5rem; border-bottom: 1px solid rgba(255,255,255,.05);
+  border-radius: 6px;
+  transition: background .2s;
 }
-.matrix-row span:first-child { font-family: inherit; font-size: .75rem; }
-/* Pewarnaan FM Atribut */
-.attr-val { font-weight: 900; font-family: monospace; font-size: .88rem; }
-.attr-high { color: #fbbf24 !important; text-shadow: 0 0 8px rgba(251,191,36,.5); } /* 15-20 */
-.attr-mid  { color: #e2e8f0 !important; } /* 10-14 */
-.attr-low  { color: #64748b !important; opacity: .8; } /* Bawah 10 / 0 */
+.matrix-row:hover { background-color: rgba(255,255,255,.04); }
+.matrix-row span:first-child { color: #94a3b8 !important; font-size: .78rem; font-weight: 600; letter-spacing: .02em; }
+/* Gaya No Font Angka CM0102 Retro (Monospace Retro Realistic) */
+.attr-val { font-family: 'Courier New', Courier, monospace; font-size: 1.1rem; font-weight: 900; padding: 1px 6px; border-radius: 4px; text-align: right; min-width: 32px; }
+.attr-high { color: #ff9f43 !important; text-shadow: 0 0 10px rgba(255,159,67,.6); } /* 15-20: Oren/Emas Menyala Luxury */
+.attr-mid  { color: #ffffff !important; } /* 10-14: Putih Bersih */
+.attr-low  { color: #475569 !important; font-weight: 700; } /* Bawah 10 / 0: Kelabu Malap */
 
 /* Shimmer diagonal Pokemon style */
 @keyframes pokeShimmer {
@@ -2354,7 +2357,9 @@ function go(t){
   });
   _tab=t;
   updateBread(t);
-  if(t==='profile')loadProfile();
+  if(t==='profile' && !window._overrideProfileData){
+    loadProfile();
+  }
 }
 
 function updateBread(t){
@@ -2928,7 +2933,6 @@ function paparkanAtributDNA(pemain, attrs){
     "positioning", "workrate", "determination", "anticipation", "teamwork", "decisions", "bravery"
   ];
 
-  // Map dari Supabase attrs jika ada
   var aMap = {};
   if (attrs) { attrs.forEach(function(r){ aMap[r.attribute_code] = r.current_value || 0; }); }
   
@@ -2942,7 +2946,6 @@ function paparkanAtributDNA(pemain, attrs){
       return;
     }
 
-    // Ambil dari slip keputusan PlayPro (dnaAttributes) jika ada, atau map dari Supabase
     let markah100 = aMap[attr];
     if (markah100 === undefined) {
       if (reg.dnaAttributes && reg.dnaAttributes[attr] !== undefined) {
@@ -2956,11 +2959,10 @@ function paparkanAtributDNA(pemain, attrs){
         else if (["strength", "stamina", "jumping", "workrate", "determination", "bravery"].includes(attr)) baseStat = reg.stats.phy;
         markah100 = baseStat;
       } else {
-        markah100 = 60; // fallback standard
+        markah100 = 60;
       }
     }
 
-    // Convert ke skala 1-20
     let nilai20 = Math.round((markah100 || 0) / 5);
     if (nilai20 > 20) nilai20 = 20;
     if (nilai20 < 1) nilai20 = 1;
@@ -3275,11 +3277,11 @@ function renderOtherPassport(p){
   bar.style.display='flex';
 
   // Sembunyi header passport sendiri & tunjuk data orang lain
+  // Set flag untuk go('profile') tahu ini bukan profile sendiri supaya tak silap load Azlan
+  window._overrideProfileData = p;
+  
   // Scroll ke atas dan switch ke tab passport
   go('profile');
-  
-  // Set flag untuk loadProfile tahu ini bukan profile sendiri
-  window._overrideProfileData = p;
   
   // Segera kemas kini _kadData untuk profil orang lain
   renderMiniKad(p, []);
