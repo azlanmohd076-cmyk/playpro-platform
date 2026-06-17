@@ -622,9 +622,9 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   background: linear-gradient(160deg,#3a3a3a 0%,#1c1c1c 100%);
 }
 .mini-kad.tier-foundation {
-  --kad-glow:#cd7f32;
-  --kad-border: #cd7f32;
-  background: linear-gradient(160deg,#4a3020 0%,#2a1505 100%);
+  --kad-glow:#b45309;
+  --kad-border: #78350f;
+  background: radial-gradient(circle, #b45309 0%, #451a03 100%);
 }
 .mini-kad.tier-developing {
   --kad-glow:#00B4D8;
@@ -844,10 +844,11 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   border: 2px solid rgba(156,163,175,.5);
   box-shadow: 0 0 18px rgba(156,163,175,.25), 0 8px 40px rgba(0,0,0,.8);
 }
+/* 2. FOUNDATION (Statik - Matte Tan / Gangsa Pudar, Tidak Gold!) */
 .kad-full-front.tier-foundation {
-  background: linear-gradient(155deg,#4a3020 0%,#2a1505 60%,#3d2210 100%);
-  border: 2px solid #cd7f32;
-  box-shadow: 0 0 28px rgba(205,127,50,.55), 0 0 60px rgba(205,127,50,.15), 0 8px 40px rgba(0,0,0,.8);
+  background: radial-gradient(circle, #b45309 0%, #451a03 100%) !important;
+  border: 3px solid #78350f !important;
+  box-shadow: 0 0 10px rgba(120, 53, 15, 0.4) !important;
 }
 .kad-full-front.tier-developing {
   background: linear-gradient(155deg,#0a2d40 0%,#031620 60%,#0a2535 100%);
@@ -2776,55 +2777,64 @@ function renderClubHistory2(p){
 }
 
 function renderBio2(p){
-  const dn=p.preferred_name||p.full_name||'—';
-  document.getElementById('bio2-name').textContent=p.full_name||'—';
-  document.getElementById('bio2-dob').textContent=p.date_of_birth?new Date(p.date_of_birth).toLocaleDateString('ms-MY',{day:'2-digit',month:'long',year:'numeric'}):'—';
-  const ageEl=document.getElementById('bio2-age');
-  if(ageEl&&p.date_of_birth){
-    const dob=new Date(p.date_of_birth);
+  if(!p) return;
+  var dn = p.preferred_name || p.full_name || 'Pemain';
+  var nameKey = p.preferred_name || p.full_name || '';
+  var reg = PLAYPRO_PLAYER_REGISTRY[nameKey] || PLAYPRO_PLAYER_REGISTRY[nameKey.toLowerCase()] || {};
+
+  var fullName = reg.namaPenuh || p.full_name || dn;
+  var dob = reg.tarikhLahir || (p.date_of_birth ? new Date(p.date_of_birth).toLocaleDateString('ms-MY',{day:'2-digit',month:'long',year:'numeric'}) : '—');
+  var ageStr = reg.umur || '—';
+  if(!reg.umur && p.date_of_birth){
+    const dobd=new Date(p.date_of_birth);
     const today=new Date();
-    let age=today.getFullYear()-dob.getFullYear();
-    if(today<new Date(today.getFullYear(),dob.getMonth(),dob.getDate())) age--;
-    ageEl.textContent=age+' tahun';
+    let agenum=today.getFullYear()-dobd.getFullYear();
+    if(today<new Date(today.getFullYear(),dobd.getMonth(),dobd.getDate())) agenum--;
+    ageStr = agenum+' tahun';
   }
-  document.getElementById('bio2-ppno').textContent=p.passport_number||'Belum ada nombor';
-  // No. telefon — separuh disembunyikan untuk orang lain
-  const phoneEl=document.getElementById('bio2-phone');
-  if(phoneEl&&p.phone){
-    // Papar 6 digit pertama, sorok bakinya: 012-345****
-    const ph=p.phone.replace(/\D/g,'');
-    const masked=ph.length>=7 ? ph.substring(0,3)+'-'+ph.substring(3,6)+'****' : ph;
-    phoneEl.textContent=masked;
-  } else if(phoneEl){
-    phoneEl.textContent='—';
+
+  var nat = reg.warganegara || p.nationality || 'Malaysian';
+  var ppno = p.passport_number || 'Belum ada nombor';
+
+  var phoneStr = p.phone ? p.phone : '—';
+  if(p.phone && p.phone.length >= 7){
+    var ph = p.phone.replace(/\D/g,'');
+    phoneStr = ph.substring(0,3)+'-'+ph.substring(3,6)+'****';
   }
-  document.getElementById('bio2-height').textContent=p.height_cm?p.height_cm+' cm':'—';
-  document.getElementById('bio2-weight').textContent=p.weight_kg?p.weight_kg+' kg':'—';
-  document.getElementById('bio2-foot').textContent=p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—';
-  document.getElementById('bio2-pos').textContent=posCode2(p.position)+' — '+posFull2(p.position);
-  document.getElementById('bio2-jersey').textContent=p.jersey_number?'#'+p.jersey_number:'—';
-  document.getElementById('bio2-club').textContent=p.clubs?.name||'—';
-  // Football Passport section
-  const fpAvatar=document.getElementById('bio2-fp-avatar');
-  const fpName=document.getElementById('bio2-fp-name');
-  const fpNo=document.getElementById('bio2-fp-no');
-  const fpMeta=document.getElementById('bio2-fp-meta');
-  const kycEl=document.getElementById('bio2-kyc');
+
+  var heightStr = reg.tinggi || (p.height_cm ? p.height_cm+' cm' : '—');
+  var weightStr = reg.berat || (p.weight_kg ? p.weight_kg+' kg' : '—');
+  var footStr = reg.kaki || (p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—');
+  var posCode = reg.posisi || posCode2(p.best_position || p.position || '');
+  var posFullStr = reg.posisiPenuh || posFull2(p.best_position || p.position || '');
+  var jerseyStr = reg.jersey || (p.jersey_number ? '#'+p.jersey_number : '—');
+  var clubStr = reg.kelab || p.clubs?.name || 'Tiada Kelab';
+
+  var el;
+  el=document.getElementById('bio2-name');  if(el) el.textContent=fullName;
+  el=document.getElementById('bio2-dob');   if(el) el.textContent=dob;
+  el=document.getElementById('bio2-age');   if(el) el.textContent=ageStr;
+  el=document.getElementById('bio2-ppno');  if(el) el.textContent=ppno;
+  el=document.getElementById('bio2-phone'); if(el) el.textContent=phoneStr;
+  el=document.getElementById('bio2-height');if(el) el.textContent=heightStr;
+  el=document.getElementById('bio2-weight');if(el) el.textContent=weightStr;
+  el=document.getElementById('bio2-foot');  if(el) el.textContent=footStr;
+  el=document.getElementById('bio2-pos');   if(el) el.textContent=posCode + ' — ' + posFullStr;
+  el=document.getElementById('bio2-jersey');if(el) el.textContent=jerseyStr;
+  el=document.getElementById('bio2-club');  if(el) el.textContent=clubStr;
+
+  // Header kad atas Bio
+  var fpAvatar=document.getElementById('bio2-fp-avatar');
+  var fpName=document.getElementById('bio2-fp-name');
+  var fpNo=document.getElementById('bio2-fp-no');
+  var fpMeta=document.getElementById('bio2-fp-meta');
+  var lv2=dnaLevel2(p.dna_overall||0);
 
   if(fpAvatar) fpAvatar.textContent=dn[0].toUpperCase();
-  if(fpName)   fpName.textContent=p.full_name||dn;
-  if(fpNo)     fpNo.textContent=p.passport_number||'Belum ada nombor passport';
-  if(fpMeta)   fpMeta.innerHTML=(posCode2(p.position)||'—')+' &nbsp;·&nbsp; '+(p.clubs?.name||'—')+'<br>DNA: '+(p.dna_overall||'—')+' &nbsp;·&nbsp; '+(p.dna_band||'—');
-
-  // Frame pada avatar ikut DNA level
-  const lv2=dnaLevel2(p.dna_overall||0);
+  if(fpName)   fpName.textContent=fullName;
+  if(fpNo)     fpNo.textContent=ppno;
+  if(fpMeta)   fpMeta.innerHTML=(posCode||'—')+' &nbsp;·&nbsp; '+clubStr+'<br>DNA: '+(p.dna_overall||'0')+' &nbsp;·&nbsp; '+(lv2.title||'—');
   if(fpAvatar){fpAvatar.style.border=lv2.border||'2px solid #9ca3af';fpAvatar.style.boxShadow=lv2.shadow||'none';}
-
-  if(kycEl){
-    if(p.kyc_status==='verified') kycEl.innerHTML='<span class="kyc2-ok">✅ Identiti Disahkan</span>';
-    else if(p.kyc_status==='pending'||p.kyc_status==='submitted') kycEl.innerHTML='<span class="kyc2-pend">⏳ Sedang Disemak</span>';
-    else kycEl.innerHTML='<span class="kyc2-none">❌ Identiti belum disahkan</span>';
-  }
 }
 
 function pp2Tab(t){
@@ -2963,6 +2973,16 @@ const DATABASE_PEMAIN_PLAYPRO = [
   { id: '550e8400-e29b-41d4-a716-446655440007', full_name: "Dayak", preferred_name: "Dayak", nickname: "Dayak", position: "GK", best_position: "GK", dna_overall: 38, passport_number: "10081984-02-DAYK", date_of_birth: "1984-08-10", kyc_status: "unverified", passport_frame: "silver", clubs: { name: "Tiada Kelab" }, is_active: true, is_passport_public: true }
 ];
 
+const PLAYPRO_PLAYER_REGISTRY = {
+  "Azlan": { nama: "Azlan", namaPenuh: "Azlan Mohd", tarikhLahir: "27 September 1976", umur: "49 tahun", level: "Elite", ovr: 91, posisi: "CM", posisiPenuh: "Central Midfielder", jersey: "#8", negeri: "Negeri Sembilan", kelab: "Kelab Bolasepak Kepayang", warganegara: "Malaysian", tinggi: "170 cm", berat: "68 kg", kaki: "Kanan", isVerified: true, stats: { pac: 92, sho: 89, pas: 96, dri: 95, def: 78, phy: 88 } },
+  "Cikyut": { nama: "Cikyut", namaPenuh: "Cikyut Ahmad", tarikhLahir: "15 Januari 1970", umur: "56 tahun", level: "Elite", ovr: 92, posisi: "DM", posisiPenuh: "Defensive Midfielder", jersey: "#6", negeri: "Negeri Sembilan", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "166 cm", berat: "65 kg", kaki: "Kiri", isVerified: true, stats: { pac: 94, sho: 86, pas: 85, dri: 90, def: 88, phy: 78 } },
+  "Loko M": { nama: "Loko M", namaPenuh: "Lokman Hakim (Loko M)", tarikhLahir: "04 Mac 1994", umur: "32 tahun", level: "Advanced", ovr: 82, posisi: "LM", posisiPenuh: "Left Midfielder", jersey: "#7", negeri: "Selangor", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "168 cm", berat: "72 kg", kaki: "Kiri", isVerified: true, stats: { pac: 83, sho: 78, pas: 81, dri: 84, def: 65, phy: 74 } },
+  "Otai": { nama: "Otai", namaPenuh: "Khairul Otai", tarikhLahir: "22 Mac 1981", umur: "45 tahun", level: "Developed", ovr: 73, posisi: "CB", posisiPenuh: "Center-Back", jersey: "#3", negeri: "Negeri Sembilan", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "176 cm", berat: "80 kg", kaki: "Kanan", isVerified: true, stats: { pac: 75, sho: 60, pas: 78, dri: 70, def: 88, phy: 85 } },
+  "Haji Boss": { nama: "Haji Boss", namaPenuh: "Haji Mustaffa Boss", tarikhLahir: "01 Ogos 1956", umur: "70 tahun", level: "Foundation", ovr: 51, posisi: "SS", posisiPenuh: "Second Striker", jersey: "#99", negeri: "Kedah", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "163 cm", berat: "75 kg", kaki: "Kanan", isVerified: true, stats: { pac: 50, sho: 58, pas: 62, dri: 55, def: 40, phy: 48 } },
+  "Dayak": { nama: "Dayak", namaPenuh: "Dayak Bin Sukiman", tarikhLahir: "10 Ogos 1984", umur: "41 tahun", level: "Starter", ovr: 38, posisi: "GK", posisiPenuh: "Goalkeeper", jersey: "#4", negeri: "Kedah", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "175 cm", berat: "70 kg", kaki: "Kanan", isVerified: false, stats: null },
+  "faro": { nama: "faro", namaPenuh: "Fahrul Faro (faro)", tarikhLahir: "19 September 1997", umur: "28 tahun", level: "Starter", ovr: 0, posisi: "—", posisiPenuh: "Position Unassigned", jersey: "#--", negeri: "Negeri Sembilan", kelab: "Tiada Kelab", warganegara: "Malaysian", tinggi: "170 cm", berat: "68 kg", kaki: "Kanan", isVerified: false, stats: null }
+};
+
 async function viewPlayerProfile(elOrId){
   const playerId = typeof elOrId === 'string' ? elOrId : (elOrId?.dataset?.pid || elOrId || '');
   if(!playerId){toast('❌ ID pemain tidak ditemui');return;}
@@ -2972,16 +2992,43 @@ async function viewPlayerProfile(elOrId){
 
   try{
     let p = null;
-    const {data:dbPlayer, error} = await SB.from('players')
-      .select('id,full_name,preferred_name,nickname,position,best_position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,nationality,phone,clubs(name)')
-      .eq('id',playerId)
-      .maybeSingle();
+    
+    // Carian Supabase DB (menyokong UUID dan nama samaran/penuh)
+    let query = SB.from('players').select('id,full_name,preferred_name,nickname,position,best_position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,nationality,phone,clubs(name)');
+    if (playerId.length === 36 && playerId.split('-').length === 5) {
+      query = query.eq('id', playerId);
+    } else {
+      query = query.or('preferred_name.ilike.'+playerId+',full_name.ilike.'+playerId+',nickname.ilike.'+playerId);
+    }
+    const {data:dbPlayers, error} = await query.limit(1);
+    if(dbPlayers && dbPlayers.length > 0) p = dbPlayers[0];
 
-    if(dbPlayer) p = dbPlayer;
-    else {
-      p = DATABASE_PEMAIN_PLAYPRO.find(function(item){
-        return item.id === playerId || item.preferred_name?.toLowerCase() === playerId?.toLowerCase();
-      });
+    // Carian Fallback Lokal (jika DB gagal/kosong)
+    if(!p) {
+      const fb = DATABASE_PEMAIN_PLAYPRO.find(function(item){
+        return item.id === playerId || item.preferred_name?.toLowerCase() === playerId?.toLowerCase() || item.full_name?.toLowerCase() === playerId?.toLowerCase();
+      }) || PLAYPRO_PLAYER_REGISTRY[playerId] || PLAYPRO_PLAYER_REGISTRY[playerId?.toLowerCase()];
+      
+      if(fb) {
+        p = {
+          id: fb.id || playerId,
+          full_name: fb.namaPenuh || fb.full_name || playerId,
+          preferred_name: fb.nama || fb.preferred_name || playerId,
+          nickname: fb.nama || fb.nickname || playerId,
+          position: fb.posisi || fb.position || '—',
+          best_position: fb.posisi || fb.best_position || '—',
+          jersey_number: fb.jersey ? fb.jersey.replace('#','') : fb.jersey_number,
+          height_cm: fb.tinggi ? fb.tinggi.replace('cm','').replace(' cm','') : fb.height_cm,
+          weight_kg: fb.berat ? fb.berat.replace('kg','').replace(' kg','') : fb.weight_kg,
+          preferred_foot: fb.kaki ? (fb.kaki==='Kiri'?'left':'right') : fb.preferred_foot,
+          passport_number: fb.passport_number || 'PP-000-XX',
+          kyc_status: (fb.isVerified !== undefined ? (fb.isVerified ? 'verified' : 'unverified') : fb.kyc_status),
+          dna_overall: fb.ovr !== undefined ? fb.ovr : fb.dna_overall,
+          clubs: { name: fb.kelab || fb.clubs?.name || 'Tiada Kelab' },
+          date_of_birth: fb.tarikhLahir ? fb.tarikhLahir : fb.date_of_birth,
+          nationality: fb.warganegara || fb.nationality || 'Malaysian'
+        };
+      }
     }
 
     if(!p){
@@ -4214,34 +4261,48 @@ function tierClass(dna){
 
 /* Render mini kad dalam header passport */
 function renderMiniKad(p, attrs){
-  var realDna=p.dna_overall||0;
-  var isVerified=p.kyc_status==='verified';
-  var dna=isVerified?realDna:0;
-  var lv=dnaLevel2(dna);
-  var tc=tierClass(dna);
-  var dn=p.preferred_name||p.full_name||'Pemain';
-  var init=dn?dn[0].toUpperCase():'A';
-  var pos=posCode2(p.best_position||p.position||'');
-  var jersey=p.jersey_number||'—';
+  if(!p) return;
+  var nameKey = p.preferred_name || p.full_name || '';
+  var reg = PLAYPRO_PLAYER_REGISTRY[nameKey] || PLAYPRO_PLAYER_REGISTRY[nameKey.toLowerCase()] || {};
 
-  /* Stats dari atribut (jika tak verified, semua lock 0) */
-  var aMap={};
+  var isVerified = reg.isVerified !== undefined ? reg.isVerified : (p.kyc_status === 'verified');
+  var realDna = reg.ovr !== undefined ? reg.ovr : (p.dna_overall || 0);
+  var dna = isVerified ? realDna : 0;
+  
+  var lv = dnaLevel2(realDna);
+  var tc = tierClass(realDna);
+  
+  var dn = p.preferred_name || p.full_name || reg.nama || 'Pemain';
+  var init = dn ? dn[0].toUpperCase() : 'A';
+  var pos = reg.posisi || posCode2(p.best_position || p.position || '');
+  var posFullStr = reg.posisiPenuh || posFull2(p.best_position || p.position || '');
+  var jersey = reg.jersey ? reg.jersey.replace('#','') : (p.jersey_number || '—');
+  var clubStr = reg.kelab || p.clubs?.name || 'Tiada Kelab';
+
+  var aMap = {};
   if(attrs){attrs.forEach(function(r){aMap[r.attribute_code]=r.current_value||0;});}
+  if(reg.stats){
+    aMap['pace'] = reg.stats.pac;
+    aMap['finishing'] = reg.stats.sho;
+    aMap['passing'] = reg.stats.pas;
+    aMap['dribbling'] = reg.stats.dri;
+    aMap['tackling'] = reg.stats.def;
+    aMap['strength'] = reg.stats.phy;
+  }
 
-  var pac=isVerified?(aMap['pace']||0):0;
-  var sho=isVerified?(aMap['finishing']||0):0;
-  var pas=isVerified?(aMap['passing']||0):0;
-  var dri=isVerified?(aMap['dribbling']||0):0;
-  var def=isVerified?(aMap['tackling']||0):0;
-  var phy=isVerified?(aMap['strength']||0):0;
+  var pac = isVerified ? (aMap['pace']||0) : 0;
+  var sho = isVerified ? (aMap['finishing']||0) : 0;
+  var pas = isVerified ? (aMap['passing']||0) : 0;
+  var dri = isVerified ? (aMap['dribbling']||0) : 0;
+  var def = isVerified ? (aMap['tackling']||0) : 0;
+  var phy = isVerified ? (aMap['strength']||0) : 0;
 
   /* Simpan data untuk modal besar */
-  _kadData={
-    dna:dna, realDna:realDna, isVerified:isVerified, lv:lv, tc:tc, name:dn, init:init,
-    pos:pos, posFull:posFull2(p.best_position||p.position||''),
-    jersey:jersey, fpno:p.passport_number||'—',
-    pac:pac, sho:sho, pas:pas, dri:dri, def:def, phy:phy,
-    club:p.clubs?.name||'Tiada Kelab'
+  _kadData = {
+    dna: dna, realDna: realDna, isVerified: isVerified, lv: lv, tc: tc, name: dn, init: init,
+    pos: pos, posFull: posFullStr, jersey: jersey, fpno: p.passport_number || 'PP-000-XX',
+    pac: pac, sho: sho, pas: pas, dri: dri, def: def, phy: phy,
+    club: clubStr
   };
 
   /* Update mini kad */
