@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>"/>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 <meta name="mobile-web-app-capable" content="yes"/>
@@ -1718,6 +1719,9 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
     <div class="section" style="padding-top:0">
       <div class="section-title">📰 Berita Terkini</div>
     </div>
+    <!-- Kontainer Feed Asal Asli Rujukan -->
+    <div class="feed-wrap mb-4" id="feed" style="max-width: 680px; margin-left:auto; margin-right:auto; padding:0 12px;"></div>
+
     <!-- ======================================================== -->
     <!-- 🔥 SOSIAL MYHUB NEWSFEED ENGINE (WHATSAPP + FACEBOOK STYLE) -->
     <!-- ======================================================== -->
@@ -5269,7 +5273,9 @@ const FEED=[
 ];
 
 function buildFeed(){
-  document.getElementById('feed').innerHTML = FEED.map(c => {
+  var feedEl = document.getElementById('feed');
+  if(!feedEl) return;
+  feedEl.innerHTML = FEED.map(c => {
     if(c.t === 'keputusan') return `
       <div class="feed-card" style="overflow:hidden">
         <div style="background:${c.color};padding:.6rem .9rem;display:flex;align-items:center;justify-content:space-between">
