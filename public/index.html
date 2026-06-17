@@ -609,10 +609,11 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   display: inline-block;
 }
 
-/* Pewarnaan Angka Atas Latar Putih */
-.attr-high { color: #ea580c !important; background: #fff7ed !important; text-shadow: none !important; } /* 15-20: Oren Pro */
-.attr-mid  { color: #1d4ed8 !important; background: #eff6ff !important; text-shadow: none !important; } /* 10-14: Biru Pro */
-.attr-low  { color: #000000 !important; font-weight: 900 !important; text-shadow: none !important; background: transparent !important; border-color: #000000 !important; } /* Bawah 10 / 0: Hitam Solid Tajam */
+/* Pewarnaan Dinamik 4 Warna Kotak Atribut (Skala 1-20) */
+.attr-hitam { border: 1.5px solid #1a1a1a !important; color: #1a1a1a !important; background-color: rgba(0, 0, 0, 0.03) !important; font-weight: 850 !important; } /* 1-5 */
+.attr-biru  { border: 1.5px solid #0056b3 !important; color: #0056b3 !important; background-color: rgba(0, 86, 179, 0.03) !important; font-weight: 850 !important; } /* 6-10 */
+.attr-oren  { border: 1.5px solid #fd7e14 !important; color: #fd7e14 !important; background-color: rgba(253, 126, 20, 0.03) !important; font-weight: 850 !important; } /* 11-15 */
+.attr-hijau { border: 1.5px solid #198754 !important; color: #198754 !important; background-color: rgba(25, 135, 84, 0.06) !important; font-weight: 900 !important; text-shadow: 0 0 8px rgba(25,135,84,.4); } /* 16-20: Hijau Menyala */
 
 /* 📸 Lapisan 1: Ruang Gambar Gergasi Gaya Sticker Cutout (Absolute in background) */
 .passport-avatar-container {
@@ -1612,7 +1613,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
   </div>
   <div class="hn-sep"></div>
   <div class="hn-item on" id="hn-home" onclick="go('home')">HUB</div>
-  <div class="hn-item" id="hn-explore" onclick="go('explore')">TEROKAI</div>
+  <div class="hn-item" id="hn-explore" onclick="go('explore')">CARI</div>
   <div class="hn-item" id="hn-team" onclick="go('team')">PASUKAN</div>
   <div class="hn-item" id="hn-profile" onclick="go('profile')">PASSPORT</div>
   <div class="hn-item" onclick="mustLogin()">LIGA</div>
@@ -1714,7 +1715,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
       <div id="ter-default">
         <div style="text-align:center;padding:1.5rem 1rem .5rem;color:var(--mute)">
           <div style="font-size:2rem;margin-bottom:.4rem">🔍</div>
-          <div style="font-size:.85rem;font-weight:700;color:var(--txt);margin-bottom:.25rem">Terokai Pemain Malaysia</div>
+          <div style="font-size:.85rem;font-weight:700;color:var(--txt);margin-bottom:.25rem">Cari Pemain Malaysia</div>
           <div style="font-size:.7rem;line-height:1.6;margin-bottom:1rem">Pilih negeri atau taip nama untuk cari pemain, kelab dan pengadil.</div>
         </div>
         <div class="section-title">🏅 Top DNA — Pemain Terbaik</div>
@@ -2076,7 +2077,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
 <!-- BOTTOM NAV -->
 <div id="bnav">
   <div class="bn on" id="bn-home" onclick="go('home')"><div class="bn-ic">🏠</div><div class="bn-lb">Hub</div></div>
-  <div class="bn" id="bn-explore" onclick="go('explore')"><div class="bn-ic">🔍</div><div class="bn-lb">Terokai</div></div>
+  <div class="bn" id="bn-explore" onclick="go('explore')"><div class="bn-ic">🔍</div><div class="bn-lb">Cari</div></div>
   <div class="bn" id="bn-team" onclick="go('team')"><div class="bn-ic">⚽</div><div class="bn-lb">Pasukan</div></div>
   <div class="bn" id="bn-inbox" onclick="go('inbox')" style="position:relative">
     <div class="bn-ic">📥</div>
@@ -3173,12 +3174,14 @@ function paparkanAtributDNA(pemain, attrs){
     el.innerText = nilai20;
     el.className = "attr-val";
 
-    if (nilai20 >= 15) {
-      el.classList.add("attr-high");
-    } else if (nilai20 >= 10) {
-      el.classList.add("attr-mid");
+    if (nilai20 >= 16) {
+      el.classList.add("attr-hijau");
+    } else if (nilai20 >= 11) {
+      el.classList.add("attr-oren");
+    } else if (nilai20 >= 6) {
+      el.classList.add("attr-biru");
     } else {
-      el.classList.add("attr-low");
+      el.classList.add("attr-hitam");
     }
   });
 }
@@ -4352,10 +4355,12 @@ async function saveEditProfile(){
       reg.avatarCustomUrl = _tempCustomPhotoBase64; reg.photo_url = _tempCustomPhotoBase64;
     }
 
-    // 💾 SIMPAN PERSISTENT KE LOCALSTORAGE MUTLAK TANPA USIK KUNCI INDUK ASAL!
-    PLAYPRO_PLAYER_REGISTRY[activePlayerKey] = reg;
-    localStorage.setItem('PLAYPRO_REGISTRY_V3', JSON.stringify(PLAYPRO_PLAYER_REGISTRY));
-    window.PLAYPRO_PLAYER_REGISTRY = PLAYPRO_PLAYER_REGISTRY;
+    // 💾 SIMPAN PERSISTENT KE LOCALSTORAGE DENGAN ISOLATED DEEP CLONING SUPAYA TIADA MEMORY BLEEDING KE PEMAIN LAIN!
+    var registryClone = JSON.parse(JSON.stringify(PLAYPRO_PLAYER_REGISTRY));
+    registryClone[activePlayerKey] = reg;
+    if(nick && nick !== activePlayerKey) registryClone[nick] = reg;
+    PLAYPRO_PLAYER_REGISTRY = registryClone; window.PLAYPRO_PLAYER_REGISTRY = registryClone;
+    localStorage.setItem('PLAYPRO_REGISTRY_V3', JSON.stringify(registryClone));
 
     if(activePlayer.id && activePlayer.id.length === 36){
       await SB.from('players').update(update).eq('id',activePlayer.id);
