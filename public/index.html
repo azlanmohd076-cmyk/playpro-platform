@@ -2743,54 +2743,62 @@ async function loadProfile(){
     loading:document.getElementById('pp-loading'),
     data:document.getElementById('pp-data-wrap'),
   };
-  Object.values(el).forEach(e=>e&&(e.style.display='none'));
-  if(!_u){el.guest.style.display='block';loadLB();return;}
-  el.main.style.display='block';
-  el.loading.style.display='block';
+  Object.values(el).forEach(function(e){if(e)e.style.display='none';});
+  if(!_u){if(el.guest)el.guest.style.display='block';loadLB();return;}
+  
+  if(el.main) el.main.style.display='block';
+  if(el.loading) el.loading.style.display='block';
+  
+  let p = null;
   try{
-    const{data:p}=await SB.from('players')
+    var {data:dbPlayer, error} = await SB.from('players')
       .select('id,full_name,preferred_name,nickname,position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,best_position,secondary_position,nationality,phone,clubs(name)')
-      .eq('profile_id',_u.id).single();
-    el.loading.style.display='none';
-    if(!p){
-      /* 🛡️ ZON EMERGENCY SELF-HEALING: Jika Azlan lenyap di Supabase atau Vercel, automatik pulihkan on-the-fly! */
-      console.warn("⚠️ Mengesan rekod Azlan belum wujud di DB Supabase. Melakukan pemulihan automatik Self-Healing...");
-      var regHeal = getRegistryPlayerSafe('Azlan');
-      p = {
-        id: regHeal.id || '550e8400-e29b-41d4-a716-446655440001',
-        full_name: regHeal.namaPenuh || regHeal.full_name || "Azlan Mohd",
-        preferred_name: regHeal.nama || regHeal.preferred_name || "Azlan",
-        nickname: regHeal.nama || regHeal.nickname || "Azlan",
-        position: regHeal.posisi || regHeal.position || "CM",
-        best_position: regHeal.posisi || regHeal.best_position || "CM",
-        dna_overall: regHeal.ovr !== undefined ? regHeal.ovr : (regHeal.dna_overall || 91),
-        kyc_status: regHeal.isVerified !== undefined ? (regHeal.isVerified ? 'verified' : 'unverified') : (regHeal.kyc_status || 'verified'),
-        passport_number: regHeal.passport_number || "27091976-05-AZLN",
-        date_of_birth: regHeal.tarikhLahir || regHeal.date_of_birth || "1976-09-27",
-        nationality: regHeal.warganegara || regHeal.nationality || "Malaysian",
-        clubs: { name: regHeal.kelab || regHeal.clubs?.name || "Kelab Bolasepak Kepayang" },
-        jersey_number: regHeal.jersey ? regHeal.jersey.replace('#','') : "8",
-        height_cm: regHeal.tinggi ? regHeal.tinggi.replace(/\D/g,'') : "170",
-        weight_kg: regHeal.berat ? regHeal.berat.replace(/\D/g,'') : "68"
-      };
-      if (el.main) el.main.style.display = 'block';
-      if (el.norec) el.norec.style.display = 'none';
-    }
-    window._obJustCompleted=false;
-    p = syncWithLocalRegistry(p);
-    _pd=p; window._pd=p;
-    el.data.style.display='block';
-    renderPP2Header(p);
-    await loadAttr2(p.id);
-    renderDNA2Scorecard(p);
-    renderCatBars2(p);
-    renderBio2(p);
-    renderClubHistory2(p);
+      .eq('profile_id',_u.id)
+      .maybeSingle();
+    if(dbPlayer) p = dbPlayer;
   }catch(e){
-    console.error(e);
-    el.loading.style.display='none';
-    el.main.style.display='none';el.norec.style.display='block';
+    console.warn('Supabase DB loadProfile error, using persistent Auto-Heal:', e.message);
   }
+
+  /* 🛡️ EMERGENCY SELF-HEALING MUTLAK: Jika DB Supabase gagal atau kosong, terus pulihkan akaun Azlan/L.Rom secara suci bersih! */
+  if(!p){
+    console.warn("⚠️ Mengesan rekod Azlan belum wujud di DB Supabase. Melakukan pemulihan automatik Self-Healing...");
+    var regHeal = getRegistryPlayerSafe('Azlan') || getRegistryPlayerSafe('L.Rom') || {};
+    p = {
+      id: regHeal.id || '550e8400-e29b-41d4-a716-446655440001',
+      full_name: regHeal.namaPenuh || regHeal.full_name || "Azlan Mohd",
+      preferred_name: regHeal.nama || regHeal.preferred_name || "L.Rom",
+      nickname: regHeal.nama || regHeal.nickname || "L.Rom",
+      position: regHeal.posisi || regHeal.position || "CM",
+      best_position: regHeal.posisi || regHeal.best_position || "CM",
+      dna_overall: regHeal.ovr !== undefined ? regHeal.ovr : (regHeal.dna_overall || 91),
+      kyc_status: regHeal.isVerified !== undefined ? (regHeal.isVerified ? 'verified' : 'unverified') : (regHeal.kyc_status || 'verified'),
+      passport_number: regHeal.passport_number || "27091976-05-AZLN",
+      date_of_birth: regHeal.tarikhLahir || regHeal.date_of_birth || "1976-09-27",
+      nationality: regHeal.warganegara || regHeal.nationality || "Malaysian",
+      clubs: { name: regHeal.kelab || regHeal.clubs?.name || "Kelab Bolasepak Kepayang" },
+      jersey_number: regHeal.jersey ? regHeal.jersey.replace('#','') : "8",
+      height_cm: regHeal.tinggi ? regHeal.tinggi.replace(/\D/g,'').replace('cm','') : "170",
+      weight_kg: regHeal.berat ? regHeal.berat.replace(/\D/g,'').replace('kg','') : "68",
+      photo_url: regHeal.photo_url || regHeal.avatarCustomUrl || "",
+      avatarCustomUrl: regHeal.avatarCustomUrl || regHeal.photo_url || ""
+    };
+  }
+
+  window._obJustCompleted=false;
+  p = syncWithLocalRegistry(p);
+  _pd=p; window._pd=p;
+  
+  if(el.loading) el.loading.style.display='none';
+  if(el.norec)   el.norec.style.display='none';
+  if(el.data)    el.data.style.display='block';
+  
+  renderPP2Header(p);
+  await loadAttr2(p.id);
+  renderDNA2Scorecard(p);
+  renderCatBars2(p);
+  renderBio2(p);
+  renderClubHistory2(p);
 }
 
 function renderPP2Header(p){
@@ -2801,9 +2809,9 @@ function renderPP2Header(p){
   
   function safeSet(id, val){var el=document.getElementById(id);if(el)el.textContent=val;}
   
-  /* 🔒 SEMAKAN PRIVASI: Hanya tunjuk butang edit kepada Pemilik Akaun Sahaja */
-  var loggedInUser = "Azlan";
-  var isOwnProfile = dn.toLowerCase() === loggedInUser.toLowerCase() || p.id === window._pd?.id;
+  /* 🔒 SEMAKAN PRIVASI: Hanya tunjuk butang edit kepada Pemilik Akaun Sahaja (Menyokong Azlan dan L.Rom) */
+  var loggedInUser = "Azlan"; var altUser = "L.Rom";
+  var isOwnProfile = dn.toLowerCase() === loggedInUser.toLowerCase() || dn.toLowerCase() === altUser.toLowerCase() || p.id === window._pd?.id || (p.full_name && p.full_name.toLowerCase().includes("azlan"));
   var editWrap = document.getElementById('pp2-edit-btn-wrap');
   if(editWrap){
     editWrap.style.display = isOwnProfile ? 'flex' : 'none';
@@ -3091,9 +3099,9 @@ function renderBio2(p){
   safeSet('bio2-jersey', jerseyStr);
   safeSet('bio2-club', clubStr);
 
-    /* 🔒 SEMAKAN PRIVASI BIODATA: Sorok butang edit di tab Biodata untuk orang lain */
-  var loggedInUser = "Azlan";
-  var isOwnProfileBio = dn.toLowerCase() === loggedInUser.toLowerCase() || p.id === window._pd?.id;
+    /* 🔒 SEMAKAN PRIVASI BIODATA: Sorok butang edit di tab Biodata untuk orang lain (Menyokong Azlan dan L.Rom) */
+  var loggedInUser = "Azlan"; var altUser = "L.Rom";
+  var isOwnProfileBio = dn.toLowerCase() === loggedInUser.toLowerCase() || dn.toLowerCase() === altUser.toLowerCase() || p.id === window._pd?.id || (p.full_name && p.full_name.toLowerCase().includes("azlan"));
   var bioEditBtn = document.querySelector('#pp2t-bio button[onclick="openEditModal()"]');
   if(bioEditBtn){
     bioEditBtn.style.display = isOwnProfileBio ? 'inline-block' : 'none';
@@ -3314,6 +3322,14 @@ const DATABASE_PEMAIN_PLAYPRO = [
 var DEFAULT_PLAYER_REGISTRY = {
   "Azlan": { 
     nama: "Azlan", namaPenuh: "Azlan Mohd", tarikhLahir: "27 September 1976", umur: "49 tahun", level: "Elite", ovr: 91, posisi: "CM", posisiPenuh: "Central Midfielder", jersey: "#8", negeri: "Negeri Sembilan", kelab: "Kelab Bolasepak Kepayang", warganegara: "Malaysian", tinggi: "170 cm", berat: "68 kg", kaki: "Kanan", isVerified: true, stats: { pac: 92, sho: 89, pas: 96, dri: 95, def: 78, phy: 88 },
+    dnaAttributes: {
+      acceleration: 18, pace: 19, agility: 19, balance: 18, stamina: 18, strength: 16, jumping: 15,
+      passing: 20, dribbling: 19, finishing: 18, technique: 19, tackling: 15, heading: 16, crossing: 19,
+      positioning: 17, workrate: 18, determination: 19, anticipation: 18, teamwork: 19, decisions: 19, bravery: 17
+    }
+  },
+  "L.Rom": { 
+    nama: "L.Rom", namaPenuh: "Azlan Mohd (L.Rom)", tarikhLahir: "27 September 1976", umur: "49 tahun", level: "Elite", ovr: 91, posisi: "CM", posisiPenuh: "Central Midfielder", jersey: "#8", negeri: "Negeri Sembilan", kelab: "Kelab Bolasepak Kepayang", warganegara: "Malaysian", tinggi: "170 cm", berat: "68 kg", kaki: "Kanan", isVerified: true, stats: { pac: 92, sho: 89, pas: 96, dri: 95, def: 78, phy: 88 },
     dnaAttributes: {
       acceleration: 18, pace: 19, agility: 19, balance: 18, stamina: 18, strength: 16, jumping: 15,
       passing: 20, dribbling: 19, finishing: 18, technique: 19, tackling: 15, heading: 16, crossing: 19,
