@@ -44,7 +44,7 @@
 
     ids.forEach(function(id) {
       var node = document.getElementById(id);
-      if (node) node.style.display = 'none';
+      if (node) node.style.setProperty('display', 'none', 'important');
     });
   }
 
@@ -98,6 +98,9 @@
     if (!onboardingObserver && root.MutationObserver) {
       onboardingObserver = new MutationObserver(function() {
         nukePlayerOnboardingModal();
+        hidePlayerPassportUI();
+        var mount = document.getElementById('model6-coach-dashboard');
+        if (mount) mount.style.setProperty('display', 'block', 'important');
       });
       onboardingObserver.observe(document.body, {
         childList: true,
@@ -107,9 +110,17 @@
       });
     }
 
-    setTimeout(nukePlayerOnboardingModal, 50);
-    setTimeout(nukePlayerOnboardingModal, 250);
-    setTimeout(nukePlayerOnboardingModal, 900);
+    function enforceCoachView() {
+      nukePlayerOnboardingModal();
+      hidePlayerPassportUI();
+      var mount = document.getElementById('model6-coach-dashboard');
+      if (mount) mount.style.setProperty('display', 'block', 'important');
+    }
+
+    setTimeout(enforceCoachView, 50);
+    setTimeout(enforceCoachView, 250);
+    setTimeout(enforceCoachView, 900);
+    setTimeout(enforceCoachView, 1800);
   }
 
   function unblockLegacyPlayerOnboarding() {
@@ -218,6 +229,8 @@
 
       if (bridge.Coach && bridge.Coach.UI && typeof bridge.Coach.UI.renderCoachWorkspaceDashboard === 'function') {
         await bridge.Coach.UI.renderCoachWorkspaceDashboard(mount, profile || {});
+        hidePlayerPassportUI();
+        nukePlayerOnboardingModal();
       } else {
         mount.innerHTML = '<div style="padding:16px;background:#111827;color:#fff;border-radius:12px;margin:12px">Coach Workspace sedang dimuatkan...</div>';
       }

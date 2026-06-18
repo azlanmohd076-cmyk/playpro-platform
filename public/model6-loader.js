@@ -37,7 +37,8 @@
     '/src/modules/coach/coach-assessment.js',
     '/src/modules/coach/coach-ui.js',
     '/src/modules/coach/coach-info-injector.js',
-    '/src/modules/auth/role-router.js'
+    '/src/modules/auth/role-router.js',
+    '/src/modules/search/role-search-router.js'
   ];
 
   function loadScript(src) {
