@@ -34,6 +34,10 @@
 
     Verification: {
       status: 'placeholder'
+    },
+
+    Scout: {
+      status: 'placeholder'
     }
   };
 })(window);
