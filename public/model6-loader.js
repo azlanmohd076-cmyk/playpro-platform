@@ -36,7 +36,8 @@
     '/src/modules/coach/coach.service.js',
     '/src/modules/coach/coach-assessment.js',
     '/src/modules/coach/coach-ui.js',
-    '/src/modules/coach/coach-info-injector.js'
+    '/src/modules/coach/coach-info-injector.js',
+    '/src/modules/auth/role-router.js'
   ];
 
   function loadScript(src) {

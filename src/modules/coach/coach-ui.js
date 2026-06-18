@@ -138,6 +138,85 @@
       return panel;
     },
 
+    renderCoachWorkspaceDashboard: async function(container, profile) {
+      injectStylesOnce();
+
+      var target = typeof container === 'string' ? document.querySelector(container) : container;
+      if (!target) return null;
+
+      var coachProfile = profile || {};
+      var profileId = coachProfile.id || coachProfile.profile_id || null;
+      var name = coachProfile.full_name || coachProfile.name || coachProfile.email || 'Coach';
+
+      target.innerHTML = '';
+
+      var shell = el('div', 'pp-coach-workspace');
+      shell.style.cssText = 'padding:14px;max-width:920px;margin:0 auto 90px;font-family:Arial,Helvetica,sans-serif';
+
+      var hero = el('div', 'pp-coach-workspace-hero');
+      hero.style.cssText = 'background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 22px rgba(0,0,0,.28)';
+
+      var title = el('div', null, 'Coach Workspace Dashboard');
+      title.style.cssText = 'font-size:1.25rem;font-weight:900;letter-spacing:.02em;margin-bottom:4px';
+      var sub = el('div', null, 'Selamat datang, ' + name + '. Ruang ini menggantikan paparan Player Passport untuk akaun coach.');
+      sub.style.cssText = 'font-size:.86rem;color:#dbeafe;line-height:1.45';
+
+      hero.appendChild(title);
+      hero.appendChild(sub);
+      shell.appendChild(hero);
+
+      var statusCard = el('div', 'pp-coach-status-card');
+      statusCard.style.cssText = 'background:#111827;color:#e5e7eb;border:1px solid #374151;border-radius:12px;padding:12px;margin-bottom:12px;display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap';
+      var statusText = el('div', null, 'Memuatkan status gred coach...');
+      statusText.style.cssText = 'font-size:.88rem;font-weight:800';
+      var examBtn = el('button', null, 'Ambil Ujian Video PCSAP');
+      examBtn.type = 'button';
+      examBtn.style.cssText = 'background:#38bdf8;color:#07111f;border:none;border-radius:8px;padding:9px 12px;font-weight:900;cursor:pointer';
+      examBtn.addEventListener('click', function() {
+        if (root.toast) root.toast('Ujian Video PCSAP akan dibuka dalam panel seterusnya.');
+        else console.log('Ujian Video PCSAP akan dibuka dalam panel seterusnya.');
+      });
+      statusCard.appendChild(statusText);
+      statusCard.appendChild(examBtn);
+      shell.appendChild(statusCard);
+
+      var gridMount = el('div', 'pp-coach-grid-mount');
+      shell.appendChild(gridMount);
+
+      var scaleTitle = el('div', null, 'Had Input Penilaian Pemain');
+      scaleTitle.style.cssText = 'margin:12px 0 6px;font-size:.82rem;font-weight:900;color:#111827;text-transform:uppercase';
+      var scaleMount = el('div', 'pp-coach-scale-mount');
+      shell.appendChild(scaleTitle);
+      shell.appendChild(scaleMount);
+
+      target.appendChild(shell);
+
+      var data = {
+        ok: true,
+        grade: 'GRED_1_DAILY_COACH',
+        isCertified: false,
+        maxScore: 5,
+        attributes: {}
+      };
+
+      if (bridge.Coach && typeof bridge.Coach.getCoachAttributes === 'function') {
+        data = await bridge.Coach.getCoachAttributes(profileId);
+      }
+
+      statusText.textContent = 'Status: ' + (data.grade || 'GRED_1_DAILY_COACH') + ' · Had maksimum atribut: ' + (data.maxScore || 5);
+      if (data.isCertified) {
+        examBtn.textContent = 'Gred 2 Aktif';
+        examBtn.disabled = true;
+        examBtn.style.opacity = '.75';
+        examBtn.style.cursor = 'default';
+      }
+
+      this.renderCoachRetroGrid(gridMount, data);
+      this.renderAssessmentScaleLock(scaleMount, data.maxScore || 5);
+
+      return shell;
+    },
+
     renderAssessmentScaleLock: function(container, maxScore) {
       injectStylesOnce();
 
