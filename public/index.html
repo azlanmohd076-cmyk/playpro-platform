@@ -243,7 +243,7 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 #bnav {
   position:fixed; bottom:0; left:0; right:0; height:var(--nh); z-index:300;
   background:var(--bg2); border-top:1px solid var(--bdr);
-  display:grid; grid-template-columns:repeat(4,1fr);
+  display:grid; grid-template-columns:repeat(6,1fr);
 }
 .bn {
   display:flex; flex-direction:column; align-items:center;
@@ -2795,11 +2795,15 @@ function patahKeProfilPemilik() {
 }
 
 function go(t){
-  ['home','explore','myhub','team','profile'].forEach(x=>{
-    document.getElementById('tab-'+x).style.display=x===t?'block':'none';
-    document.getElementById('bn-'+x).classList.toggle('on',x===t);
-    const hn=document.getElementById('hn-'+x);if(hn)hn.classList.toggle('on',x===t);
-    const dr=document.getElementById('dr-'+x);if(dr)dr.classList.toggle('on',x===t);
+  ['home','explore','myhub','team','inbox','profile'].forEach(function(x){
+    var tab = document.getElementById('tab-'+x);
+    if(tab) tab.style.display = (x===t) ? 'block' : 'none';
+    var bn = document.getElementById('bn-'+x);
+    if(bn) bn.classList.toggle('on', x===t);
+    var hn = document.getElementById('hn-'+x);
+    if(hn) hn.classList.toggle('on', x===t);
+    var dr = document.getElementById('dr-'+x);
+    if(dr) dr.classList.toggle('on', x===t);
   });
   _tab=t;
   updateBread(t);
@@ -2808,6 +2812,9 @@ function go(t){
   }
   if(t==='myhub'){
     muatTurunDanPaparHub();
+  }
+  if(t==='inbox'){
+    if(typeof loadInbox === 'function') loadInbox();
   }
 }
 
