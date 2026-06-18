@@ -1668,6 +1668,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
   <div class="hn-sep"></div>
   <div class="hn-item on" id="hn-home" onclick="go('home')">HUB</div>
   <div class="hn-item" id="hn-explore" onclick="go('explore')">CARI</div>
+  <div class="hn-item" id="hn-myhub" onclick="go('myhub')" style="color:#fbbf24; font-weight:900;">MYHUB</div>
   <div class="hn-item" id="hn-team" onclick="go('team')"><span class="nav-myteam-3d">MyTeam</span></div>
   <div class="hn-item" id="hn-profile" onclick="go('profile')">PASSPORT</div>
   <div class="hn-item" onclick="mustLogin()">LIGA</div>
@@ -1722,6 +1723,38 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
     <!-- Kontainer Feed Asal Asli Rujukan -->
     <div class="feed-wrap mb-4" id="feed" style="max-width: 680px; margin-left:auto; margin-right:auto; padding:0 12px;"></div>
 
+    <!-- Pautan Pantas Sembang MyHub -->
+    <div class="card mb-4 shadow-sm" style="background:#1e293b; border:1px solid #3b82f6; border-radius:12px; padding:16px; max-width:680px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="go('myhub')">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:2rem; filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));">💬</span>
+        <div>
+          <h5 style="color:#fbbf24; font-weight:900; margin:0; font-size:1.1rem;">Ruang Sosial Otai (MyHub Timeline)</h5>
+          <p style="color:#cbd5e1; font-size:.85rem; margin:2px 0 0;">Ketik untuk up status selepas game, berbalas sticker WhatsApp, Like 👍 dan Komen 💬</p>
+        </div>
+      </div>
+      <span style="background:#3b82f6; color:#fff; font-weight:800; font-size:.85rem; padding:8px 16px; border-radius:8px;">Masuk MyHub →</span>
+    </div>
+    <!-- Top Scorers from DB -->
+    <div style="padding:0 1rem .5rem">
+      <div class="section-title">🥇 Penjaring Teratas</div>
+      <div id="top-scorers-home"></div>
+    </div>
+  </div>
+
+  <!-- MYHUB SOSIAL NEWSFEED TAB -->
+  <div id="tab-myhub" style="display:none; padding-bottom: 5rem;">
+    <!-- Banner Pengepala MyHub -->
+    <div class="card bg-dark text-white mb-4 shadow" style="background:#0f172a !important; border:2px solid #38bdf8 !important; border-radius:14px; overflow:hidden;">
+      <div class="card-body p-4" style="background:linear-gradient(135deg, #0f172a 0%, #050926 100%);">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <span style="font-size:2.8rem; line-height:1; filter:drop-shadow(0 4px 8px rgba(0,0,0,.6));">💬</span>
+          <div>
+            <h3 style="color:#fbbf24; font-weight:900; margin:0; font-size:1.55rem; letter-spacing:0.5px; text-transform:uppercase;">Ruang Sosial Komuniti (MyHub)</h3>
+            <p style="color:#e2e8f0; font-size:.92rem; margin:6px 0 0; line-height:1.5;">Laman interaksi bebas otai-otai Malaysia. Kongsi status perlawanan, berbalas sticker WhatsApp, menumbang tanda suka (Like 👍) dan Komen 💬</p>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- ======================================================== -->
     <!-- 🔥 SOSIAL MYHUB NEWSFEED ENGINE (WHATSAPP + FACEBOOK STYLE) -->
     <!-- ======================================================== -->
@@ -1758,11 +1791,6 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
 
       <!-- RUANGAN TIMELINE NEWSFEED -->
       <div id="myhub-newsfeed-container"></div>
-    </div>
-    <!-- Top Scorers from DB -->
-    <div style="padding:0 1rem .5rem">
-      <div class="section-title">🥇 Penjaring Teratas</div>
-      <div id="top-scorers-home"></div>
     </div>
   </div>
 
@@ -2352,6 +2380,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
 <div id="bnav">
   <div class="bn on" id="bn-home" onclick="go('home')"><div class="bn-ic">🏠</div><div class="bn-lb">Hub</div></div>
   <div class="bn" id="bn-explore" onclick="go('explore')"><div class="bn-ic">🔍</div><div class="bn-lb">Cari</div></div>
+  <div class="bn" id="bn-myhub" onclick="go('myhub')"><div class="bn-ic" style="font-size:1.35rem">💬</div><div class="bn-lb" style="font-weight:850; color:#fbbf24;">MyHub</div></div>
   <div class="bn" id="bn-team" onclick="go('team')"><div class="bn-ic">⚽</div><div class="bn-lb" style="font-family:'Impact',sans-serif;font-style:italic;letter-spacing:.5px;text-transform:uppercase;">MyTeam</div></div>
   <div class="bn" id="bn-inbox" onclick="go('inbox')" style="position:relative">
     <div class="bn-ic">📥</div>
@@ -2766,7 +2795,7 @@ function patahKeProfilPemilik() {
 }
 
 function go(t){
-  ['home','explore','team','profile'].forEach(x=>{
+  ['home','explore','myhub','team','profile'].forEach(x=>{
     document.getElementById('tab-'+x).style.display=x===t?'block':'none';
     document.getElementById('bn-'+x).classList.toggle('on',x===t);
     const hn=document.getElementById('hn-'+x);if(hn)hn.classList.toggle('on',x===t);
@@ -2776,6 +2805,9 @@ function go(t){
   updateBread(t);
   if(t==='profile' && !window._overrideProfileData){
     loadProfile();
+  }
+  if(t==='myhub'){
+    muatTurunDanPaparHub();
   }
 }
 
