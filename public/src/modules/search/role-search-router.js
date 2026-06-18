@@ -27,6 +27,33 @@
     return n ? n[0].toUpperCase() : 'C';
   }
 
+  function calculateAge(dob) {
+    if (!dob) return null;
+    var d = new Date(dob);
+    if (isNaN(d.getTime())) return null;
+    var now = new Date();
+    var age = now.getFullYear() - d.getFullYear();
+    var m = now.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
+    return age >= 0 ? age : null;
+  }
+
+  function buildCoachBioLine(profile) {
+    var age = calculateAge(profile.date_of_birth);
+    var ic = profile.ic_number || profile.mykad_number || null;
+    var pass = profile.passport_number || null;
+
+    if (age === null && !ic && !pass) {
+      return 'Tiada Maklumat';
+    }
+
+    var parts = [];
+    parts.push(age !== null ? (age + ' Tahun') : 'Umur —');
+    parts.push('MyKad: ' + (ic || 'Tiada Maklumat'));
+    parts.push('Passport: ' + (pass || 'Tiada Maklumat'));
+    return parts.join(' | ');
+  }
+
   function setResultsHeader(count) {
     var resEl = document.getElementById('ter-results');
     var defEl = document.getElementById('ter-default');
@@ -62,7 +89,7 @@
             + '<span style="font-size:.5rem;background:#2563eb;color:#fff;padding:.08rem .35rem;border-radius:4px;font-weight:800;letter-spacing:.05em">COACH</span>'
           + '</div>'
           + '<div style="font-size:.65rem;color:var(--mute);margin-bottom:.15rem">Coach Passport · PCSAP / Assessment Network</div>'
-          + '<div style="font-size:.58rem;font-family:monospace;color:#38bdf8">' + safeText(profile.id) + '</div>'
+          + '<div style="font-size:.62rem;color:#38bdf8;font-weight:700">' + safeText(buildCoachBioLine(profile)) + '</div>'
         + '</div>'
         + '<div style="text-align:right;flex-shrink:0">'
           + '<div style="font-size:.78rem;font-weight:900;color:#38bdf8;line-height:1">GRED</div>'
@@ -89,14 +116,25 @@
     }
 
     try {
+      var selectFields = 'id,full_name,email,role,avatar_url,date_of_birth,ic_number,passport_number,nationality';
       var query = supabase
         .from('profiles')
-        .select('id,full_name,email,role,avatar_url')
+        .select(selectFields)
         .eq('role', 'coach');
 
       if (q) query = query.or('full_name.ilike.%' + q + '%,email.ilike.%' + q + '%');
 
       var result = await query.order('full_name', { ascending: true }).limit(50);
+
+      if (result.error && result.error.code === '42703') {
+        var fallbackQuery = supabase
+          .from('profiles')
+          .select('id,full_name,email,role,avatar_url')
+          .eq('role', 'coach');
+        if (q) fallbackQuery = fallbackQuery.or('full_name.ilike.%' + q + '%,email.ilike.%' + q + '%');
+        result = await fallbackQuery.order('full_name', { ascending: true }).limit(50);
+      }
+
       if (result.error) throw result.error;
       renderCoachResults(result.data || []);
     } catch (err) {

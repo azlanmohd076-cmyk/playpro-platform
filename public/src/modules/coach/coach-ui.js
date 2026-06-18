@@ -62,6 +62,38 @@
     return 'pp-coach-score low';
   }
 
+  function calculateAge(dob) {
+    if (!dob) return null;
+    var d = new Date(dob);
+    if (isNaN(d.getTime())) return null;
+    var now = new Date();
+    var age = now.getFullYear() - d.getFullYear();
+    var m = now.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
+    return age >= 0 ? age : null;
+  }
+
+  function formatCmDate(dob) {
+    if (!dob) return null;
+    var d = new Date(dob);
+    if (isNaN(d.getTime())) return null;
+    var yy = String(d.getFullYear()).slice(-2);
+    return d.getDate() + '.' + (d.getMonth() + 1) + '.' + yy;
+  }
+
+  function buildCmBioLine(profile) {
+    var dob = profile.date_of_birth || profile.dob || null;
+    var formatted = formatCmDate(dob);
+    var age = calculateAge(dob);
+    var nat = profile.nationality || 'Malaysian';
+
+    if (!formatted && age === null) {
+      return 'Born — (Age —). ' + nat + '.';
+    }
+
+    return 'Born ' + (formatted || '—') + ' (Age ' + (age !== null ? age : '—') + '). ' + nat + '.';
+  }
+
   function injectStylesOnce() {
     if (document.getElementById('pp-coach-retro-grid-style')) return;
     var style = document.createElement('style');
@@ -147,6 +179,7 @@
       var coachProfile = profile || {};
       var profileId = coachProfile.id || coachProfile.profile_id || null;
       var name = coachProfile.full_name || coachProfile.name || coachProfile.email || 'Coach';
+      var cmBioLine = buildCmBioLine(coachProfile);
 
       target.innerHTML = '';
 
@@ -157,9 +190,12 @@
       hero.style.cssText = 'background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 22px rgba(0,0,0,.28)';
       var title = el('div', null, 'Coach Passport Workspace');
       title.style.cssText = 'font-size:1.25rem;font-weight:900;letter-spacing:.02em;margin-bottom:4px';
+      var cmBio = el('div', null, cmBioLine);
+      cmBio.style.cssText = 'font-size:1rem;color:#facc15;font-weight:900;text-align:center;margin:6px 0 8px;text-shadow:0 1px 2px rgba(0,0,0,.7)';
       var sub = el('div', null, 'Selamat datang, ' + name + '. Paparan Player Passport disorok untuk akaun coach.');
       sub.style.cssText = 'font-size:.86rem;color:#dbeafe;line-height:1.45';
       hero.appendChild(title);
+      hero.appendChild(cmBio);
       hero.appendChild(sub);
       shell.appendChild(hero);
 

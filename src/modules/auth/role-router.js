@@ -173,9 +173,17 @@
     try {
       var profileResult = await supabase
         .from('profiles')
-        .select('id,full_name,email,role,avatar_url,phone,is_active')
+        .select('id,full_name,email,role,avatar_url,phone,is_active,date_of_birth,ic_number,passport_number,nationality')
         .eq('id', user.id)
         .maybeSingle();
+
+      if (profileResult.error && profileResult.error.code === '42703') {
+        profileResult = await supabase
+          .from('profiles')
+          .select('id,full_name,email,role,avatar_url,phone,is_active')
+          .eq('id', user.id)
+          .maybeSingle();
+      }
 
       if (!profileResult.error && profileResult.data) {
         profile = profileResult.data;
@@ -191,7 +199,11 @@
         id: user.id,
         full_name: (user.user_metadata && user.user_metadata.full_name) || user.email || 'Coach',
         email: user.email,
-        role: metaRole || null
+        role: metaRole || null,
+        date_of_birth: user.user_metadata && user.user_metadata.date_of_birth || null,
+        ic_number: user.user_metadata && user.user_metadata.ic_number || null,
+        passport_number: user.user_metadata && user.user_metadata.passport_number || null,
+        nationality: user.user_metadata && user.user_metadata.nationality || 'Malaysian'
       },
       role: dbRole || metaRole || null,
       reason: 'OK'
