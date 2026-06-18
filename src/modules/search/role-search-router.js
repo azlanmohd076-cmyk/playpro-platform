@@ -97,10 +97,68 @@
         + '</div>';
 
       card.addEventListener('click', function() {
-        if (root.toast) root.toast('👨‍🏫 Coach Passport UI akan dibuka dalam fasa seterusnya: ' + name);
+        openCoachPublicProfile(profile.id);
       });
       list.appendChild(card);
     });
+  }
+
+  async function openCoachPublicProfile(profileId) {
+    var list = document.getElementById('ter-results-list');
+    var counter = document.getElementById('ter-results-count');
+    if (list) list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--mute)">Memuatkan Coach Passport...</div>';
+    if (counter) counter.textContent = 'Coach Passport';
+
+    var supabase = getSupabaseClient();
+    if (!supabase || typeof supabase.from !== 'function') {
+      if (list) list.innerHTML = '<div style="padding:1rem;color:var(--mute)">Sambungan data tidak tersedia.</div>';
+      return;
+    }
+
+    try {
+      var profileSelect = 'id,full_name,email,role,avatar_url,date_of_birth,ic_number,passport_number,nationality';
+      var profileResult = await supabase
+        .from('profiles')
+        .select(profileSelect)
+        .eq('id', profileId)
+        .maybeSingle();
+
+      if (profileResult.error && profileResult.error.code === '42703') {
+        profileResult = await supabase
+          .from('profiles')
+          .select('id,full_name,email,role,avatar_url')
+          .eq('id', profileId)
+          .maybeSingle();
+      }
+
+      if (profileResult.error) throw profileResult.error;
+
+      var assessorResult = await supabase
+        .from('certified_assessors')
+        .select('profile_id,license_type,status,max_attribute_score,trust_score,metadata')
+        .eq('profile_id', profileId)
+        .maybeSingle();
+
+      var payload = {
+        profile: profileResult.data || { id: profileId, full_name: 'Coach' },
+        assessor: assessorResult && !assessorResult.error && assessorResult.data ? assessorResult.data : {}
+      };
+
+      if (list && bridge.Coach && bridge.Coach.UI && typeof bridge.Coach.UI.renderCoachPublicProfile === 'function') {
+        var back = document.createElement('button');
+        back.textContent = '← Kembali ke Senarai Coach';
+        back.style.cssText = 'margin:0 0 10px;padding:8px 12px;background:#0f172a;color:#fff;border:1px solid #38bdf8;border-radius:8px;font-weight:800;cursor:pointer';
+        back.addEventListener('click', function() { searchCoaches(); });
+        list.innerHTML = '';
+        list.appendChild(back);
+        var mount = document.createElement('div');
+        list.appendChild(mount);
+        bridge.Coach.UI.renderCoachPublicProfile(mount, payload);
+      }
+    } catch (err) {
+      console.warn('[PlayPro Model 6] Coach public profile failed:', err);
+      if (list) list.innerHTML = '<div style="padding:1rem;color:var(--mute)">Gagal memuatkan Coach Passport.</div>';
+    }
   }
 
   async function searchCoaches() {
