@@ -13,6 +13,9 @@
   bridge.Core = bridge.Core || {};
   bridge.Auth = bridge.Auth || {};
 
+  var onboardingObserver = null;
+  var originalShowOnboarding = null;
+
   function getSupabaseClient() {
     if (bridge.Core && typeof bridge.Core.getSupabase === 'function') {
       return bridge.Core.getSupabase();
@@ -43,6 +46,80 @@
       var node = document.getElementById(id);
       if (node) node.style.display = 'none';
     });
+  }
+
+  function hideNodeHard(node) {
+    if (!node || !node.style) return;
+    node.style.setProperty('display', 'none', 'important');
+    node.style.setProperty('visibility', 'hidden', 'important');
+    node.style.setProperty('pointer-events', 'none', 'important');
+    node.setAttribute('aria-hidden', 'true');
+  }
+
+  function nukePlayerOnboardingModal() {
+    var knownIds = [
+      'onboarding-mask',
+      'onboarding-sheet',
+      'ob-step1',
+      'ob-step2'
+    ];
+
+    knownIds.forEach(function(id) {
+      hideNodeHard(document.getElementById(id));
+    });
+
+    var all = document.querySelectorAll('div, section, aside');
+    for (var i = 0; i < all.length; i++) {
+      var node = all[i];
+      if (!node || !node.textContent) continue;
+      var txt = node.textContent;
+      if (
+        txt.indexOf('Lengkapkan Profil Kau') !== -1 ||
+        (txt.indexOf('POSISI UTAMA') !== -1 && txt.indexOf('KAKI DOMINAN') !== -1)
+      ) {
+        hideNodeHard(node);
+      }
+    }
+  }
+
+  function blockLegacyPlayerOnboardingForCoach() {
+    nukePlayerOnboardingModal();
+
+    if (typeof root.showOnboarding === 'function' && root.showOnboarding.__model6CoachBlocked !== true) {
+      originalShowOnboarding = originalShowOnboarding || root.showOnboarding;
+      var blocked = function blockedShowOnboardingForCoach() {
+        nukePlayerOnboardingModal();
+        console.warn('[PlayPro Model 6] Player onboarding modal blocked for coach account.');
+      };
+      blocked.__model6CoachBlocked = true;
+      root.showOnboarding = blocked;
+    }
+
+    if (!onboardingObserver && root.MutationObserver) {
+      onboardingObserver = new MutationObserver(function() {
+        nukePlayerOnboardingModal();
+      });
+      onboardingObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+
+    setTimeout(nukePlayerOnboardingModal, 50);
+    setTimeout(nukePlayerOnboardingModal, 250);
+    setTimeout(nukePlayerOnboardingModal, 900);
+  }
+
+  function unblockLegacyPlayerOnboarding() {
+    if (originalShowOnboarding && root.showOnboarding && root.showOnboarding.__model6CoachBlocked === true) {
+      root.showOnboarding = originalShowOnboarding;
+    }
+    if (onboardingObserver) {
+      onboardingObserver.disconnect();
+      onboardingObserver = null;
+    }
   }
 
   function ensureCoachMount() {
@@ -120,10 +197,12 @@
         this.lastRole = role;
 
         if (role === 'coach') {
+          blockLegacyPlayerOnboardingForCoach();
           await this.renderCoachRoute(session.profile || { id: session.user && session.user.id });
           return { routed: true, role: role, target: 'coach-dashboard' };
         }
 
+        unblockLegacyPlayerOnboarding();
         hideCoachMount();
         return { routed: false, role: role || null, target: 'legacy-ui' };
       } catch (err) {
@@ -134,6 +213,7 @@
 
     async renderCoachRoute(profile) {
       hidePlayerPassportUI();
+      blockLegacyPlayerOnboardingForCoach();
       var mount = ensureCoachMount();
 
       if (bridge.Coach && bridge.Coach.UI && typeof bridge.Coach.UI.renderCoachWorkspaceDashboard === 'function') {
