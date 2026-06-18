@@ -151,33 +151,102 @@
       target.innerHTML = '';
 
       var shell = el('div', 'pp-coach-workspace');
-      shell.style.cssText = 'padding:14px;max-width:920px;margin:0 auto 90px;font-family:Arial,Helvetica,sans-serif';
+      shell.style.cssText = 'padding:14px;max-width:960px;margin:0 auto 90px;font-family:Arial,Helvetica,sans-serif';
 
       var hero = el('div', 'pp-coach-workspace-hero');
       hero.style.cssText = 'background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 22px rgba(0,0,0,.28)';
-
-      var title = el('div', null, 'Coach Workspace Dashboard');
+      var title = el('div', null, 'Coach Passport Workspace');
       title.style.cssText = 'font-size:1.25rem;font-weight:900;letter-spacing:.02em;margin-bottom:4px';
-      var sub = el('div', null, 'Selamat datang, ' + name + '. Ruang ini menggantikan paparan Player Passport untuk akaun coach.');
+      var sub = el('div', null, 'Selamat datang, ' + name + '. Paparan Player Passport disorok untuk akaun coach.');
       sub.style.cssText = 'font-size:.86rem;color:#dbeafe;line-height:1.45';
-
       hero.appendChild(title);
       hero.appendChild(sub);
       shell.appendChild(hero);
 
+      var data = {
+        ok: true,
+        grade: 'GRED_1_DAILY_COACH',
+        isCertified: false,
+        maxScore: 5,
+        attributes: {}
+      };
+      var caps = null;
+
+      if (bridge.Coach && typeof bridge.Coach.getCoachAttributes === 'function') {
+        data = await bridge.Coach.getCoachAttributes(profileId);
+      }
+      if (bridge.Coach && typeof bridge.Coach.getCoachCapabilities === 'function') {
+        caps = await bridge.Coach.getCoachCapabilities(profileId);
+      }
+
+      caps = caps || {
+        isCertified: !!data.isCertified,
+        grade: data.grade || 'GRED_1_DAILY_COACH',
+        maxScore: data.maxScore || 5,
+        licenseType: 'Tiada / Grassroots',
+        examAttemptsCount: 0,
+        cooldown: { isActive: false, cooldownUntil: null, attemptsCount: 0, attemptsLimit: 3, remainingMs: 0 },
+        wallet: { availableBalance: 0, pendingBalance: 0, currency: 'MYR' }
+      };
+
+      var wallet = caps.wallet || { availableBalance: 0, pendingBalance: 0, currency: 'MYR' };
+      var cooldown = caps.cooldown || { isActive: false, cooldownUntil: null, attemptsCount: caps.examAttemptsCount || 0, attemptsLimit: 3, remainingMs: 0 };
+      var available = Number(wallet.availableBalance || 0).toFixed(2);
+      var pending = Number(wallet.pendingBalance || 0).toFixed(2);
+      var currency = wallet.currency || 'MYR';
+      var attempts = cooldown.attemptsCount !== undefined ? cooldown.attemptsCount : (caps.examAttemptsCount || 0);
+
+      var cards = el('div', 'pp-coach-identity-grid');
+      cards.style.cssText = 'display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px';
+
+      function metric(label, value, tone) {
+        var card = el('div', null);
+        card.style.cssText = 'background:#111827;color:#e5e7eb;border:1px solid #374151;border-radius:10px;padding:10px;min-height:70px';
+        var l = el('div', null, label);
+        l.style.cssText = 'font-size:.68rem;color:#9ca3af;font-weight:800;text-transform:uppercase;margin-bottom:5px';
+        var v = el('div', null, value);
+        v.style.cssText = 'font-size:.95rem;font-weight:900;color:' + (tone || '#fbbf24') + ';line-height:1.25';
+        card.appendChild(l);
+        card.appendChild(v);
+        return card;
+      }
+
+      cards.appendChild(metric('Lesen Semasa', caps.licenseType || 'Tiada / Grassroots', '#38bdf8'));
+      cards.appendChild(metric('Gred Kuasa', caps.grade || data.grade || 'GRED_1_DAILY_COACH', caps.isCertified ? '#22c55e' : '#fbbf24'));
+      cards.appendChild(metric('Had Skala Input', '1–' + (caps.maxScore || data.maxScore || 5), caps.isCertified ? '#22c55e' : '#f97316'));
+      cards.appendChild(metric('Agent Wallet', currency + ' ' + available + (pending > 0 ? ' · Pending ' + pending : ''), '#a7f3d0'));
+      shell.appendChild(cards);
+
       var statusCard = el('div', 'pp-coach-status-card');
       statusCard.style.cssText = 'background:#111827;color:#e5e7eb;border:1px solid #374151;border-radius:12px;padding:12px;margin-bottom:12px;display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap';
-      var statusText = el('div', null, 'Memuatkan status gred coach...');
+      var statusText = el('div', null, 'Cubaan Ujian Video: ' + attempts + '/3');
       statusText.style.cssText = 'font-size:.88rem;font-weight:800';
-      var examBtn = el('button', null, 'Ambil Ujian Video PCSAP');
-      examBtn.type = 'button';
-      examBtn.style.cssText = 'background:#38bdf8;color:#07111f;border:none;border-radius:8px;padding:9px 12px;font-weight:900;cursor:pointer';
-      examBtn.addEventListener('click', function() {
-        if (root.toast) root.toast('Ujian Video PCSAP akan dibuka dalam panel seterusnya.');
-        else console.log('Ujian Video PCSAP akan dibuka dalam panel seterusnya.');
-      });
+      var action = el('button', null, 'Ambil Ujian Video PCSAP');
+      action.type = 'button';
+      action.style.cssText = 'background:#38bdf8;color:#07111f;border:none;border-radius:8px;padding:9px 12px;font-weight:900;cursor:pointer';
+
+      if (caps.isCertified || data.isCertified) {
+        action.textContent = '🏆 Certified Assessor Active';
+        action.disabled = true;
+        action.style.background = '#16a34a';
+        action.style.color = '#fff';
+        action.style.cursor = 'default';
+      } else if (cooldown.isActive) {
+        action.textContent = '⏳ Cooldown Aktif';
+        action.disabled = true;
+        action.style.background = '#374151';
+        action.style.color = '#9ca3af';
+        action.style.cursor = 'not-allowed';
+        statusText.textContent = 'COOLDOWN_ACTIVE · Cubaan: 3/3 · Dibuka semula: ' + new Date(cooldown.cooldownUntil).toLocaleString('ms-MY');
+      } else {
+        action.addEventListener('click', function() {
+          if (root.toast) root.toast('Ujian Video PCSAP akan dibuka dalam panel seterusnya.');
+          else console.log('Ujian Video PCSAP akan dibuka dalam panel seterusnya.');
+        });
+      }
+
       statusCard.appendChild(statusText);
-      statusCard.appendChild(examBtn);
+      statusCard.appendChild(action);
       shell.appendChild(statusCard);
 
       var gridMount = el('div', 'pp-coach-grid-mount');
@@ -190,29 +259,8 @@
       shell.appendChild(scaleMount);
 
       target.appendChild(shell);
-
-      var data = {
-        ok: true,
-        grade: 'GRED_1_DAILY_COACH',
-        isCertified: false,
-        maxScore: 5,
-        attributes: {}
-      };
-
-      if (bridge.Coach && typeof bridge.Coach.getCoachAttributes === 'function') {
-        data = await bridge.Coach.getCoachAttributes(profileId);
-      }
-
-      statusText.textContent = 'Status: ' + (data.grade || 'GRED_1_DAILY_COACH') + ' · Had maksimum atribut: ' + (data.maxScore || 5);
-      if (data.isCertified) {
-        examBtn.textContent = 'Gred 2 Aktif';
-        examBtn.disabled = true;
-        examBtn.style.opacity = '.75';
-        examBtn.style.cursor = 'default';
-      }
-
       this.renderCoachRetroGrid(gridMount, data);
-      this.renderAssessmentScaleLock(scaleMount, data.maxScore || 5);
+      this.renderAssessmentScaleLock(scaleMount, caps.maxScore || data.maxScore || 5);
 
       return shell;
     },
