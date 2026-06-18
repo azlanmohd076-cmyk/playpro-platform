@@ -3638,7 +3638,7 @@ function bukaPusatNotifikasi() {
       else if(n.jenis === 'komen') ic = '💬';
       else if(n.jenis === 'follow') ic = '🤝';
 
-      h += '<div class="card p-3.5 mb-2.5 shadow-sm text-white" style="background:' + bgCard + '; ' + bdrCard + ' border-radius:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="klikAksiNotif('' + n.id + '', '' + n.penulis + '')">'
+      h += '<div class="card p-3.5 mb-2.5 shadow-sm text-white" style="background:' + bgCard + '; ' + bdrCard + ' border-radius:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="klikAksiNotif(\'' + n.id + '\', \'' + n.penulis + '\')">'
         + '<div style="display:flex; align-items:center; gap:12px;">'
           + '<span style="font-size:1.6rem">' + ic + '</span>'
           + '<div>'
@@ -3772,21 +3772,21 @@ function muatTurunDanPaparHub() {
     htmlFeed += '<div class="card hub-post-card text-white mb-3.5 shadow" style="background:#1e293b; border:1px solid #334155; border-radius:14px; padding:16px; margin-bottom:14px;">'
       + '<div class="card-body">'
         + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">'
-          + '<h6 style="color:#38bdf8; font-size:1.1rem; font-weight:900; margin:0; cursor:pointer;" title="Lihat Profil dan Passport Kad" onclick="viewPlayerProfile('' + post.penulis + '')">⚡ ' + post.penulis + '</h6>'
+          + '<h6 style="color:#38bdf8; font-size:1.1rem; font-weight:900; margin:0; cursor:pointer;" title="Lihat Profil dan Passport Kad" onclick="viewPlayerProfile(\'' + post.penulis + '\')">⚡ ' + post.penulis + '</h6>'
           + '<small style="color:#94a3b8; font-size:.78rem;">' + post.tarikh + '</small>'
         + '</div>'
         + '<p style="color:#f8fafc; font-size:1rem; line-height:1.5; white-space:pre-wrap; margin-bottom:8px; margin-top:0;">' + post.mesej + '</p>'
         + htmlSticker
         + '<hr style="border:none; border-top:1px solid #334155; margin:12px 0;">'
         + '<div style="display:flex; gap:18px; align-items:center; margin-bottom:12px;">'
-          + '<button class="btn btn-sm ' + kelasButangLike + '" style="background:transparent; border:none; padding:0; font-size:.9rem; cursor:pointer;" onclick="aksiLikeHub('' + post.id + '')">' + teksButangLike + '</button>'
+          + '<button class="btn btn-sm ' + kelasButangLike + '" style="background:transparent; border:none; padding:0; font-size:.9rem; cursor:pointer;" onclick="aksiLikeHub(\'' + post.id + '\')">' + teksButangLike + '</button>'
           + '<span style="color:#94a3b8; font-size:.8rem; font-weight:600;">' + (post.likes || []).length + ' Likes</span>'
           + '<span style="color:#94a3b8; font-size:.8rem; font-weight:600;">' + (post.comments || []).length + ' Komen</span>'
         + '</div>'
         + '<div style="margin-bottom:10px;">' + htmlSenaraiKomen + '</div>'
         + '<div style="display:flex; gap:8px; margin-top:8px;">'
-          + '<input type="text" id="input_komen_' + post.id + '" class="form-control" style="flex:1; background:#0f172a; border:1px solid #334155; border-radius:8px; color:#fff; font-size:.88rem; padding:6px 12px;" placeholder="Tulis komen ulasan..." onkeydown="if(event.keyCode===13)hantarKomenHub('' + post.id + '')">'
-          + '<button class="btn btn-warning" style="background:#f59e0b; color:#000; border:none; border-radius:8px; font-weight:800; font-size:.85rem; padding:6px 16px; cursor:pointer;" type="button" onclick="hantarKomenHub('' + post.id + '')">Komen</button>'
+          + '<input type="text" id="input_komen_' + post.id + '" class="form-control" style="flex:1; background:#0f172a; border:1px solid #334155; border-radius:8px; color:#fff; font-size:.88rem; padding:6px 12px;" placeholder="Tulis komen ulasan..." onkeydown="if(event.keyCode===13)hantarKomenHub(\'' + post.id + '\')">'
+          + '<button class="btn btn-warning" style="background:#f59e0b; color:#000; border:none; border-radius:8px; font-weight:800; font-size:.85rem; padding:6px 16px; cursor:pointer;" type="button" onclick="hantarKomenHub(\'' + post.id + '\')">Komen</button>'
         + '</div>'
       + '</div>'
     + '</div>';
