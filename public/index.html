@@ -2192,10 +2192,10 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
               <div style="margin-top:14px; background:rgba(15, 23, 42, 0.75); border:2px solid #334155; border-radius:12px; padding:12px 16px; max-width:340px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 4px 12px rgba(0,0,0,.4);">
                 <div>
                   <div style="font-family:'Courier New', monospace; font-size:1.4rem; font-weight:900; color:#fbbf24; line-height:1;" id="count-followers-val">1,284</div>
-                  <div style="font-size:.68rem; font-weight:800; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.5px; margin-top:3px;">Pengikut Kelab (Followers)</div>
+                  <div style="font-size:.68rem; font-weight:800; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.5px; margin-top:3px;">Pengikut (Followers)</div>
                 </div>
                 <div id="wrap-follow-action">
-                  <button id="btn-follow-action" class="btn btn-sm" style="background:#2563eb; color:#fff; border:none; font-weight:850; font-size:.8rem; padding:8px 18px; border-radius:999px; cursor:pointer; box-shadow:0 4px 12px rgba(37,99,235,.5); text-transform:uppercase; letter-spacing:0.5px;" onclick="aksiToggleFollowPlayer()">+ Follow Otai</button>
+                  <button id="btn-follow-action" class="btn btn-sm" style="background:#2563eb; color:#fff; border:none; font-weight:850; font-size:.8rem; padding:8px 18px; border-radius:999px; cursor:pointer; box-shadow:0 4px 12px rgba(37,99,235,.5); text-transform:uppercase; letter-spacing:0.5px;" onclick="aksiToggleFollowPlayer()">+ FOLLOW</button>
                 </div>
               </div>
             </div>
@@ -3208,6 +3208,7 @@ function renderPP2Header(p){
     footWrap.style.display='';
     safeSet('pp2-foot', p.preferred_foot==='left'?'Kiri':p.preferred_foot==='right'?'Kanan':'—');
   }
+  updateFollowButtonStateForProfile(p);
 }
 
 
@@ -3687,39 +3688,55 @@ function klikAksiNotif(notifId, penulis) {
   }
 }
 
+function getFollowTargetName(p) {
+  var player = p || window._overrideProfileData || window._pd || {};
+  return player.preferred_name || player.full_name || window.currentActivePlayerKey || currentActivePlayerKey || '';
+}
+
+function updateFollowButtonStateForProfile(p) {
+  var btn = document.getElementById('btn-follow-action');
+  if(!btn) return;
+  var targetName = getFollowTargetName(p);
+  var fList = [];
+  try { fList = JSON.parse(localStorage.getItem('PLAYPRO_FOLLOWING_LIST') || '[]'); } catch(e) { fList = []; }
+  var isFollowed = targetName && fList.indexOf(targetName) !== -1;
+  btn.textContent = isFollowed ? '✓ FOLLOWED' : '+ FOLLOW';
+  btn.title = isFollowed ? 'Batal follow pemain ini' : 'Follow pemain ini';
+  btn.style.background = isFollowed ? '#10B981' : '#2563eb';
+  btn.style.boxShadow = isFollowed ? '0 4px 12px rgba(16,185,129,.5)' : '0 4px 12px rgba(37,99,235,.5)';
+}
+
 function aksiToggleFollowPlayer() {
-  var targetName = window._overrideProfileData ? (window._overrideProfileData.preferred_name || window._overrideProfileData.full_name || 'Pemain') : window.currentActivePlayerKey;
+  var targetName = getFollowTargetName();
   if(!targetName) return;
 
   var store = localStorage.getItem('PLAYPRO_FOLLOWING_LIST');
   var fList = store ? JSON.parse(store) : [];
-  var btn = document.getElementById('btn-follow-action');
   var countVal = document.getElementById('count-followers-val');
 
-  var curCount = parseInt(countVal?.textContent?.replace(',','')) || 1284;
+  var curCount = parseInt((countVal && countVal.textContent ? countVal.textContent : '').replace(',','')) || 1284;
 
   var idx = fList.indexOf(targetName);
   if(idx === -1) {
     fList.push(targetName);
     curCount++;
-    if(btn) { btn.textContent = '✓ Diikuti (Following)'; btn.style.background = '#10B981'; btn.style.boxShadow = '0 4px 12px rgba(16,185,129,.5)'; }
-    toast('🤝 Anda kini rasmi mengikuti kelab ' + targetName + '! Mesej status beliau sedia muncul di newsfeed Mengikut.');
+    toast('🤝 Anda kini follow ' + targetName + '. Status beliau akan muncul di newsfeed Mengikut.');
     
     // Create Notif
     var nStore = localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
     var nList = nStore ? JSON.parse(nStore) : [];
-    nList.unshift({ id: "notif_" + Date.now(), penulis: targetName, jenis: "follow", mesej: "⚡ " + targetName + " menyambut baik ikatan Follow Football Passport anda!", masa: "Baru sahaja", unread: true });
+    nList.unshift({ id: "notif_" + Date.now(), penulis: targetName, jenis: "follow", mesej: "⚡ Anda mula follow " + targetName + ".", masa: "Baru sahaja", unread: true });
     localStorage.setItem('PLAYPRO_NOTIFICATIONS_V2', JSON.stringify(nList));
     updateLencanaNotif();
   } else {
     fList.splice(idx, 1);
     curCount--;
-    if(btn) { btn.textContent = '+ Follow Otai'; btn.style.background = '#2563eb'; btn.style.boxShadow = '0 4px 12px rgba(37,99,235,.5)'; }
-    toast('🌐 Batal mengikuti ' + targetName + '.');
+    toast('🌐 Batal follow ' + targetName + '.');
   }
 
   if(countVal) countVal.textContent = curCount.toLocaleString('en-US');
   localStorage.setItem('PLAYPRO_FOLLOWING_LIST', JSON.stringify(fList));
+  updateFollowButtonStateForProfile();
 }
 
 /* ======================================================== */
@@ -3748,7 +3765,7 @@ function muatTurunDanPaparHub() {
     container.innerHTML = '<div class="text-center text-muted p-5 bg-dark rounded border border-secondary shadow-sm" style="background:#1e293b !important; border:2px solid #334155 !important; border-radius:14px; color:#cbd5e1;">'
       + '<span style="font-size:3rem; display:block; margin-bottom:10px;">📭</span>'
       + '<h5 style="color:#fbbf24; font-weight:850; text-transform:uppercase;">Tiada status Otai di dalam siaran ini</h5>'
-      + '<p style="font-size:.9rem; color:#94a3b8; margin:6px 0 0;">' + (modeSiaranHub === 'following' ? 'Anda belum mengikuti mana-mana pemain yang up status. Pergi ke laman Cari (🔍) dan ketik butang Follow Otai sekarang!' : 'Jadilah orang pertama yang sembang sakan hari ini bang!') + '</p>'
+      + '<p style="font-size:.9rem; color:#94a3b8; margin:6px 0 0;">' + (modeSiaranHub === 'following' ? 'Anda belum mengikuti mana-mana pemain yang up status. Pergi ke laman Cari (🔍) dan ketik butang Follow sekarang!' : 'Jadilah orang pertama yang sembang sakan hari ini bang!') + '</p>'
     + '</div>';
     return;
   }
