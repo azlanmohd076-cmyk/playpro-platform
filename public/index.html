@@ -1642,8 +1642,8 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
     <input type="text" placeholder="Cari pemain, kelab, liga..." id="search-input" onkeydown="if(event.key==='Enter')doSearch()"/>
   </div>
   <div class="hdr-actions">
-    <div class="hdr-ic-btn" onclick="mustLogin()" id="notif-btn">
-      🔔<div class="notif-pip" id="ndot" style="display:none"></div>
+    <div class="hdr-ic-btn" onclick="bukaPusatNotifikasi()" id="notif-btn" title="Pusat Notifikasi Interaktif PlayPro">
+      🔔<div class="notif-pip" id="ndot" style="display:flex; align-items:center; justify-content:center; background:#ef4444; color:#fff; font-size:.6rem; font-weight:900; width:18px; height:18px; border-radius:50%; position:absolute; top:-6px; right:-6px; border:2px solid var(--bg2); box-shadow:0 2px 6px rgba(0,0,0,.5);">3</div>
     </div>
     <div class="hdr-ic-btn" onclick="toggleMode()" id="mode-btn">🌙</div>
     <div class="lang-btn" onclick="toggleLang()" id="lang-btn">MS</div>
@@ -1741,6 +1741,28 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
     </div>
   </div>
 
+  <!-- PUSAT NOTIFIKASI INTERAKTIF MODAL (🔔) -->
+  <div id="notif-center-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); justify-content:center; align-items:center; padding:16px;" onclick="if(event.target===this)tutupPusatNotifikasi()">
+    <div class="card shadow-lg text-white" style="background:#0f172a; border:2px solid #38bdf8; border-radius:18px; width:100%; max-width:520px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 12px 40px rgba(0,0,0,.7);">
+      <div class="card-header p-4" style="background:linear-gradient(135deg, #0f172a 0%, #050926 100%); border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <span style="font-size:2.4rem; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));">🔔</span>
+          <div>
+            <h4 style="color:#fbbf24; font-weight:900; margin:0; font-size:1.35rem; letter-spacing:0.5px; text-transform:uppercase;">Pusat Notifikasi Komuniti</h4>
+            <p style="color:#cbd5e1; font-size:.85rem; margin:2px 0 0;">Kemas kini tanda suka (Like 👍), ulasan komen, dan pengikut baru.</p>
+          </div>
+        </div>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.1); color:#fff; border:none; border-radius:50%; width:34px; height:34px; font-weight:900; font-size:1.1rem; cursor:pointer;" onclick="tutupPusatNotifikasi()">✕</button>
+      </div>
+
+      <div id="notif-list-container" style="padding:18px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:12px;"></div>
+
+      <div class="card-footer p-3.5" style="background:#0b0f26; border-top:1px solid rgba(255,255,255,0.08); text-align:center;">
+        <button class="btn btn-info btn-sm font-weight-bold px-4 py-2" style="background:#38bdf8; color:#000; border:none; border-radius:8px; font-weight:850; cursor:pointer;" onclick="tandakanSemuaNotifDibaca()">✓ Tandakan Semua Sebagai Dibaca</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MYHUB SOSIAL NEWSFEED TAB -->
   <div id="tab-myhub" style="display:none; padding-bottom: 5rem;">
     <!-- Banner Pengepala MyHub -->
@@ -1759,6 +1781,21 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
     <!-- 🔥 SOSIAL MYHUB NEWSFEED ENGINE (WHATSAPP + FACEBOOK STYLE) -->
     <!-- ======================================================== -->
     <div class="container my-4 px-3" style="max-width: 680px; margin-left:auto; margin-right:auto;">
+      <!-- MODE TAPISAN BERITA FB/WHATSAPP STYLE (AWAM vs FOLLOWER ONLY) -->
+      <div class="card bg-dark text-white mb-4 shadow-sm p-3" style="background:#1e293b !important; border:2px solid #334155 !important; border-radius:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:1.6rem">📰</span>
+          <div>
+            <h6 style="color:#38bdf8; font-weight:900; margin:0; font-size:1rem; text-transform:uppercase; letter-spacing:0.5px;">Konsep Siaran Feed Facebook:</h6>
+            <small style="color:#cbd5e1; font-size:.78rem;">Siapa yang berhak tengok dan join sembang chat otai?</small>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-sm hub-mode-btn on" id="hm-btn-all" style="background:#2563eb; color:#fff; border:none; font-weight:850; padding:8px 16px; border-radius:8px; cursor:pointer; box-shadow:0 4px 10px rgba(37,99,235,.4);" onclick="tukarSaringHubMode('all')">🌐 Laman Utama (Semua Awam)</button>
+          <button class="btn btn-sm hub-mode-btn text-white-50" id="hm-btn-following" style="background:#334155; color:#cbd5e1; border:none; font-weight:750; padding:8px 16px; border-radius:8px; cursor:pointer;" onclick="tukarSaringHubMode('following')">⭐ Rakan Mengikut (Follower Only)</button>
+        </div>
+      </div>
+
       <!-- KOTAK CREATE POST -->
       <div class="card bg-dark text-white border-secondary mb-4 shadow" style="background:#111827 !important; border:1px solid #374151 !important; border-radius:12px;">
         <div class="card-body p-3.5">
@@ -2149,6 +2186,17 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
                 <span>🇲🇾 Malaysian</span>
                 <span id="pp2-hw" style="display:none">📏 <span id="pp2-hw-val">—</span></span>
                 <span id="pp2-foot-wrap" style="display:none">👟 <span id="pp2-foot">—</span></span>
+              </div>
+              
+              <!-- 🌟 BOX FOLLOW & DASHBOARD FOLLOWER OTAI -->
+              <div style="margin-top:14px; background:rgba(15, 23, 42, 0.75); border:2px solid #334155; border-radius:12px; padding:12px 16px; max-width:340px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 4px 12px rgba(0,0,0,.4);">
+                <div>
+                  <div style="font-family:'Courier New', monospace; font-size:1.4rem; font-weight:900; color:#fbbf24; line-height:1;" id="count-followers-val">1,284</div>
+                  <div style="font-size:.68rem; font-weight:800; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.5px; margin-top:3px;">Pengikut Kelab (Followers)</div>
+                </div>
+                <div id="wrap-follow-action">
+                  <button id="btn-follow-action" class="btn btn-sm" style="background:#2563eb; color:#fff; border:none; font-weight:850; font-size:.8rem; padding:8px 18px; border-radius:999px; cursor:pointer; box-shadow:0 4px 12px rgba(37,99,235,.5); text-transform:uppercase; letter-spacing:0.5px;" onclick="aksiToggleFollowPlayer()">+ Follow Otai</button>
+                </div>
               </div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:center;gap:.2rem">
@@ -2751,7 +2799,8 @@ var currentActivePlayerKey = "Azlan";
 var _tempCustomPhotoBase64 = null;
 let _u=null,_lang=localStorage.getItem('pp_lang')||'ms',_tab='home',_pd=null;
 
-async function init(){  var params = new URLSearchParams(window.location.search);
+async function init(){  updateLencanaNotif();
+  var params = new URLSearchParams(window.location.search);
   var targetPlayer = params.get('player');
   if(targetPlayer){
     setTimeout(function(){
@@ -3524,7 +3573,294 @@ function hantarStatusHub() {
   toast('🚀 Status baharu berjaya di-up!');
 }
 
+/* ======================================================== */
+/* 🌟 KOMPLEKS SOSIAL MUTLAK: FOLLOWERS, FOLLOWER NEWSFEED & NOTIFICATIONS JS ENGINE */
+/* ======================================================== */
+var modeSiaranHub = "all"; // 'all' atau 'following'
+
+var SENARAI_NOTIFIKASI_LALAI = [
+  { id: "notif_101", penulis: "Cikyut", jenis: "like", mesej: "⚡ Cikyut menyukai status MyHub anda: 'Malam ni game padu oii!'", masa: "5 min lalu", unread: true },
+  { id: "notif_102", penulis: "Loko M", jenis: "komen", mesej: "⚡ Loko M membalas status anda: 'Steady bang! Kaki gatal nak rembat...'", masa: "15 min lalu", unread: true },
+  { id: "notif_103", penulis: "Haji Boss", jenis: "follow", mesej: "⚡ Haji Boss mula mengikuti kelab Football Passport anda!", masa: "1 jam lalu", unread: false }
+];
+
+if (!localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2')) {
+  localStorage.setItem('PLAYPRO_NOTIFICATIONS_V2', JSON.stringify(SENARAI_NOTIFIKASI_LALAI));
+}
+if (!localStorage.getItem('PLAYPRO_FOLLOWING_LIST')) {
+  // Secara lalai Azlan/L.Rom sentiasa mengikuti kawan-kawan Otai rapat
+  localStorage.setItem('PLAYPRO_FOLLOWING_LIST', JSON.stringify(['Cikyut', 'Loko M', 'Otai', 'Ebob']));
+}
+
+function sapaanSosialAwal() { updateLencanaNotif(); }
+
+function tukarSaringHubMode(mode) {
+  modeSiaranHub = mode;
+  var bAll = document.getElementById('hm-btn-all');
+  var bFol = document.getElementById('hm-btn-following');
+  if(bAll && bFol){
+    if(mode === 'all') { bAll.className = 'btn btn-sm hub-mode-btn on'; bAll.style.background = '#2563eb'; bAll.style.color = '#fff'; bAll.style.boxShadow = '0 4px 10px rgba(37,99,235,.4)'; bFol.className = 'btn btn-sm hub-mode-btn text-white-50'; bFol.style.background = '#334155'; bFol.style.color = '#cbd5e1'; bFol.style.boxShadow = 'none'; }
+    else { bFol.className = 'btn btn-sm hub-mode-btn on'; bFol.style.background = '#10B981'; bFol.style.color = '#fff'; bFol.style.boxShadow = '0 4px 10px rgba(16,185,129,.4)'; bAll.className = 'btn btn-sm hub-mode-btn text-white-50'; bAll.style.background = '#334155'; bAll.style.color = '#cbd5e1'; bAll.style.boxShadow = 'none'; }
+  }
+  muatTurunDanPaparHub();
+  toast('📰 Mode siaran feed ditukar kepada: ' + (mode==='all' ? 'Semua Awam' : 'Rakan Mengikut (Followers)'));
+}
+
+function updateLencanaNotif() {
+  var store = localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
+  var senarai = store ? JSON.parse(store) : [];
+  var unreadCount = senarai.filter(function(n){ return n.unread; }).length;
+
+  var dot = document.getElementById('ndot');
+  if(dot) {
+    if(unreadCount > 0) { dot.textContent = unreadCount; dot.style.display = 'flex'; }
+    else { dot.style.display = 'none'; }
+  }
+}
+
+function bukaPusatNotifikasi() {
+  var modal = document.getElementById('notif-center-modal');
+  if(!modal) return;
+
+  var store = localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
+  var senarai = store ? JSON.parse(store) : [];
+  var cont = document.getElementById('notif-list-container');
+  
+  if(senarai.length === 0) {
+    if(cont) cont.innerHTML = '<div class="text-center text-muted p-4 bg-dark rounded">Tiada notifikasi interaksi.</div>';
+  } else {
+    var h = "";
+    senarai.forEach(function(n){
+      var bgCard = n.unread ? '#1e293b' : '#0f172a';
+      var bdrCard = n.unread ? 'border:2px solid #fbbf24;' : 'border:1px solid #334155;';
+      var ic = '🔔';
+      if(n.jenis === 'like') ic = '❤️';
+      else if(n.jenis === 'komen') ic = '💬';
+      else if(n.jenis === 'follow') ic = '🤝';
+
+      h += '<div class="card p-3.5 mb-2.5 shadow-sm text-white" style="background:' + bgCard + '; ' + bdrCard + ' border-radius:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="klikAksiNotif('' + n.id + '', '' + n.penulis + '')">'
+        + '<div style="display:flex; align-items:center; gap:12px;">'
+          + '<span style="font-size:1.6rem">' + ic + '</span>'
+          + '<div>'
+            + '<div style="font-size:.95rem; font-weight:800; color:#fff; line-height:1.4;">' + n.mesej + '</div>'
+            + '<small style="color:#94a3b8; font-size:.78rem; font-weight:600; margin-top:3px; display:block;">' + n.masa + '</small>'
+          + '</div>'
+        + '</div>'
+        + '<span style="color:#00B4D8; font-weight:800; font-size:.85rem;">↗</span>'
+      + '</div>';
+    });
+    if(cont) cont.innerHTML = h;
+  }
+
+  modal.style.display = 'flex';
+  updateLencanaNotif();
+}
+
+function tutupPusatNotifikasi() {
+  var modal = document.getElementById('notif-center-modal');
+  if(modal) modal.style.display = 'none';
+}
+
+function tandakanSemuaNotifDibaca() {
+  var store = localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
+  var senarai = store ? JSON.parse(store) : [];
+  senarai.forEach(function(n){ n.unread = false; });
+  localStorage.setItem('PLAYPRO_NOTIFICATIONS_V2', JSON.stringify(senarai));
+  bukaPusatNotifikasi();
+  updateLencanaNotif();
+  toast('✓ Kesemua notifikasi telah ditandakan dibaca!');
+}
+
+function klikAksiNotif(notifId, penulis) {
+  var store = localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
+  var senarai = store ? JSON.parse(store) : [];
+  var nItem = senarai.find(function(n){ return n.id === notifId; });
+  if(nItem) { nItem.unread = false; localStorage.setItem('PLAYPRO_NOTIFICATIONS_V2', JSON.stringify(senarai)); }
+
+  tutupPusatNotifikasi();
+  updateLencanaNotif();
+
+  if(penulis && penulis !== 'Azlan' && penulis !== 'L.Rom') {
+    viewPlayerProfile(penulis);
+  } else {
+    go('myhub');
+  }
+}
+
+function aksiToggleFollowPlayer() {
+  var targetName = window._overrideProfileData ? (window._overrideProfileData.preferred_name || window._overrideProfileData.full_name || 'Pemain') : window.currentActivePlayerKey;
+  if(!targetName) return;
+
+  var store = localStorage.getItem('PLAYPRO_FOLLOWING_LIST');
+  var fList = store ? JSON.parse(store) : [];
+  var btn = document.getElementById('btn-follow-action');
+  var countVal = document.getElementById('count-followers-val');
+
+  var curCount = parseInt(countVal?.textContent?.replace(',','')) || 1284;
+
+  var idx = fList.indexOf(targetName);
+  if(idx === -1) {
+    fList.push(targetName);
+    curCount++;
+    if(btn) { btn.textContent = '✓ Diikuti (Following)'; btn.style.background = '#10B981'; btn.style.boxShadow = '0 4px 12px rgba(16,185,129,.5)'; }
+    toast('🤝 Anda kini rasmi mengikuti kelab ' + targetName + '! Mesej status beliau sedia muncul di newsfeed Mengikut.');
+    
+    // Create Notif
+    var nStore = localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
+    var nList = nStore ? JSON.parse(nStore) : [];
+    nList.unshift({ id: "notif_" + Date.now(), penulis: targetName, jenis: "follow", mesej: "⚡ " + targetName + " menyambut baik ikatan Follow Football Passport anda!", masa: "Baru sahaja", unread: true });
+    localStorage.setItem('PLAYPRO_NOTIFICATIONS_V2', JSON.stringify(nList));
+    updateLencanaNotif();
+  } else {
+    fList.splice(idx, 1);
+    curCount--;
+    if(btn) { btn.textContent = '+ Follow Otai'; btn.style.background = '#2563eb'; btn.style.boxShadow = '0 4px 12px rgba(37,99,235,.5)'; }
+    toast('🌐 Batal mengikuti ' + targetName + '.');
+  }
+
+  if(countVal) countVal.textContent = curCount.toLocaleString('en-US');
+  localStorage.setItem('PLAYPRO_FOLLOWING_LIST', JSON.stringify(fList));
+}
+
+/* ======================================================== */
+/* KEMAS KINI FUNGSI muatTurunDanPaparHub UNTUK KONSEP FOLLOWER TIMELINE */
+/* ======================================================== */
 function muatTurunDanPaparHub() {
+  var container = document.getElementById('myhub-newsfeed-container');
+  if (!container) return;
+
+  var store = localStorage.getItem('PLAYPRO_HUB_POSTS_V2');
+  var senaraiPost = store ? JSON.parse(store) : [];
+  var namaUserSemasa = window.currentActivePlayerKey || currentActivePlayerKey || "Azlan";
+
+  var fStore = localStorage.getItem('PLAYPRO_FOLLOWING_LIST');
+  var fList = fStore ? JSON.parse(fStore) : ['Cikyut', 'Loko M', 'Otai', 'Ebob'];
+
+  // 🔥 Logik Tapisan Facebook Follower Timeline
+  var senaraiDisaring = senaraiPost;
+  if(modeSiaranHub === 'following') {
+    senaraiDisaring = senaraiPost.filter(function(p){
+      return fList.includes(p.penulis) || p.penulis.toLowerCase() === namaUserSemasa.toLowerCase() || p.penulis === 'Azlan' || p.penulis === 'L.Rom';
+    });
+  }
+
+  if (senaraiDisaring.length === 0) {
+    container.innerHTML = '<div class="text-center text-muted p-5 bg-dark rounded border border-secondary shadow-sm" style="background:#1e293b !important; border:2px solid #334155 !important; border-radius:14px; color:#cbd5e1;">'
+      + '<span style="font-size:3rem; display:block; margin-bottom:10px;">📭</span>'
+      + '<h5 style="color:#fbbf24; font-weight:850; text-transform:uppercase;">Tiada status Otai di dalam siaran ini</h5>'
+      + '<p style="font-size:.9rem; color:#94a3b8; margin:6px 0 0;">' + (modeSiaranHub === 'following' ? 'Anda belum mengikuti mana-mana pemain yang up status. Pergi ke laman Cari (🔍) dan ketik butang Follow Otai sekarang!' : 'Jadilah orang pertama yang sembang sakan hari ini bang!') + '</p>'
+    + '</div>';
+    return;
+  }
+
+  var htmlFeed = "";
+
+  senaraiDisaring.forEach(function(post) {
+    var sudahLike = (post.likes || []).includes(namaUserSemasa);
+    var kelasButangLike = sudahLike ? "btn-like-active" : "btn-like-inactive";
+    var teksButangLike = sudahLike ? "👍 Liked" : "👍 Like";
+
+    var htmlSticker = post.sticker ? '<div class="mt-2.5 mb-2"><span class="badge" style="background:#0284c7; color:#fff; font-size:.85rem; font-weight:800; padding:5px 12px; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,.3);">' + post.sticker + '</span></div>' : "";
+
+    var htmlSenaraiKomen = "";
+    (post.comments || []).forEach(function(k) {
+      htmlSenaraiKomen += '<div class="comment-box text-white mb-2 shadow-sm" style="background:#0f172a; border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 12px; font-size:.88rem;">'
+        + '<strong style="color:#fbbf24;">' + k.pengomen + ':</strong> <span style="color:#f8fafc;">' + k.teksKomen + '</span>'
+      + '</div>';
+    });
+
+    htmlFeed += '<div class="card hub-post-card text-white mb-3.5 shadow" style="background:#1e293b; border:1px solid #334155; border-radius:14px; padding:16px; margin-bottom:14px;">'
+      + '<div class="card-body">'
+        + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">'
+          + '<h6 style="color:#38bdf8; font-size:1.1rem; font-weight:900; margin:0; cursor:pointer;" title="Lihat Profil dan Passport Kad" onclick="viewPlayerProfile('' + post.penulis + '')">⚡ ' + post.penulis + '</h6>'
+          + '<small style="color:#94a3b8; font-size:.78rem;">' + post.tarikh + '</small>'
+        + '</div>'
+        + '<p style="color:#f8fafc; font-size:1rem; line-height:1.5; white-space:pre-wrap; margin-bottom:8px; margin-top:0;">' + post.mesej + '</p>'
+        + htmlSticker
+        + '<hr style="border:none; border-top:1px solid #334155; margin:12px 0;">'
+        + '<div style="display:flex; gap:18px; align-items:center; margin-bottom:12px;">'
+          + '<button class="btn btn-sm ' + kelasButangLike + '" style="background:transparent; border:none; padding:0; font-size:.9rem; cursor:pointer;" onclick="aksiLikeHub('' + post.id + '')">' + teksButangLike + '</button>'
+          + '<span style="color:#94a3b8; font-size:.8rem; font-weight:600;">' + (post.likes || []).length + ' Likes</span>'
+          + '<span style="color:#94a3b8; font-size:.8rem; font-weight:600;">' + (post.comments || []).length + ' Komen</span>'
+        + '</div>'
+        + '<div style="margin-bottom:10px;">' + htmlSenaraiKomen + '</div>'
+        + '<div style="display:flex; gap:8px; margin-top:8px;">'
+          + '<input type="text" id="input_komen_' + post.id + '" class="form-control" style="flex:1; background:#0f172a; border:1px solid #334155; border-radius:8px; color:#fff; font-size:.88rem; padding:6px 12px;" placeholder="Tulis komen ulasan..." onkeydown="if(event.keyCode===13)hantarKomenHub('' + post.id + '')">'
+          + '<button class="btn btn-warning" style="background:#f59e0b; color:#000; border:none; border-radius:8px; font-weight:800; font-size:.85rem; padding:6px 16px; cursor:pointer;" type="button" onclick="hantarKomenHub('' + post.id + '')">Komen</button>'
+        + '</div>'
+      + '</div>'
+    + '</div>';
+  });
+
+  container.innerHTML = htmlFeed;
+}
+
+/* Upgrade aksiLikeHub dan hantarKomenHub untuk automatik memicu Notifikasi Premium kepada Penulis Asal */
+function aksiLikeHub(postId) {
+  var store = localStorage.getItem('PLAYPRO_HUB_POSTS_V2');
+  var senaraiPost = store ? JSON.parse(store) : [];
+  var namaUserSemasa = window.currentActivePlayerKey || currentActivePlayerKey || "Azlan";
+
+  var post = senaraiPost.find(function(p){ return p.id === postId; });
+  if (!post) return;
+
+  var isHit = false;
+  var indeksLike = (post.likes || []).indexOf(namaUserSemasa);
+  if (indeksLike === -1) {
+    post.likes = post.likes || [];
+    post.likes.push(namaUserSemasa);
+    isHit = true;
+  } else {
+    post.likes.splice(indeksLike, 1);
+  }
+
+  localStorage.setItem('PLAYPRO_HUB_POSTS_V2', JSON.stringify(senaraiPost));
+  muatTurunDanPaparHub();
+
+  if(isHit && post.penulis !== namaUserSemasa) {
+    var nStore = localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
+    var nList = nStore ? JSON.parse(nStore) : [];
+    nList.unshift({ id: "notif_" + Date.now(), penulis: post.penulis, jenis: "like", mesej: "⚡ " + namaUserSemasa + " menyukai status MyHub anda: '" + post.mesej.substring(0, 24) + "...'", masa: "Baru sahaja", unread: true });
+    localStorage.setItem('PLAYPRO_NOTIFICATIONS_V2', JSON.stringify(nList));
+    updateLencanaNotif();
+  }
+}
+
+function hantarKomenHub(postId) {
+  var inputKomen = document.getElementById('input_komen_' + postId);
+  var namaUserSemasa = window.currentActivePlayerKey || currentActivePlayerKey || "Azlan";
+
+  if (!inputKomen || inputKomen.value.trim() === "") return;
+
+  var store = localStorage.getItem('PLAYPRO_HUB_POSTS_V2');
+  var senaraiPost = store ? JSON.parse(store) : [];
+
+  var post = senaraiPost.find(function(p){ return p.id === postId; });
+  if (!post) return;
+
+  var teksK = inputKomen.value.trim();
+  post.comments = post.comments || [];
+  post.comments.push({
+    pengomen: namaUserSemasa,
+    teksKomen: teksK,
+    timestamp: Date.now()
+  });
+
+  localStorage.setItem('PLAYPRO_HUB_POSTS_V2', JSON.stringify(senaraiPost));
+  inputKomen.value = "";
+  muatTurunDanPaparHub();
+  toast('💬 Komen berjaya dihantar!');
+
+  if(post.penulis !== namaUserSemasa) {
+    var nStore = localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
+    var nList = nStore ? JSON.parse(nStore) : [];
+    nList.unshift({ id: "notif_" + Date.now(), penulis: post.penulis, jenis: "komen", mesej: "⚡ " + namaUserSemasa + " meninggalkan ulasan: '" + teksK.substring(0, 26) + "...'", masa: "Baru sahaja", unread: true });
+    localStorage.setItem('PLAYPRO_NOTIFICATIONS_V2', JSON.stringify(nList));
+    updateLencanaNotif();
+  }
+}
+function DummySocialEnd()
+function muatTurunDanPaparHubOld() {
   var container = document.getElementById('myhub-newsfeed-container');
   if (!container) return;
 
