@@ -1,11 +1,11 @@
 /*
- * PlayPro Model 6 — Coach Assessment Engine / Video Mock Exam
+ * PlayPro Model 6 — Coach Assessment Engine / Secure Video Mock Exam
  * Pure service layer only. Not connected to legacy public/index.html UI yet.
  *
- * Purpose:
- * - Test coach judging ability against Master Assessor benchmark.
- * - Auto-qualify to GRED 2 if average absolute error <= 1.5.
- * - Fail closed if Supabase is unavailable.
+ * Security model:
+ * - Master benchmarks are NOT stored in frontend.
+ * - Grading is performed by PostgreSQL RPC process_coach_mock_exam_result.
+ * - RPC enforces 3 attempts + 12-hour cooldown + RLS-hidden benchmark vault.
  */
 (function attachCoachAssessmentEngine(root) {
   'use strict';
@@ -13,32 +13,6 @@
   var bridge = root.PlayProModel6 = root.PlayProModel6 || {};
   bridge.Core = bridge.Core || {};
   bridge.Coach = bridge.Coach || {};
-
-  var PASSING_ERROR_MARGIN = 1.5;
-
-  var MASTER_BENCHMARKS = {
-    judging_ability: 16,
-    judging_potential: 15,
-    tactical_knowledge: 14,
-    coaching_outfield: 15,
-    coaching_goalkeepers: 10,
-    technical_coaching: 15,
-    attacking_coaching: 14,
-    defending_coaching: 13,
-    fitness_coaching: 12,
-    set_piece_coaching: 13,
-    man_management: 15,
-    motivating: 16,
-    discipline_management: 14,
-    physiotherapy: 9,
-    sports_science: 11,
-    working_with_youngsters: 17,
-    adaptability: 13,
-    determination: 16,
-    data_analysis: 12,
-    communication: 15,
-    coaching_style: 14
-  };
 
   var DEFAULT_COACH_ATTRIBUTES = {
     judging_ability: 5,
@@ -73,73 +47,34 @@
     return Number.isFinite(n) ? n : NaN;
   }
 
-  function round2(value) {
-    return Math.round(value * 100) / 100;
-  }
-
-  function benchmarkKeys() {
-    return Object.keys(MASTER_BENCHMARKS);
-  }
-
   function safeFail(reason, extra) {
     return Object.assign({ ok: false, status: 'ERROR', reason: reason }, extra || {});
   }
 
-  async function tryActivateCertifiedAssessor(profileId, errorMargin) {
-    var supabase = getSupabaseClient();
-    if (!supabase || typeof supabase.from !== 'function') {
-      return { synced: false, reason: 'SUPABASE_CLIENT_NOT_READY' };
-    }
+  function safeErrorMessage(error) {
+    if (!error) return 'UNKNOWN_ERROR';
+    return error.message || error.details || error.hint || String(error);
+  }
 
-    var payload = {
-      profile_id: profileId,
-      license_type: 'PCSAP_VIDEO_MOCK_EXAM',
-      status: 'active',
-      max_attribute_score: 20,
-      trust_score: 1.00,
-      updated_at: new Date().toISOString()
-    };
-
-    try {
-      var result = await supabase
-        .from('certified_assessors')
-        .upsert(payload, { onConflict: 'profile_id' })
-        .select('id,profile_id,status,max_attribute_score,license_type,updated_at')
-        .maybeSingle();
-
-      if (result.error) {
-        return {
-          synced: false,
-          reason: 'CERTIFIED_ASSESSOR_UPDATE_FAILED',
-          error: result.error.message || String(result.error),
-          code: result.error.code || null
-        };
+  function sanitizeSubmittedScores(submittedScores) {
+    var input = submittedScores || {};
+    var output = {};
+    Object.keys(input).forEach(function(key) {
+      var n = asNumber(input[key]);
+      if (Number.isFinite(n)) {
+        output[key] = n;
       }
-
-      return {
-        synced: true,
-        reason: 'CERTIFIED_ASSESSOR_ACTIVATED',
-        data: result.data || null,
-        errorMargin: errorMargin
-      };
-    } catch (err) {
-      return {
-        synced: false,
-        reason: 'CERTIFIED_ASSESSOR_UPDATE_EXCEPTION',
-        error: err && err.message ? err.message : String(err),
-        errorMargin: errorMargin
-      };
-    }
+    });
+    return output;
   }
 
   var CoachAssessmentEngine = {
-    benchmarks: Object.assign({}, MASTER_BENCHMARKS),
-
     /**
-     * Submit video mock exam and compare submitted scores against master benchmark.
-     * Formula:
-     *   averageAbsoluteError = SUM(ABS(submittedScore - benchmarkScore)) / 21
-     * Passing threshold:
+     * Submit video mock exam through secure backend RPC.
+     *
+     * Formula is executed in DB:
+     *   averageAbsoluteError = AVG(ABS(submittedScore - masterBenchmarkScore))
+     * Passing threshold in DB:
      *   averageAbsoluteError <= 1.5
      *
      * @param {string} profileId - UUID profiles.id coach/assessor.
@@ -147,82 +82,69 @@
      * @returns {Promise<Object>}
      */
     async submitVideoMockExam(profileId, submittedScores) {
-      if (!profileId) {
-        return safeFail('PROFILE_ID_TIDAK_LENGKAP');
-      }
-
-      var submitted = submittedScores || {};
-      var keys = benchmarkKeys();
-      var totalAbsError = 0;
-      var breakdown = [];
-      var missing = [];
-      var invalid = [];
-
-      keys.forEach(function(key) {
-        var benchmark = MASTER_BENCHMARKS[key];
-        var raw = submitted[key];
-        var score = asNumber(raw);
-
-        if (raw === undefined || raw === null || raw === '') {
-          missing.push(key);
-          return;
+      try {
+        if (!profileId) {
+          return safeFail('PROFILE_ID_TIDAK_LENGKAP', {
+            message: 'Profil jurulatih tidak ditemui.'
+          });
         }
 
-        if (!Number.isFinite(score) || score < 1 || score > 20) {
-          invalid.push(key);
-          return;
+        var supabase = getSupabaseClient();
+        if (!supabase || typeof supabase.rpc !== 'function') {
+          return safeFail('SUPABASE_RPC_NOT_READY', {
+            message: 'Sambungan sistem penarafan belum bersedia.'
+          });
         }
 
-        var absError = Math.abs(score - benchmark);
-        totalAbsError += absError;
-        breakdown.push({
-          attribute: key,
-          submittedScore: score,
-          benchmarkScore: benchmark,
-          absoluteError: round2(absError)
+        var payload = sanitizeSubmittedScores(submittedScores);
+        var result = await supabase.rpc('process_coach_mock_exam_result', {
+          p_profile_id: profileId,
+          p_submitted_scores: payload
         });
-      });
 
-      if (missing.length || invalid.length) {
-        return safeFail('MOCK_EXAM_DATA_TIDAK_LENGKAP_ATAU_TIDAK_SAH', {
-          missingAttributes: missing,
-          invalidAttributes: invalid,
-          expectedAttributeCount: keys.length
-        });
-      }
+        if (result.error) {
+          console.error('Ralat RPC process_coach_mock_exam_result:', result.error);
+          return safeFail('RPC_PROCESS_COACH_MOCK_EXAM_FAILED', {
+            message: 'Sistem ujian video sedang terganggu. Sila cuba lagi nanti.',
+            error: safeErrorMessage(result.error),
+            code: result.error.code || null
+          });
+        }
 
-      var averageError = round2(totalAbsError / keys.length);
-      var passed = averageError <= PASSING_ERROR_MARGIN;
+        var data = result.data || {};
 
-      if (!passed) {
+        if (data.success === true) {
+          return {
+            ok: true,
+            status: data.status || 'PASSED',
+            newGrade: data.newGrade || 'GRED_2_CERTIFIED_ASSESSOR',
+            message: data.message || 'Tahniah. Anda telah lulus Ujian Video PCSAP.',
+            errorMargin: data.errorMargin !== undefined ? data.errorMargin : null,
+            data: data
+          };
+        }
+
         return {
           ok: true,
-          status: 'FAILED',
-          newGrade: 'GRED_1_DAILY_COACH',
-          errorMargin: averageError,
-          passingErrorMargin: PASSING_ERROR_MARGIN,
-          activation: { synced: false, reason: 'NOT_ELIGIBLE' },
-          breakdown: breakdown
+          status: data.status || 'FAILED',
+          reason: data.reason || 'EXAM_FAILED',
+          message: data.message || 'Keputusan ujian tidak mencapai standard penarafan. Sila cuba lagi.',
+          cooldownUntil: data.cooldownUntil || null,
+          data: data
         };
+      } catch (err) {
+        console.error('Ralat Coach Mock Exam Engine:', err);
+        return safeFail('RALAT_SISTEM_MOCK_EXAM', {
+          message: 'Sistem ujian video sedang terganggu. Sila cuba lagi nanti.',
+          error: safeErrorMessage(err)
+        });
       }
-
-      var activation = await tryActivateCertifiedAssessor(profileId, averageError);
-
-      return {
-        ok: true,
-        status: 'PASSED',
-        newGrade: 'GRED_2_CERTIFIED_ASSESSOR',
-        errorMargin: averageError,
-        passingErrorMargin: PASSING_ERROR_MARGIN,
-        activation: activation,
-        breakdown: breakdown
-      };
     },
 
     /**
      * Return 21 coach attributes for profile display.
      * Current source order:
-     * 1) certified_assessors.metadata.coach_attributes if available later.
+     * 1) certified_assessors.metadata.coach_attributes if available.
      * 2) default GRED 1 baseline attributes.
      *
      * @param {string} profileId - UUID profiles.id coach.
