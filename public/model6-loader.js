@@ -21,7 +21,8 @@
     Passport: existing.Passport || {},
     Wallet: existing.Wallet || {},
     Verification: existing.Verification || {},
-    Scout: existing.Scout || {}
+    Scout: existing.Scout || {},
+    Coach: existing.Coach || {}
   };
 
   var dependencies = [
@@ -31,7 +32,8 @@
     '/src/modules/league-os/matchday-engine.js',
     '/src/modules/wallet/wallet.service.js',
     '/src/modules/verification/verification.service.js',
-    '/src/modules/scout-marketplace/scout.service.js'
+    '/src/modules/scout-marketplace/scout.service.js',
+    '/src/modules/coach/coach.service.js'
   ];
 
   function loadScript(src) {
