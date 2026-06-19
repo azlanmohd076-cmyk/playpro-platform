@@ -210,6 +210,28 @@
     };
   }
 
+  function coachNeedsOnboarding(profile, caps) {
+    var hasDoc = !!(profile && (profile.ic_number || profile.passport_number));
+    var hasPhone = !!(profile && profile.phone);
+    var hasLicense = !!(caps && caps.licenseType);
+    return !(hasDoc && hasPhone && hasLicense);
+  }
+
+  async function saveCoachOnboarding(profileId, payload) {
+    var supabase = getSupabaseClient();
+    if (!supabase || typeof supabase.rpc !== 'function') {
+      return { success: false, reason: 'SUPABASE_RPC_NOT_READY', message: 'Sambungan sistem belum bersedia.' };
+    }
+    var result = await supabase.rpc('save_coach_onboarding_profile', {
+      p_profile_id: profileId,
+      p_payload: payload
+    });
+    if (result.error) {
+      return { success: false, reason: 'RPC_ERROR', message: result.error.message || 'Gagal menyimpan profil coach.' };
+    }
+    return result.data || { success: true };
+  }
+
   var RoleRouter = {
     lastRole: null,
 
@@ -238,9 +260,34 @@
       hidePlayerPassportUI();
       blockLegacyPlayerOnboardingForCoach();
       var mount = ensureCoachMount();
+      var coachProfile = profile || {};
+      var caps = null;
+
+      if (bridge.Coach && typeof bridge.Coach.getCoachCapabilities === 'function') {
+        caps = await bridge.Coach.getCoachCapabilities(coachProfile.id || coachProfile.profile_id);
+      }
+
+      if (coachNeedsOnboarding(coachProfile, caps)) {
+        if (bridge.Coach && bridge.Coach.UI && typeof bridge.Coach.UI.renderCoachOnboardingForm === 'function') {
+          bridge.Coach.UI.renderCoachOnboardingForm(mount, coachProfile, async function(payload, msgNode) {
+            var saved = await saveCoachOnboarding(coachProfile.id || coachProfile.profile_id, payload);
+            if (!saved.success) {
+              if (msgNode) msgNode.textContent = saved.message || 'Gagal menyimpan profil coach.';
+              return;
+            }
+            if (msgNode) msgNode.textContent = 'Profil coach berjaya disimpan.';
+            setTimeout(function() { RoleRouter.routeCurrentSession(); }, 250);
+          });
+        } else {
+          mount.innerHTML = '<div style="padding:16px;background:#111827;color:#fff;border-radius:12px;margin:12px">Borang onboarding coach sedang dimuatkan...</div>';
+        }
+        hidePlayerPassportUI();
+        nukePlayerOnboardingModal();
+        return;
+      }
 
       if (bridge.Coach && bridge.Coach.UI && typeof bridge.Coach.UI.renderCoachWorkspaceDashboard === 'function') {
-        await bridge.Coach.UI.renderCoachWorkspaceDashboard(mount, profile || {});
+        await bridge.Coach.UI.renderCoachWorkspaceDashboard(mount, coachProfile);
         hidePlayerPassportUI();
         nukePlayerOnboardingModal();
       } else {

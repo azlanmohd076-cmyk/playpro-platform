@@ -206,6 +206,98 @@
       return panel;
     },
 
+    renderCoachOnboardingForm: function(container, profile, onSubmit) {
+      injectStylesOnce();
+      var target = typeof container === 'string' ? document.querySelector(container) : container;
+      if (!target) return null;
+      target.innerHTML = '';
+
+      var p = profile || {};
+      var wrap = el('div', 'pp-coach-onboarding');
+      wrap.style.cssText = 'max-width:520px;margin:14px auto 90px;background:#0f172a;color:#e5e7eb;border:1px solid #38bdf8;border-radius:16px;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.35);font-family:Arial,Helvetica,sans-serif';
+
+      var title = el('div', null, 'Sila Lengkapkan Profil Pentauliahan Coach');
+      title.style.cssText = 'font-size:1.15rem;font-weight:900;color:#facc15;margin-bottom:6px';
+      var sub = el('div', null, 'Flow ini sama seperti pendaftaran pemain: sahkan identiti, butiran asas, kemudian pilih tahap lesen sebelum masuk ke Coach Passport.');
+      sub.style.cssText = 'font-size:.82rem;color:#cbd5e1;line-height:1.45;margin-bottom:14px';
+      wrap.appendChild(title);
+      wrap.appendChild(sub);
+
+      function field(label, input) {
+        var box = el('div');
+        box.style.cssText = 'margin-bottom:10px';
+        var l = el('label', null, label);
+        l.style.cssText = 'display:block;font-size:.68rem;font-weight:900;color:#94a3b8;text-transform:uppercase;margin-bottom:5px;letter-spacing:.06em';
+        input.style.cssText = 'width:100%;box-sizing:border-box;padding:10px;border:1px solid #334155;border-radius:9px;background:#111827;color:#fff;font-weight:700;outline:none';
+        box.appendChild(l);
+        box.appendChild(input);
+        wrap.appendChild(box);
+        return input;
+      }
+
+      var ic = field('No MyKad / Passport', el('input'));
+      ic.placeholder = 'Contoh: 820618051234 atau Passport No.';
+      ic.value = p.ic_number || p.passport_number || '';
+
+      var dob = field('Tarikh Lahir', el('input'));
+      dob.type = 'date';
+      dob.value = p.date_of_birth || '';
+
+      var phone = field('No Telefon', el('input'));
+      phone.type = 'tel';
+      phone.placeholder = '+60123456789';
+      phone.value = p.phone || '';
+
+      var row = el('div');
+      row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px';
+      var hBox = el('div');
+      var wBox = el('div');
+      var hLabel = el('label', null, 'Tinggi (cm)');
+      var wLabel = el('label', null, 'Berat (kg)');
+      [hLabel,wLabel].forEach(function(x){x.style.cssText='display:block;font-size:.68rem;font-weight:900;color:#94a3b8;text-transform:uppercase;margin-bottom:5px;letter-spacing:.06em';});
+      var height = el('input'); height.type='number'; height.placeholder='170'; height.value=p.height_cm||'';
+      var weight = el('input'); weight.type='number'; weight.placeholder='68'; weight.value=p.weight_kg||'';
+      [height,weight].forEach(function(x){x.style.cssText='width:100%;box-sizing:border-box;padding:10px;border:1px solid #334155;border-radius:9px;background:#111827;color:#fff;font-weight:700;outline:none';});
+      hBox.appendChild(hLabel); hBox.appendChild(height); wBox.appendChild(wLabel); wBox.appendChild(weight); row.appendChild(hBox); row.appendChild(wBox); wrap.appendChild(row);
+
+      var license = el('select');
+      ['Grassroots / Lesen D','Lesen C','Lesen B','Lesen A','Pro Diploma'].forEach(function(v){ var o=el('option', null, v); o.value=v; license.appendChild(o); });
+      field('Tahap Lesen Malaysia', license);
+
+      var msg = el('div');
+      msg.style.cssText = 'font-size:.78rem;margin:8px 0;color:#fbbf24;font-weight:800;min-height:18px';
+      wrap.appendChild(msg);
+
+      var btn = el('button', null, 'Simpan & Buka Coach Passport');
+      btn.type = 'button';
+      btn.style.cssText = 'width:100%;padding:11px;border:none;border-radius:10px;background:#38bdf8;color:#07111f;font-weight:900;cursor:pointer;margin-top:8px';
+      btn.addEventListener('click', async function() {
+        var payload = {
+          ic_number: ic.value.trim(),
+          date_of_birth: dob.value,
+          phone: phone.value.trim(),
+          height_cm: height.value,
+          weight_kg: weight.value,
+          license_type: license.value,
+          nationality: 'Malaysian'
+        };
+        if (!payload.ic_number || !payload.phone || !payload.license_type) {
+          msg.textContent = 'Sila lengkapkan MyKad/Passport, telefon dan tahap lesen.';
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan...';
+        if (typeof onSubmit === 'function') {
+          await onSubmit(payload, msg);
+        }
+        btn.disabled = false;
+        btn.textContent = 'Simpan & Buka Coach Passport';
+      });
+      wrap.appendChild(btn);
+      target.appendChild(wrap);
+      return wrap;
+    },
+
     renderCoachPublicProfile: function(container, payload) {
       injectStylesOnce();
 

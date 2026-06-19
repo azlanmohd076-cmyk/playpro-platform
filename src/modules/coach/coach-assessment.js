@@ -56,6 +56,38 @@
     return error.message || error.details || error.hint || String(error);
   }
 
+  function licenseRank(licenseType) {
+    var l = String(licenseType || '').toLowerCase();
+    if (l.indexOf('pro') !== -1 || l.indexOf('diploma') !== -1) return 5;
+    if (l.indexOf('lesen a') !== -1 || l.indexOf('afc a') !== -1 || l.indexOf('fam a') !== -1) return 4;
+    if (l.indexOf('lesen b') !== -1 || l.indexOf('afc b') !== -1 || l.indexOf('fam b') !== -1) return 3;
+    if (l.indexOf('lesen c') !== -1 || l.indexOf('afc c') !== -1 || l.indexOf('fam c') !== -1) return 2;
+    if (l.indexOf('lesen d') !== -1 || l.indexOf('grassroots') !== -1) return 1;
+    return 0;
+  }
+
+  function buildAttributesByLicense(licenseType) {
+    var rank = licenseRank(licenseType);
+    var base = Object.assign({}, DEFAULT_COACH_ATTRIBUTES);
+    if (rank === 0) return base;
+
+    var bump = [0, 2, 6, 10, 13, 15][rank];
+    Object.keys(base).forEach(function(key) {
+      base[key] = Math.max(5, Math.min(20, base[key] + bump));
+    });
+
+    if (rank >= 2) {
+      base.tactical_knowledge = Math.min(20, base.tactical_knowledge + 2);
+      base.coaching_outfield = Math.min(20, base.coaching_outfield + 2);
+      base.technical_coaching = Math.min(20, base.technical_coaching + 2);
+    }
+    if (String(licenseType || '').toLowerCase().indexOf('gk') !== -1) {
+      base.coaching_goalkeepers = Math.max(base.coaching_goalkeepers, 18);
+      base.coaching_outfield = Math.min(base.coaching_outfield, 10);
+    }
+    return base;
+  }
+
   function sanitizeSubmittedScores(submittedScores) {
     var input = submittedScores || {};
     var output = {};
@@ -159,6 +191,7 @@
         if (bridge.Coach && typeof bridge.Coach.getCoachCapabilities === 'function') {
           caps = await bridge.Coach.getCoachCapabilities(profileId);
           grade = caps.grade || grade;
+          attrs = buildAttributesByLicense(caps.licenseType || (caps.metadata && caps.metadata.license_type));
         }
 
         var supabase = getSupabaseClient();

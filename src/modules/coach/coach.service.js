@@ -108,7 +108,6 @@
           .from('certified_assessors')
           .select('id,profile_id,license_type,certificate_url,status,trust_score,max_attribute_score,exam_attempts_count,last_exam_at,metadata,updated_at')
           .eq('profile_id', profileId)
-          .eq('status', 'active')
           .maybeSingle();
 
         if (result.error) {
@@ -124,11 +123,12 @@
 
         var cooldown = getCooldownState(result.data.exam_attempts_count, result.data.last_exam_at);
         var wallet = await getWalletSnapshot(profileId);
+        var active = String(result.data.status || '').toLowerCase() === 'active';
 
         return {
-          isCertified: true,
-          maxScore: clampMaxScore(result.data.max_attribute_score || 20),
-          grade: 'GRED_2_CERTIFIED_ASSESSOR',
+          isCertified: active,
+          maxScore: active ? clampMaxScore(result.data.max_attribute_score || 20) : 5,
+          grade: active ? 'GRED_2_CERTIFIED_ASSESSOR' : 'GRED_1_DAILY_COACH',
           licenseType: result.data.license_type || null,
           certificateUrl: result.data.certificate_url || null,
           trustScore: result.data.trust_score !== null ? Number(result.data.trust_score) : null,
