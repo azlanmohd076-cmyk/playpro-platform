@@ -27,6 +27,11 @@
     return String(role || '').trim().toLowerCase();
   }
 
+  function isCoachRole(role) {
+    var r = normalizeRole(role);
+    return r === 'coach' || r === 'jurulatih' || r === 'technical_assessor';
+  }
+
   function getProfileRoot() {
     return document.getElementById('tab-profile') || document.getElementById('main') || document.body;
   }
@@ -157,11 +162,17 @@
     }
 
     var userResult = await supabase.auth.getUser();
-    if (userResult.error || !userResult.data || !userResult.data.user) {
+    var user = userResult && userResult.data ? userResult.data.user : null;
+
+    if (!user && typeof supabase.auth.getSession === 'function') {
+      var sessionResult = await supabase.auth.getSession();
+      user = sessionResult && sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
+    }
+
+    if (!user) {
       return { user: null, profile: null, role: null, reason: 'NO_AUTH_USER' };
     }
 
-    var user = userResult.data.user;
     var metaRole = normalizeRole(
       (user.app_metadata && user.app_metadata.role) ||
       (user.user_metadata && user.user_metadata.role)
@@ -232,6 +243,41 @@
     return result.data || { success: true };
   }
 
+  function installShowOnboardingInterceptor() {
+    if (typeof root.showOnboarding !== 'function' || root.showOnboarding.__model6RoleAware === true) {
+      return;
+    }
+
+    var legacyShowOnboarding = root.showOnboarding;
+    var wrapped = function model6RoleAwareShowOnboarding() {
+      var selectedRole = '';
+      try {
+        var roleInput = document.getElementById('d-role');
+        selectedRole = roleInput ? normalizeRole(roleInput.value) : '';
+      } catch (ignore) {}
+
+      getCurrentUserAndProfile().then(function(session) {
+        var detectedRole = normalizeRole(session.role || selectedRole);
+        if (isCoachRole(detectedRole)) {
+          blockLegacyPlayerOnboardingForCoach();
+          RoleRouter.renderCoachRoute(session.profile || (session.user ? { id: session.user.id, email: session.user.email, role: 'coach' } : { role: 'coach' }));
+          return;
+        }
+        legacyShowOnboarding.apply(root, arguments);
+      }).catch(function() {
+        if (isCoachRole(selectedRole)) {
+          blockLegacyPlayerOnboardingForCoach();
+          return;
+        }
+        legacyShowOnboarding.apply(root, arguments);
+      });
+    };
+
+    wrapped.__model6RoleAware = true;
+    wrapped.__legacyShowOnboarding = legacyShowOnboarding;
+    root.showOnboarding = wrapped;
+  }
+
   var RoleRouter = {
     lastRole: null,
 
@@ -241,7 +287,7 @@
         var role = normalizeRole(session.role);
         this.lastRole = role;
 
-        if (role === 'coach') {
+        if (isCoachRole(role)) {
           blockLegacyPlayerOnboardingForCoach();
           await this.renderCoachRoute(session.profile || { id: session.user && session.user.id });
           return { routed: true, role: role, target: 'coach-dashboard' };
@@ -297,12 +343,17 @@
 
     init() {
       var self = this;
+      installShowOnboardingInterceptor();
       this.routeCurrentSession();
+      setTimeout(function(){ installShowOnboardingInterceptor(); self.routeCurrentSession(); }, 250);
+      setTimeout(function(){ self.routeCurrentSession(); }, 1000);
+      setTimeout(function(){ self.routeCurrentSession(); }, 2500);
+      setTimeout(function(){ self.routeCurrentSession(); }, 5000);
 
       var supabase = getSupabaseClient();
       if (supabase && supabase.auth && typeof supabase.auth.onAuthStateChange === 'function') {
         supabase.auth.onAuthStateChange(function() {
-          setTimeout(function() { self.routeCurrentSession(); }, 50);
+          setTimeout(function() { installShowOnboardingInterceptor(); self.routeCurrentSession(); }, 50);
         });
       }
 
