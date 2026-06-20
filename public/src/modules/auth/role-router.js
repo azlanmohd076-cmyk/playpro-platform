@@ -34,6 +34,11 @@
     return r === 'coach' || r === 'jurulatih' || r === 'technical_assessor';
   }
 
+  function isManagerRole(role) {
+    var r = normalizeRole(role);
+    return r === 'club_admin' || r === 'manager' || r === 'club_manager' || r === 'pengurus_kelab';
+  }
+
   function getProfileRoot() {
     return document.getElementById('tab-profile') || document.getElementById('main') || document.body;
   }
@@ -268,6 +273,11 @@
           RoleRouter.renderCoachRoute(session.profile || (session.user ? { id: session.user.id, email: session.user.email, role: 'coach' } : { role: 'coach' }));
           return;
         }
+        if (isManagerRole(detectedRole)) {
+          blockLegacyPlayerOnboardingForCoach();
+          RoleRouter.renderClubManagerRoute(session.profile || (session.user ? { id: session.user.id, email: session.user.email, role: 'club_admin' } : { role: 'club_admin' }));
+          return;
+        }
         legacyShowOnboarding.apply(root, arguments);
       }).catch(function() {
         if (isCoachRole(selectedRole)) {
@@ -316,6 +326,35 @@
     }
   }
 
+  async function getManagedClub(profileId) {
+    var supabase = getSupabaseClient();
+    if (!profileId || !supabase || typeof supabase.from !== 'function') return null;
+    try {
+      var result = await supabase
+        .from('clubs')
+        .select('id,name,year_founded,home_venue,colours,admin_id')
+        .eq('admin_id', profileId)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (!result.error && result.data) return result.data;
+    } catch (ignore) {}
+    return null;
+  }
+
+  async function saveClubManagerOnboarding(profileId, payload) {
+    var supabase = getSupabaseClient();
+    if (!supabase || typeof supabase.rpc !== 'function') {
+      return { success: false, reason: 'SUPABASE_RPC_NOT_READY', message: 'Sambungan sistem belum bersedia.' };
+    }
+    var result = await supabase.rpc('save_club_manager_onboarding_profile', {
+      p_profile_id: profileId,
+      p_payload: payload
+    });
+    if (result.error) return { success: false, reason: 'RPC_ERROR', message: result.error.message || 'Gagal menyimpan profil manager kelab.' };
+    return result.data || { success: true };
+  }
+
   var RoleRouter = {
     lastRole: null,
 
@@ -329,6 +368,12 @@
           blockLegacyPlayerOnboardingForCoach();
           await this.renderCoachRoute(session.profile || { id: session.user && session.user.id });
           return { routed: true, role: role, target: 'coach-dashboard' };
+        }
+
+        if (isManagerRole(role)) {
+          blockLegacyPlayerOnboardingForCoach();
+          await this.renderClubManagerRoute(session.profile || { id: session.user && session.user.id });
+          return { routed: true, role: role, target: 'club-manager-dashboard' };
         }
 
         unblockLegacyPlayerOnboarding();
@@ -392,6 +437,38 @@
         nukePlayerOnboardingModal();
       } else {
         mount.innerHTML = '<div style="padding:16px;background:#111827;color:#fff;border-radius:12px;margin:12px">Coach Workspace sedang dimuatkan...</div>';
+      }
+    },
+
+    async renderClubManagerRoute(profile) {
+      hidePlayerPassportUI();
+      blockLegacyPlayerOnboardingForCoach();
+      var mount = ensureCoachMount();
+      var managerProfile = profile || {};
+      var profileId = managerProfile.id || managerProfile.profile_id;
+      var club = await getManagedClub(profileId);
+
+      if (!club) {
+        if (bridge.Club && bridge.Club.ManagerUI && typeof bridge.Club.ManagerUI.renderClubManagerOnboardingForm === 'function') {
+          bridge.Club.ManagerUI.renderClubManagerOnboardingForm(mount, managerProfile, async function(payload, msgNode) {
+            var saved = await saveClubManagerOnboarding(profileId, payload);
+            if (!saved.success) {
+              if (msgNode) msgNode.textContent = saved.message || 'Gagal menyimpan profil manager kelab.';
+              return;
+            }
+            if (msgNode) msgNode.textContent = 'Profil manager kelab berjaya disimpan.';
+            setTimeout(function() { RoleRouter.routeCurrentSession(); }, 250);
+          });
+        } else {
+          mount.innerHTML = '<div style="padding:16px;background:#111827;color:#fff;border-radius:12px;margin:12px">Borang manager kelab sedang dimuatkan...</div>';
+        }
+        return;
+      }
+
+      if (bridge.Club && bridge.Club.ManagerUI && typeof bridge.Club.ManagerUI.renderClubManagerWorkspace === 'function') {
+        bridge.Club.ManagerUI.renderClubManagerWorkspace(mount, managerProfile, club);
+      } else {
+        mount.innerHTML = '<div style="padding:16px;background:#111827;color:#fff;border-radius:12px;margin:12px">Club Manager Workspace sedang dimuatkan...</div>';
       }
     },
 
