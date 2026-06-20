@@ -15,6 +15,8 @@
 
   var onboardingObserver = null;
   var originalShowOnboarding = null;
+  var coachOnboardingSessionCache = {};
+  var coachProfileSessionCache = {};
 
   function getSupabaseClient() {
     if (bridge.Core && typeof bridge.Core.getSupabase === 'function') {
@@ -222,6 +224,9 @@
   }
 
   function coachNeedsOnboarding(profile, caps) {
+    var pid = profile && (profile.id || profile.profile_id);
+    if (pid && coachOnboardingSessionCache[pid] === true) return false;
+
     var hasDoc = !!(profile && (profile.ic_number || profile.passport_number));
     var hasPhone = !!(profile && profile.phone);
     var hasLicense = !!(caps && caps.licenseType);
@@ -278,6 +283,25 @@
     root.showOnboarding = wrapped;
   }
 
+  function buildCoachProfileFromOnboarding(profile, payload) {
+    var base = Object.assign({}, profile || {});
+    base.ic_number = payload.ic_number || base.ic_number || null;
+    base.passport_number = payload.passport_number || base.passport_number || null;
+    base.date_of_birth = payload.date_of_birth || base.date_of_birth || null;
+    base.phone = payload.phone || base.phone || null;
+    base.height_cm = payload.height_cm || base.height_cm || null;
+    base.weight_kg = payload.weight_kg || base.weight_kg || null;
+    base.nationality = payload.nationality || base.nationality || 'Malaysian';
+    return base;
+  }
+
+  function markCoachOnboardingComplete(profileId, updatedProfile) {
+    if (profileId) {
+      coachOnboardingSessionCache[profileId] = true;
+      if (updatedProfile) coachProfileSessionCache[profileId] = updatedProfile;
+    }
+  }
+
   var RoleRouter = {
     lastRole: null,
 
@@ -307,6 +331,10 @@
       blockLegacyPlayerOnboardingForCoach();
       var mount = ensureCoachMount();
       var coachProfile = profile || {};
+      var coachIdForCache = coachProfile.id || coachProfile.profile_id;
+      if (coachIdForCache && coachProfileSessionCache[coachIdForCache]) {
+        coachProfile = Object.assign({}, coachProfile, coachProfileSessionCache[coachIdForCache]);
+      }
       var caps = null;
 
       if (bridge.Coach && typeof bridge.Coach.getCoachCapabilities === 'function') {
@@ -321,8 +349,20 @@
               if (msgNode) msgNode.textContent = saved.message || 'Gagal menyimpan profil coach.';
               return;
             }
-            if (msgNode) msgNode.textContent = 'Profil coach berjaya disimpan.';
-            setTimeout(function() { RoleRouter.routeCurrentSession(); }, 250);
+
+            var coachId = coachProfile.id || coachProfile.profile_id;
+            var updatedProfile = buildCoachProfileFromOnboarding(coachProfile, payload);
+            markCoachOnboardingComplete(coachId, updatedProfile);
+            if (msgNode) msgNode.textContent = 'Profil coach berjaya disimpan. Membuka Coach Passport...';
+            if (bridge.Coach && bridge.Coach.UI && typeof bridge.Coach.UI.renderCoachWorkspaceDashboard === 'function') {
+              setTimeout(async function() {
+                await bridge.Coach.UI.renderCoachWorkspaceDashboard(mount, updatedProfile);
+                hidePlayerPassportUI();
+                nukePlayerOnboardingModal();
+              }, 150);
+            } else {
+              setTimeout(function() { RoleRouter.routeCurrentSession(); }, 250);
+            }
           });
         } else {
           mount.innerHTML = '<div style="padding:16px;background:#111827;color:#fff;border-radius:12px;margin:12px">Borang onboarding coach sedang dimuatkan...</div>';
