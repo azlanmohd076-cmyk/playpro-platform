@@ -292,6 +292,8 @@
     base.height_cm = payload.height_cm || base.height_cm || null;
     base.weight_kg = payload.weight_kg || base.weight_kg || null;
     base.nationality = payload.nationality || base.nationality || 'Malaysian';
+    base.license_type = payload.license_type || base.license_type || base.licenseType || null;
+    base.licenseType = base.license_type;
     return base;
   }
 
@@ -299,6 +301,18 @@
     if (profileId) {
       coachOnboardingSessionCache[profileId] = true;
       if (updatedProfile) coachProfileSessionCache[profileId] = updatedProfile;
+      try {
+        if (root.localStorage && updatedProfile) {
+          root.localStorage.setItem('PLAYPRO_COACH_PROFILE_CACHE_' + profileId, JSON.stringify({
+            license_type: updatedProfile.license_type || updatedProfile.licenseType || null,
+            ic_number: updatedProfile.ic_number || null,
+            passport_number: updatedProfile.passport_number || null,
+            date_of_birth: updatedProfile.date_of_birth || null,
+            phone: updatedProfile.phone || null,
+            nationality: updatedProfile.nationality || 'Malaysian'
+          }));
+        }
+      } catch (ignore) {}
     }
   }
 

@@ -239,19 +239,36 @@
     document.body.appendChild(overlay);
   }
 
+  function coachGradeVisual(caps) {
+    var license = String(caps && caps.licenseType || '').toLowerCase();
+    var max = Number(caps && caps.maxScore || 5);
+    var active = !!(caps && caps.isCertified);
+    if (active && (license.indexOf('pro') !== -1 || license.indexOf('diploma') !== -1)) {
+      return { border: '#a855f7', glow: 'rgba(168,85,247,.45)', bg1: '#2e1065', bg2: '#020617', label: 'MASTER' };
+    }
+    if (active && max >= 20) {
+      return { border: '#facc15', glow: 'rgba(250,204,21,.38)', bg1: '#78350f', bg2: '#020617', label: 'GRED 2' };
+    }
+    if (max <= 5) {
+      return { border: '#38bdf8', glow: 'rgba(56,189,248,.30)', bg1: '#1e3a8a', bg2: '#020617', label: 'GRED 1' };
+    }
+    return { border: '#22c55e', glow: 'rgba(34,197,94,.30)', bg1: '#064e3b', bg2: '#020617', label: 'CERTIFIED' };
+  }
+
   function renderCoachPassportCard(profile, caps, data) {
     var name = profile.full_name || profile.name || profile.email || 'Coach';
     var license = caps.licenseType || 'Tiada / Grassroots';
     var grade = caps.grade || data.grade || 'GRED_1_DAILY_COACH';
     var img = profile.avatar_url || profile.photo_url || null;
+    var visual = coachGradeVisual(caps);
 
     var card = el('div', 'pp-coach-passport-card');
-    card.style.cssText = 'display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#050b18,#10204a);border:2px solid #38bdf8;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 10px 28px rgba(0,0,0,.35);color:#fff;cursor:pointer';
+    card.style.cssText = 'display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,' + visual.bg2 + ',' + visual.bg1 + ');border:2px solid ' + visual.border + ';border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 10px 28px rgba(0,0,0,.35),0 0 22px ' + visual.glow + ';color:#fff;cursor:pointer';
     card.title = 'Klik untuk buka Kad Pasport Coach';
     card.addEventListener('click', function(){ openCoachCardModal(profile, caps, data); });
 
     var photo = el('div', 'pp-coach-photo');
-    photo.style.cssText = 'width:82px;height:104px;border-radius:13px;border:2px solid #facc15;background:linear-gradient(180deg,#1e3a8a,#020617);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;box-shadow:0 0 18px rgba(250,204,21,.22)';
+    photo.style.cssText = 'width:82px;height:104px;border-radius:13px;border:2px solid ' + visual.border + ';background:linear-gradient(180deg,' + visual.bg1 + ',' + visual.bg2 + ');display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;box-shadow:0 0 18px ' + visual.glow;
     if (img) {
       var image = document.createElement('img');
       image.src = img;
@@ -260,7 +277,7 @@
       photo.appendChild(image);
     } else {
       var ph = el('div', null, name[0] ? name[0].toUpperCase() : 'C');
-      ph.style.cssText = 'font-size:2.3rem;font-weight:900;color:#facc15';
+      ph.style.cssText = 'font-size:2.3rem;font-weight:900;color:' + visual.border;
       photo.appendChild(ph);
     }
 
@@ -272,6 +289,8 @@
     bio.style.cssText = 'font-size:.9rem;color:#facc15;font-weight:900;margin-bottom:8px';
     var meta = el('div', null, 'Lesen: ' + license + ' · ' + grade);
     meta.style.cssText = 'font-size:.78rem;color:#cbd5e1;font-weight:800;line-height:1.4';
+    var gradePill = el('div', null, visual.label);
+    gradePill.style.cssText = 'display:inline-block;margin:5px 0 2px;background:' + visual.border + ';color:#020617;border-radius:999px;padding:3px 9px;font-size:.62rem;font-weight:900;letter-spacing:.06em';
     var note = el('div', null, 'Coach Attributes ialah markah diri 0–20. Had Input Penilaian Pemain ialah skala maksimum yang dibenarkan semasa menilai pemain lain.');
     note.style.cssText = 'font-size:.68rem;color:#93c5fd;margin-top:6px;line-height:1.35';
 
@@ -290,6 +309,7 @@
     info.appendChild(title);
     info.appendChild(bio);
     info.appendChild(meta);
+    info.appendChild(gradePill);
     info.appendChild(note);
     info.appendChild(actions);
     card.appendChild(photo);
@@ -597,8 +617,21 @@
             ic_number: payload.ic_number,
             phone: payload.phone,
             date_of_birth: payload.date_of_birth,
-            nationality: payload.nationality || 'Malaysian'
+            nationality: payload.nationality || 'Malaysian',
+            license_type: payload.license_type,
+            licenseType: payload.license_type
           });
+          try {
+            if (root.localStorage && profileId) {
+              root.localStorage.setItem('PLAYPRO_COACH_PROFILE_CACHE_' + profileId, JSON.stringify({
+                license_type: payload.license_type,
+                ic_number: payload.ic_number,
+                date_of_birth: payload.date_of_birth,
+                phone: payload.phone,
+                nationality: payload.nationality || 'Malaysian'
+              }));
+            }
+          } catch (ignore) {}
           if (msgNode) msgNode.textContent = 'Profil coach berjaya dikemas kini.';
           setTimeout(function() { self.renderCoachWorkspaceDashboard(target, updated); }, 250);
         });

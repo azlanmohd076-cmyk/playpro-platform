@@ -18,6 +18,14 @@
     return bridge.Core.supabase || root.supabase || null;
   }
 
+  function getLocalCoachCache(profileId) {
+    try {
+      if (!profileId || !root.localStorage) return null;
+      var raw = root.localStorage.getItem('PLAYPRO_COACH_PROFILE_CACHE_' + profileId);
+      return raw ? JSON.parse(raw) : null;
+    } catch (ignore) { return null; }
+  }
+
   function toNumber(value) {
     var n = Number(value);
     return Number.isFinite(n) ? n : NaN;
@@ -118,9 +126,16 @@
         }
 
         if (!result.data) {
-          return fallbackCaps('GRED_1_DAILY_COACH');
+          var cached = getLocalCoachCache(profileId);
+          var base = fallbackCaps('GRED_1_DAILY_COACH');
+          if (cached && cached.license_type) {
+            base.licenseType = cached.license_type;
+            base.metadata = { license_type: cached.license_type, local_cache: true };
+          }
+          return base;
         }
 
+        var localCached = getLocalCoachCache(profileId);
         var cooldown = getCooldownState(result.data.exam_attempts_count, result.data.last_exam_at);
         var wallet = await getWalletSnapshot(profileId);
         var active = String(result.data.status || '').toLowerCase() === 'active';
@@ -129,7 +144,7 @@
           isCertified: active,
           maxScore: active ? clampMaxScore(result.data.max_attribute_score || 20) : 5,
           grade: active ? 'GRED_2_CERTIFIED_ASSESSOR' : 'GRED_1_DAILY_COACH',
-          licenseType: result.data.license_type || null,
+          licenseType: result.data.license_type || (localCached && localCached.license_type) || null,
           certificateUrl: result.data.certificate_url || null,
           trustScore: result.data.trust_score !== null ? Number(result.data.trust_score) : null,
           examAttemptsCount: Number(result.data.exam_attempts_count || 0),
