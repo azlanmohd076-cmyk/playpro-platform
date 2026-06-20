@@ -55,7 +55,6 @@
   }
 
   function scoreClass(score, maxScore) {
-    if (maxScore <= 5) return 'pp-coach-score locked';
     if (score >= 16) return 'pp-coach-score elite';
     if (score >= 11) return 'pp-coach-score good';
     if (score >= 6) return 'pp-coach-score mid';
@@ -127,7 +126,7 @@
       var row = el('div', 'pp-coach-row');
       var score = Number(attrs[key] || 0);
       row.appendChild(el('div', 'pp-coach-name', LABELS[key] || key));
-      row.appendChild(el('div', scoreClass(score, maxScore), String(score || '—')));
+      row.appendChild(el('div', scoreClass(score, maxScore), String(score)));
       col.appendChild(row);
     });
 
@@ -136,8 +135,8 @@
 
   function attrValue(attrs, key, fallback) {
     var n = Number(attrs && attrs[key]);
-    if (!Number.isFinite(n)) return fallback || 5;
-    return Math.max(1, Math.min(20, Math.floor(n)));
+    if (!Number.isFinite(n)) return fallback || 0;
+    return Math.max(0, Math.min(20, Math.floor(n)));
   }
 
   function progressColor(v) {
@@ -168,6 +167,62 @@
     row.appendChild(left);
     row.appendChild(score);
     return row;
+  }
+
+  function renderCoachPassportCard(profile, caps, data) {
+    var name = profile.full_name || profile.name || profile.email || 'Coach';
+    var license = caps.licenseType || 'Tiada / Grassroots';
+    var grade = caps.grade || data.grade || 'GRED_1_DAILY_COACH';
+    var img = profile.avatar_url || profile.photo_url || null;
+
+    var card = el('div', 'pp-coach-passport-card');
+    card.style.cssText = 'display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#050b18,#10204a);border:2px solid #38bdf8;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 10px 28px rgba(0,0,0,.35);color:#fff';
+
+    var photo = el('div', 'pp-coach-photo');
+    photo.style.cssText = 'width:82px;height:104px;border-radius:13px;border:2px solid #facc15;background:linear-gradient(180deg,#1e3a8a,#020617);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;box-shadow:0 0 18px rgba(250,204,21,.22)';
+    if (img) {
+      var image = document.createElement('img');
+      image.src = img;
+      image.alt = name;
+      image.style.cssText = 'width:100%;height:100%;object-fit:cover';
+      photo.appendChild(image);
+    } else {
+      var ph = el('div', null, name[0] ? name[0].toUpperCase() : 'C');
+      ph.style.cssText = 'font-size:2.3rem;font-weight:900;color:#facc15';
+      photo.appendChild(ph);
+    }
+
+    var info = el('div');
+    info.style.cssText = 'flex:1;min-width:0';
+    var title = el('div', null, name);
+    title.style.cssText = 'font-size:1.25rem;font-weight:900;letter-spacing:.02em;margin-bottom:4px';
+    var bio = el('div', null, buildCmBioLine(profile));
+    bio.style.cssText = 'font-size:.9rem;color:#facc15;font-weight:900;margin-bottom:8px';
+    var meta = el('div', null, 'Lesen: ' + license + ' · ' + grade);
+    meta.style.cssText = 'font-size:.78rem;color:#cbd5e1;font-weight:800;line-height:1.4';
+    var note = el('div', null, 'Coach Attributes ialah markah diri 0–20. Had Input Penilaian Pemain ialah skala maksimum yang dibenarkan semasa menilai pemain lain.');
+    note.style.cssText = 'font-size:.68rem;color:#93c5fd;margin-top:6px;line-height:1.35';
+
+    var actions = el('div');
+    actions.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-top:10px';
+    var follow = el('button', null, '+ FOLLOW');
+    follow.type = 'button';
+    follow.style.cssText = 'background:#2563eb;color:#fff;border:none;border-radius:999px;padding:7px 14px;font-size:.75rem;font-weight:900;cursor:pointer';
+    follow.addEventListener('click', function() { follow.textContent = follow.textContent.indexOf('FOLLOWED') >= 0 ? '+ FOLLOW' : '✓ FOLLOWED'; });
+    var edit = el('button', null, '✏️ Edit Profil Coach');
+    edit.type = 'button';
+    edit.style.cssText = 'background:#f59e0b;color:#111827;border:none;border-radius:999px;padding:7px 14px;font-size:.75rem;font-weight:900;cursor:pointer';
+    actions.appendChild(follow);
+    actions.appendChild(edit);
+
+    info.appendChild(title);
+    info.appendChild(bio);
+    info.appendChild(meta);
+    info.appendChild(note);
+    info.appendChild(actions);
+    card.appendChild(photo);
+    card.appendChild(info);
+    return { card: card, editButton: edit };
   }
 
   var CoachRetroGridUI = {
@@ -364,14 +419,14 @@
       rightTitle.style.cssText = 'font-size:.74rem;font-weight:900;color:#facc15;margin-bottom:10px;letter-spacing:.08em';
       right.appendChild(rightTitle);
 
-      right.appendChild(renderProgressRow('Tactical Knowledge', attrValue(attrs, 'tactical_knowledge', 5)));
-      right.appendChild(renderProgressRow('Man Management', attrValue(attrs, 'man_management', 5)));
-      right.appendChild(renderProgressRow('Motivating', attrValue(attrs, 'motivating', 5)));
-      right.appendChild(renderProgressRow('Level of Discipline', attrValue(attrs, 'discipline_management', 5)));
-      right.appendChild(renderProgressRow('Judging Player Ability', attrValue(attrs, 'judging_ability', 5)));
-      right.appendChild(renderProgressRow('Judging Player Potential', attrValue(attrs, 'judging_potential', 5)));
-      right.appendChild(renderProgressRow('Coaching Outfield', attrValue(attrs, 'coaching_outfield', 5)));
-      right.appendChild(renderProgressRow('Coaching Goalkeepers', attrValue(attrs, 'coaching_goalkeepers', 5)));
+      right.appendChild(renderProgressRow('Tactical Knowledge', attrValue(attrs, 'tactical_knowledge', 0)));
+      right.appendChild(renderProgressRow('Man Management', attrValue(attrs, 'man_management', 0)));
+      right.appendChild(renderProgressRow('Motivating', attrValue(attrs, 'motivating', 0)));
+      right.appendChild(renderProgressRow('Level of Discipline', attrValue(attrs, 'discipline_management', 0)));
+      right.appendChild(renderProgressRow('Judging Player Ability', attrValue(attrs, 'judging_ability', 0)));
+      right.appendChild(renderProgressRow('Judging Player Potential', attrValue(attrs, 'judging_potential', 0)));
+      right.appendChild(renderProgressRow('Coaching Outfield', attrValue(attrs, 'coaching_outfield', 0)));
+      right.appendChild(renderProgressRow('Coaching Goalkeepers', attrValue(attrs, 'coaching_goalkeepers', 0)));
 
       body.appendChild(left);
       body.appendChild(right);
@@ -447,6 +502,35 @@
       var currency = wallet.currency || 'MYR';
       var attempts = cooldown.attemptsCount !== undefined ? cooldown.attemptsCount : (caps.examAttemptsCount || 0);
 
+      var passportCard = renderCoachPassportCard(coachProfile, caps, data);
+      shell.appendChild(passportCard.card);
+      var self = this;
+      passportCard.editButton.addEventListener('click', function() {
+        self.renderCoachOnboardingForm(target, coachProfile, async function(payload, msgNode) {
+          var supabase = bridge.Core && typeof bridge.Core.getSupabase === 'function' ? bridge.Core.getSupabase() : (bridge.Core && bridge.Core.supabase);
+          if (!supabase || typeof supabase.rpc !== 'function') {
+            if (msgNode) msgNode.textContent = 'Sambungan sistem belum bersedia.';
+            return;
+          }
+          var result = await supabase.rpc('save_coach_onboarding_profile', {
+            p_profile_id: profileId,
+            p_payload: payload
+          });
+          if (result.error || (result.data && result.data.success === false)) {
+            if (msgNode) msgNode.textContent = (result.error && result.error.message) || (result.data && result.data.message) || 'Gagal menyimpan profil coach.';
+            return;
+          }
+          var updated = Object.assign({}, coachProfile, payload, {
+            ic_number: payload.ic_number,
+            phone: payload.phone,
+            date_of_birth: payload.date_of_birth,
+            nationality: payload.nationality || 'Malaysian'
+          });
+          if (msgNode) msgNode.textContent = 'Profil coach berjaya dikemas kini.';
+          setTimeout(function() { self.renderCoachWorkspaceDashboard(target, updated); }, 250);
+        });
+      });
+
       var cards = el('div', 'pp-coach-identity-grid');
       cards.style.cssText = 'display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px';
 
@@ -504,9 +588,12 @@
       shell.appendChild(gridMount);
 
       var scaleTitle = el('div', null, 'Had Input Penilaian Pemain');
-      scaleTitle.style.cssText = 'margin:12px 0 6px;font-size:.82rem;font-weight:900;color:#111827;text-transform:uppercase';
+      scaleTitle.style.cssText = 'margin:12px 0 4px;font-size:.82rem;font-weight:900;color:#111827;text-transform:uppercase';
+      var scaleNote = el('div', null, 'Nota: Ini bukan markah atribut diri coach. Ini ialah had maksimum nilai yang coach boleh berikan kepada pemain lain.');
+      scaleNote.style.cssText = 'font-size:.72rem;color:#475569;font-weight:700;margin-bottom:6px;line-height:1.35';
       var scaleMount = el('div', 'pp-coach-scale-mount');
       shell.appendChild(scaleTitle);
+      shell.appendChild(scaleNote);
       shell.appendChild(scaleMount);
 
       target.appendChild(shell);

@@ -15,27 +15,27 @@
   bridge.Coach = bridge.Coach || {};
 
   var DEFAULT_COACH_ATTRIBUTES = {
-    judging_ability: 5,
-    judging_potential: 5,
-    tactical_knowledge: 5,
-    coaching_outfield: 5,
-    coaching_goalkeepers: 5,
-    technical_coaching: 5,
-    attacking_coaching: 5,
-    defending_coaching: 5,
-    fitness_coaching: 5,
-    set_piece_coaching: 5,
-    man_management: 5,
-    motivating: 5,
-    discipline_management: 5,
-    physiotherapy: 5,
-    sports_science: 5,
-    working_with_youngsters: 5,
-    adaptability: 5,
-    determination: 5,
-    data_analysis: 5,
-    communication: 5,
-    coaching_style: 5
+    judging_ability: 0,
+    judging_potential: 0,
+    tactical_knowledge: 0,
+    coaching_outfield: 0,
+    coaching_goalkeepers: 0,
+    technical_coaching: 0,
+    attacking_coaching: 0,
+    defending_coaching: 0,
+    fitness_coaching: 0,
+    set_piece_coaching: 0,
+    man_management: 0,
+    motivating: 0,
+    discipline_management: 0,
+    physiotherapy: 0,
+    sports_science: 0,
+    working_with_youngsters: 0,
+    adaptability: 0,
+    determination: 0,
+    data_analysis: 0,
+    communication: 0,
+    coaching_style: 0
   };
 
   function getSupabaseClient() {
@@ -71,9 +71,9 @@
     var base = Object.assign({}, DEFAULT_COACH_ATTRIBUTES);
     if (rank === 0) return base;
 
-    var bump = [0, 2, 6, 10, 13, 15][rank];
+    var bump = [0, 0, 8, 12, 15, 17][rank];
     Object.keys(base).forEach(function(key) {
-      base[key] = Math.max(5, Math.min(20, base[key] + bump));
+      base[key] = Math.max(0, Math.min(20, base[key] + bump));
     });
 
     if (rank >= 2) {
@@ -191,7 +191,9 @@
         if (bridge.Coach && typeof bridge.Coach.getCoachCapabilities === 'function') {
           caps = await bridge.Coach.getCoachCapabilities(profileId);
           grade = caps.grade || grade;
-          attrs = buildAttributesByLicense(caps.licenseType || (caps.metadata && caps.metadata.license_type));
+          if (caps.isCertified) {
+            attrs = buildAttributesByLicense(caps.licenseType || (caps.metadata && caps.metadata.license_type));
+          }
         }
 
         var supabase = getSupabaseClient();
@@ -206,7 +208,7 @@
             Object.keys(attrs).forEach(function(key) {
               if (result.data.metadata.coach_attributes[key] !== undefined) {
                 var v = asNumber(result.data.metadata.coach_attributes[key]);
-                if (Number.isFinite(v)) attrs[key] = Math.max(1, Math.min(20, Math.floor(v)));
+                if (Number.isFinite(v)) attrs[key] = Math.max(0, Math.min(20, Math.floor(v)));
               }
             });
           }
