@@ -169,6 +169,76 @@
     return row;
   }
 
+  function openCoachCardModal(profile, caps, data) {
+    var old = document.getElementById('pp-coach-card-modal');
+    if (old) old.remove();
+
+    var overlay = el('div');
+    overlay.id = 'pp-coach-card-modal';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.86);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(8px)';
+
+    var box = el('div');
+    box.style.cssText = 'width:100%;max-width:440px;background:linear-gradient(160deg,#020617,#0f2a62);border:2px solid #facc15;border-radius:18px;padding:18px;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,.75),0 0 40px rgba(250,204,21,.2);position:relative;font-family:Arial,Helvetica,sans-serif';
+
+    var close = el('button', null, '✕');
+    close.type = 'button';
+    close.style.cssText = 'position:absolute;top:10px;right:10px;background:rgba(255,255,255,.1);color:#fff;border:none;border-radius:50%;width:34px;height:34px;font-weight:900;cursor:pointer';
+    close.addEventListener('click', function(){ overlay.remove(); });
+
+    var name = profile.full_name || profile.name || profile.email || 'Coach';
+    var img = profile.avatar_url || profile.photo_url || null;
+    var grade = caps.grade || data.grade || 'GRED_1_DAILY_COACH';
+    var license = caps.licenseType || 'Tiada / Grassroots';
+
+    var photo = el('div');
+    photo.style.cssText = 'width:136px;height:174px;margin:4px auto 14px;border-radius:18px;border:3px solid #facc15;background:linear-gradient(180deg,#1e3a8a,#020617);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 0 28px rgba(250,204,21,.35)';
+    if (img) {
+      var image = document.createElement('img');
+      image.src = img;
+      image.alt = name;
+      image.style.cssText = 'width:100%;height:100%;object-fit:cover';
+      photo.appendChild(image);
+    } else {
+      var init = el('div', null, name[0] ? name[0].toUpperCase() : 'C');
+      init.style.cssText = 'font-size:4rem;font-weight:900;color:#facc15;text-shadow:0 4px 18px rgba(0,0,0,.75)';
+      photo.appendChild(init);
+    }
+
+    var title = el('div', null, name);
+    title.style.cssText = 'font-size:1.6rem;font-weight:900;text-align:center;margin-bottom:6px';
+    var bio = el('div', null, buildCmBioLine(profile));
+    bio.style.cssText = 'font-size:1rem;color:#facc15;font-weight:900;text-align:center;margin-bottom:12px';
+    var meta = el('div', null, 'Lesen: ' + license + ' · ' + grade);
+    meta.style.cssText = 'font-size:.85rem;color:#dbeafe;text-align:center;font-weight:800;margin-bottom:10px;line-height:1.45';
+    var note = el('div', null, 'Paparan ini read-only. Atribut coach hanya boleh disahkan melalui Ujian Video PCSAP / Master Assessor, bukan edit bebas.');
+    note.style.cssText = 'font-size:.75rem;color:#bfdbfe;text-align:center;line-height:1.45;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px;margin-top:10px';
+
+    var attrs = data.attributes || {};
+    var mini = el('div');
+    mini.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px';
+    [['Judging Ability','judging_ability'],['Tactical','tactical_knowledge'],['Man Mgmt','man_management'],['Motivating','motivating']].forEach(function(pair){
+      var v = attrValue(attrs, pair[1], 0);
+      var c = el('div');
+      c.style.cssText = 'background:rgba(15,23,42,.75);border:1px solid rgba(148,163,184,.24);border-radius:9px;padding:8px;display:flex;justify-content:space-between;gap:8px;font-size:.78rem;font-weight:800';
+      c.appendChild(el('span', null, pair[0]));
+      var s = el('span', null, String(v));
+      s.style.cssText = 'color:' + progressColor(v) + ';font-weight:900';
+      c.appendChild(s);
+      mini.appendChild(c);
+    });
+
+    box.appendChild(close);
+    box.appendChild(photo);
+    box.appendChild(title);
+    box.appendChild(bio);
+    box.appendChild(meta);
+    box.appendChild(mini);
+    box.appendChild(note);
+    overlay.appendChild(box);
+    overlay.addEventListener('click', function(e){ if(e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+  }
+
   function renderCoachPassportCard(profile, caps, data) {
     var name = profile.full_name || profile.name || profile.email || 'Coach';
     var license = caps.licenseType || 'Tiada / Grassroots';
@@ -176,7 +246,9 @@
     var img = profile.avatar_url || profile.photo_url || null;
 
     var card = el('div', 'pp-coach-passport-card');
-    card.style.cssText = 'display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#050b18,#10204a);border:2px solid #38bdf8;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 10px 28px rgba(0,0,0,.35);color:#fff';
+    card.style.cssText = 'display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#050b18,#10204a);border:2px solid #38bdf8;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 10px 28px rgba(0,0,0,.35);color:#fff;cursor:pointer';
+    card.title = 'Klik untuk buka Kad Pasport Coach';
+    card.addEventListener('click', function(){ openCoachCardModal(profile, caps, data); });
 
     var photo = el('div', 'pp-coach-photo');
     photo.style.cssText = 'width:82px;height:104px;border-radius:13px;border:2px solid #facc15;background:linear-gradient(180deg,#1e3a8a,#020617);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;box-shadow:0 0 18px rgba(250,204,21,.22)';
@@ -208,7 +280,7 @@
     var follow = el('button', null, '+ FOLLOW');
     follow.type = 'button';
     follow.style.cssText = 'background:#2563eb;color:#fff;border:none;border-radius:999px;padding:7px 14px;font-size:.75rem;font-weight:900;cursor:pointer';
-    follow.addEventListener('click', function() { follow.textContent = follow.textContent.indexOf('FOLLOWED') >= 0 ? '+ FOLLOW' : '✓ FOLLOWED'; });
+    follow.addEventListener('click', function(e) { e.stopPropagation(); follow.textContent = follow.textContent.indexOf('FOLLOWED') >= 0 ? '+ FOLLOW' : '✓ FOLLOWED'; });
     var edit = el('button', null, '✏️ Edit Profil Coach');
     edit.type = 'button';
     edit.style.cssText = 'background:#f59e0b;color:#111827;border:none;border-radius:999px;padding:7px 14px;font-size:.75rem;font-weight:900;cursor:pointer';
@@ -505,7 +577,8 @@
       var passportCard = renderCoachPassportCard(coachProfile, caps, data);
       shell.appendChild(passportCard.card);
       var self = this;
-      passportCard.editButton.addEventListener('click', function() {
+      passportCard.editButton.addEventListener('click', function(e) {
+        if (e && e.stopPropagation) e.stopPropagation();
         self.renderCoachOnboardingForm(target, coachProfile, async function(payload, msgNode) {
           var supabase = bridge.Core && typeof bridge.Core.getSupabase === 'function' ? bridge.Core.getSupabase() : (bridge.Core && bridge.Core.supabase);
           if (!supabase || typeof supabase.rpc !== 'function') {
