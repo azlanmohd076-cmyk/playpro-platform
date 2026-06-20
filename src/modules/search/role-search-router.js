@@ -116,33 +116,47 @@
     }
 
     try {
-      var profileSelect = 'id,full_name,email,role,avatar_url,date_of_birth,ic_number,passport_number,nationality';
-      var profileResult = await supabase
-        .from('profiles')
-        .select(profileSelect)
-        .eq('id', profileId)
-        .maybeSingle();
+      var payload = null;
 
-      if (profileResult.error && profileResult.error.code === '42703') {
-        profileResult = await supabase
-          .from('profiles')
-          .select('id,full_name,email,role,avatar_url')
-          .eq('id', profileId)
-          .maybeSingle();
+      if (typeof supabase.rpc === 'function') {
+        var rpcResult = await supabase.rpc('get_public_coach_profile', { p_profile_id: profileId });
+        if (!rpcResult.error && rpcResult.data && rpcResult.data.success === true) {
+          payload = {
+            profile: rpcResult.data.profile || { id: profileId, full_name: 'Coach' },
+            assessor: rpcResult.data.assessor || {}
+          };
+        }
       }
 
-      if (profileResult.error) throw profileResult.error;
+      if (!payload) {
+        var profileSelect = 'id,full_name,email,role,avatar_url,date_of_birth,ic_number,passport_number,nationality';
+        var profileResult = await supabase
+          .from('profiles')
+          .select(profileSelect)
+          .eq('id', profileId)
+          .maybeSingle();
 
-      var assessorResult = await supabase
-        .from('certified_assessors')
-        .select('profile_id,license_type,status,max_attribute_score,trust_score,metadata')
-        .eq('profile_id', profileId)
-        .maybeSingle();
+        if (profileResult.error && profileResult.error.code === '42703') {
+          profileResult = await supabase
+            .from('profiles')
+            .select('id,full_name,email,role,avatar_url')
+            .eq('id', profileId)
+            .maybeSingle();
+        }
 
-      var payload = {
-        profile: profileResult.data || { id: profileId, full_name: 'Coach' },
-        assessor: assessorResult && !assessorResult.error && assessorResult.data ? assessorResult.data : {}
-      };
+        if (profileResult.error) throw profileResult.error;
+
+        var assessorResult = await supabase
+          .from('certified_assessors')
+          .select('profile_id,license_type,status,max_attribute_score,trust_score,metadata')
+          .eq('profile_id', profileId)
+          .maybeSingle();
+
+        payload = {
+          profile: profileResult.data || { id: profileId, full_name: 'Coach' },
+          assessor: assessorResult && !assessorResult.error && assessorResult.data ? assessorResult.data : {}
+        };
+      }
 
       if (list && bridge.Coach && bridge.Coach.UI && typeof bridge.Coach.UI.renderCoachPublicProfile === 'function') {
         var back = document.createElement('button');

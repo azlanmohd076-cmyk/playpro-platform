@@ -445,6 +445,62 @@
       return wrap;
     },
 
+    renderCoachPublicIdentityCard: function(container, profile, assessor, attrs) {
+      var target = typeof container === 'string' ? document.querySelector(container) : container;
+      if (!target) return null;
+
+      var visual = coachGradeVisual({ isCertified: assessor && assessor.status === 'active', maxScore: assessor && assessor.max_attribute_score, licenseType: assessor && assessor.license_type });
+      var name = profile.full_name || profile.name || profile.email || 'Coach';
+      var img = profile.avatar_url || profile.photo_url || null;
+      var license = assessor.license_type || 'Grassroots / Tiada Maklumat';
+      var grade = assessor.status === 'active' ? 'GRED_2_CERTIFIED_ASSESSOR' : 'GRED_1_DAILY_COACH';
+
+      var card = el('div', 'pp-coach-public-id-card');
+      card.style.cssText = 'display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,' + visual.bg2 + ',' + visual.bg1 + ');border:2px solid ' + visual.border + ';border-radius:14px;padding:14px;margin:14px;box-shadow:0 10px 28px rgba(0,0,0,.35),0 0 22px ' + visual.glow + ';color:#fff;cursor:pointer';
+      card.title = 'Klik untuk buka kad besar coach';
+      card.addEventListener('click', function(){ openCoachCardModal(profile, { licenseType: license, grade: grade, maxScore: assessor.max_attribute_score || 5, isCertified: assessor.status === 'active' }, { grade: grade, attributes: attrs || {} }); });
+
+      var photo = el('div');
+      photo.style.cssText = 'width:84px;height:108px;border-radius:13px;border:2px solid ' + visual.border + ';background:linear-gradient(180deg,' + visual.bg1 + ',' + visual.bg2 + ');display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;box-shadow:0 0 18px ' + visual.glow;
+      if (img) {
+        var image = document.createElement('img');
+        image.src = img;
+        image.alt = name;
+        image.style.cssText = 'width:100%;height:100%;object-fit:cover';
+        photo.appendChild(image);
+      } else {
+        var init = el('div', null, name[0] ? name[0].toUpperCase() : 'C');
+        init.style.cssText = 'font-size:2.5rem;font-weight:900;color:' + visual.border;
+        photo.appendChild(init);
+      }
+
+      var info = el('div');
+      info.style.cssText = 'flex:1;min-width:0';
+      var title = el('div', null, name);
+      title.style.cssText = 'font-size:1.25rem;font-weight:900;margin-bottom:4px';
+      var bio = el('div', null, buildCmBioLine(profile));
+      bio.style.cssText = 'font-size:.88rem;color:#facc15;font-weight:900;margin-bottom:7px';
+      var meta = el('div', null, 'Lesen: ' + license + ' · ' + grade);
+      meta.style.cssText = 'font-size:.76rem;color:#cbd5e1;font-weight:800;line-height:1.35';
+      var hint = el('div', null, 'Klik kad / avatar untuk paparan besar. Profil ini read-only.');
+      hint.style.cssText = 'font-size:.66rem;color:#93c5fd;margin-top:6px;font-weight:700';
+
+      var follow = el('button', null, '+ FOLLOW');
+      follow.type = 'button';
+      follow.style.cssText = 'margin-top:9px;background:#2563eb;color:#fff;border:none;border-radius:999px;padding:7px 14px;font-size:.75rem;font-weight:900;cursor:pointer';
+      follow.addEventListener('click', function(e){ e.stopPropagation(); follow.textContent = follow.textContent.indexOf('FOLLOWED') >= 0 ? '+ FOLLOW' : '✓ FOLLOWED'; });
+
+      info.appendChild(title);
+      info.appendChild(bio);
+      info.appendChild(meta);
+      info.appendChild(hint);
+      info.appendChild(follow);
+      card.appendChild(photo);
+      card.appendChild(info);
+      target.appendChild(card);
+      return card;
+    },
+
     renderCoachPublicProfile: function(container, payload) {
       injectStylesOnce();
 
@@ -477,6 +533,8 @@
       head.appendChild(title);
       head.appendChild(bio);
       shell.appendChild(head);
+
+      this.renderCoachPublicIdentityCard(shell, profile, assessor, attrs);
 
       var body = el('div');
       body.style.cssText = 'display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:12px;padding:14px;background:linear-gradient(rgba(4,10,25,.88),rgba(4,10,25,.92))';
