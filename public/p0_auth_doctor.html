@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PlayPro — P0 Auth Doctor</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  window.PLAYPRO_SUPABASE_URL='https://wxalcnpsbijxfmnzswxd.supabase.co';
+  window.PLAYPRO_SUPABASE_ANON_KEY='';
+</script>
+<style>
+  :root{--bg:#0d1117;--card:#161b22;--bdr:#30363d;--txt:#e6edf3;--dim:#8b949e;
+        --ok:#3fb950;--bad:#f85149;--warn:#d29922;--info:#58a6ff}
+  *{box-sizing:border-box}
+  body{margin:0;padding:1.5rem;background:var(--bg);color:var(--txt);
+       font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:860px;margin:0 auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);font-size:.85rem;margin-bottom:1.2rem}
+  .card{background:var(--card);border:1px solid var(--bdr);border-radius:10px;
+        padding:1rem 1.1rem;margin-bottom:.85rem}
+  .row{display:flex;gap:.7rem;align-items:flex-start;padding:.55rem 0;
+       border-bottom:1px solid rgba(255,255,255,.05)}
+  .row:last-child{border-bottom:0}
+  .badge{flex:none;min-width:74px;text-align:center;font-weight:700;font-size:.7rem;
+         padding:.22rem .45rem;border-radius:5px;letter-spacing:.03em}
+  .b-ok{background:rgba(63,185,80,.15);color:var(--ok);border:1px solid rgba(63,185,80,.4)}
+  .b-bad{background:rgba(248,81,73,.15);color:var(--bad);border:1px solid rgba(248,81,73,.4)}
+  .b-warn{background:rgba(210,153,34,.15);color:var(--warn);border:1px solid rgba(210,153,34,.4)}
+  .b-run{background:rgba(88,166,255,.15);color:var(--info);border:1px solid rgba(88,166,255,.4)}
+  .t{font-weight:600}
+  .d{color:var(--dim);font-size:.8rem;margin-top:.15rem;word-break:break-word}
+  button{background:var(--info);color:#04121f;border:0;border-radius:7px;
+         padding:.6rem 1.1rem;font-weight:700;cursor:pointer;font-size:.9rem}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  input{background:#0d1117;border:1px solid var(--bdr);color:var(--txt);
+        border-radius:6px;padding:.5rem .6rem;width:100%;font-family:ui-monospace,monospace;font-size:.8rem}
+  label{display:block;font-size:.72rem;color:var(--dim);margin:.55rem 0 .2rem;font-weight:600}
+  .verdict{padding:.9rem 1.1rem;border-radius:9px;margin-bottom:.85rem;display:none;font-size:.9rem}
+  .v-bad{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.45)}
+  .v-ok{background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.45)}
+  code{background:#0d1117;padding:.1rem .3rem;border-radius:4px;
+       font-family:ui-monospace,monospace;font-size:.8rem}
+  ol{margin:.5rem 0 0 1.1rem;padding:0}
+  ol li{margin:.3rem 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PlayPro — P0 Auth Doctor</h1>
+  <div class="sub">
+    Diagnoses the <code>Failed to fetch</code> signup/login failure.
+    Read-only: creates no users, writes no data.
+  </div>
+
+  <div class="card">
+    <label>Supabase URL</label>
+    <input id="u" placeholder="https://xxxx.supabase.co"/>
+    <label>Anon key (safe to paste — public, RLS-gated)</label>
+    <input id="k" placeholder="eyJhbGciOi..."/>
+    <div style="margin-top:.9rem"><button id="go">Run diagnosis</button></div>
+  </div>
+
+  <div id="verdict" class="verdict"></div>
+  <div class="card" id="out"><div class="d">Press “Run diagnosis”.</div></div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var out=document.getElementById('out'), verdict=document.getElementById('verdict');
+  document.getElementById('u').value = window.PLAYPRO_SUPABASE_URL||'';
+  document.getElementById('k').value = window.PLAYPRO_SUPABASE_ANON_KEY||'';
+
+  function add(state,title,detail){
+    var cls={ok:'b-ok',bad:'b-bad',warn:'b-warn',run:'b-run'}[state];
+    var lbl={ok:'PASS',bad:'FAIL',warn:'WARN',run:'...'}[state];
+    var r=document.createElement('div'); r.className='row';
+    r.innerHTML='<span class="badge '+cls+'">'+lbl+'</span><div><div class="t"></div>'+
+                '<div class="d"></div></div>';
+    r.querySelector('.t').textContent=title;
+    r.querySelector('.d').textContent=detail||'';
+    out.appendChild(r); return r;
+  }
+  function show(kind,html){
+    verdict.className='verdict '+(kind==='ok'?'v-ok':'v-bad');
+    verdict.style.display='block'; verdict.innerHTML=html;
+  }
+
+  function timedFetch(url,opts,ms){
+    return Promise.race([
+      fetch(url,opts),
+      new Promise(function(_,rej){ setTimeout(function(){rej(new Error('timeout after '+ms+'ms'));},ms); })
+    ]);
+  }
+
+  document.getElementById('go').onclick=function(){
+    var btn=this; btn.disabled=true;
+    out.innerHTML=''; verdict.style.display='none';
+
+    var url=document.getElementById('u').value.trim().replace(/\/+$/,'');
+    var key=document.getElementById('k').value.trim();
+
+    if(!url){ add('bad','No URL supplied','Paste your Supabase project URL.'); btn.disabled=false; return; }
+
+    // 1. URL shape
+    var host='';
+    try{
+      var p=new URL(url); host=p.hostname;
+      if(p.protocol!=='https:') add('bad','URL is not https','Supabase requires https.');
+      else add('ok','URL format valid', host);
+    }catch(e){ add('bad','URL unparseable', String(e.message)); btn.disabled=false; return; }
+
+    // 2. Anon key shape
+    if(!key){
+      add('warn','Anon key empty','Auth/REST probes will be skipped or return 401.');
+    }else{
+      try{
+        var seg=key.split('.');
+        if(seg.length!==3) throw new Error('not a 3-part JWT');
+        var pad=seg[1].replace(/-/g,'+').replace(/_/g,'/');
+        while(pad.length%4) pad+='=';
+        var claims=JSON.parse(atob(pad));
+        var expd=claims.exp?new Date(claims.exp*1000):null;
+        var expired=expd&&expd.getTime()<Date.now();
+        var refMatch=claims.ref&&host.indexOf(claims.ref)===0;
+
+        add(claims.role==='anon'?'ok':'warn','Key role: '+(claims.role||'unknown'),
+            claims.role==='service_role'
+              ? 'DANGER: this is a SERVICE ROLE key. Never put it in a browser page.'
+              : 'Correct key type for browser use.');
+        add(refMatch?'ok':'bad','Key project ref '+(refMatch?'matches':'DOES NOT MATCH')+' URL',
+            'key.ref='+(claims.ref||'?')+'  url.host='+host);
+        add(expired?'bad':'ok','Key expiry', expd? (expired?'EXPIRED '+expd.toISOString():'valid until '+expd.toISOString()) : 'no exp claim');
+      }catch(e){ add('bad','Anon key is not a valid JWT', String(e.message)); }
+    }
+
+    // 3. DNS / reachability — the decisive test
+    var rDns=add('run','Resolving + reaching '+host,'...');
+    var t0=performance.now();
+
+    timedFetch(url+'/auth/v1/health',{headers:key?{apikey:key}:{}} ,12000)
+      .then(function(res){
+        var ms=Math.round(performance.now()-t0);
+        rDns.querySelector('.badge').className='badge b-ok';
+        rDns.querySelector('.badge').textContent='PASS';
+        rDns.querySelector('.t').textContent='Host reachable — HTTP '+res.status;
+        rDns.querySelector('.d').textContent='GoTrue /auth/v1/health responded in '+ms+'ms';
+
+        // 4. REST + profiles table
+        return timedFetch(url+'/rest/v1/profiles?select=id&limit=1',
+          {headers:{apikey:key,Authorization:'Bearer '+key}},12000)
+          .then(function(r2){
+            if(r2.status===200) add('ok','REST reachable, profiles readable','HTTP 200');
+            else if(r2.status===401||r2.status===403) add('warn','REST reachable, profiles blocked','HTTP '+r2.status+' — RLS is active (expected for anon).');
+            else if(r2.status===404) add('bad','profiles table NOT FOUND','HTTP 404 — schema not migrated on this project.');
+            else add('warn','REST responded HTTP '+r2.status,'');
+          })
+          .then(function(){
+            // 5. Are the P0 RPCs deployed?
+            return timedFetch(url+'/rest/v1/rpc/get_my_profile',
+              {method:'POST',headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'},body:'{}'},12000)
+              .then(function(r3){
+                if(r3.status===404) add('bad','P0 repair RPCs NOT deployed','get_my_profile missing — run database/model6_p0_auth_identity_repair.sql');
+                else add('ok','P0 repair RPCs present','get_my_profile responded HTTP '+r3.status);
+              });
+          })
+          .then(function(){
+            show('ok','<b>Backend is reachable.</b> If signup still fails, the cause is schema/RLS — check the FAIL rows above.');
+          });
+      })
+      .catch(function(err){
+        var ms=Math.round(performance.now()-t0);
+        rDns.querySelector('.badge').className='badge b-bad';
+        rDns.querySelector('.badge').textContent='FAIL';
+        rDns.querySelector('.t').textContent='Cannot reach '+host;
+        rDns.querySelector('.d').textContent=err.message+' (after '+ms+'ms)';
+
+        show('bad',
+          '<b>ROOT CAUSE: the Supabase backend is unreachable.</b><br>'+
+          'The browser could not open a connection to <code>'+host+'</code>. '+
+          'This is exactly what surfaces in the UI as <code>Failed to fetch</code> — '+
+          'it is not a password problem and not a code bug.'+
+          '<ol>'+
+          '<li>Open the Supabase dashboard and check whether this project is <b>paused</b> '+
+          '(free-tier projects pause after ~7 days idle) or <b>deleted</b>.</li>'+
+          '<li>If paused → click <b>Restore</b>, wait for “Active”, re-run this page.</li>'+
+          '<li>If deleted → create a new project, run every file in <code>/database</code> '+
+          'in order, then the P0 repair patch, then update the URL + anon key in all HTML files.</li>'+
+          '<li>If active → check DNS from your network and the Auth URL allow-list.</li>'+
+          '</ol>');
+      })
+      .then(function(){ btn.disabled=false; });
+  };
+})();
+</script>
+</body>
+</html>

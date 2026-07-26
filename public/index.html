@@ -2930,11 +2930,29 @@ async function doLogin(){
   const{data,error}=await SB.auth.signInWithPassword({email:em,password:pw});
   btn.disabled=false;btn.textContent='Log Masuk →';
   if(error){
-    const m=(error.message.includes('Invalid')||error.message.includes('credentials'))
-      ?'❌ Emel atau kata laluan tidak tepat. Cuba "Lupa kata laluan?" di bawah.'
-      :'❌ '+error.message;
+    /* P0 REPAIR 2026-07-26 — never blame the user's password for a
+       network failure. "Failed to fetch" means the browser could not
+       reach Supabase at all (paused project / DNS / offline). */
+    const msg=String(error.message||'');
+    let m;
+    if(/Failed to fetch|NetworkError|Load failed|ERR_NAME_NOT_RESOLVED/i.test(msg)){
+      m='❌ Tidak dapat hubungi pelayan PlayPro. Ini masalah sambungan/pelayan, bukan kata laluan anda. Sila cuba sebentar lagi.';
+      console.error('[PlayPro] Supabase unreachable. Check project paused/DNS/URL config.',msg);
+    } else if(msg.includes('Invalid')||msg.includes('credentials')){
+      m='❌ Emel atau kata laluan tidak tepat. Cuba "Lupa kata laluan?" di bawah.';
+    } else if(/Email not confirmed/i.test(msg)){
+      m='❌ Emel belum disahkan. Sila semak inbox (dan folder spam).';
+    } else {
+      m='❌ '+msg;
+    }
     setMsg('l-msg',m,'err');return;
   }
+  /* Self-heal: guarantee a profiles row exists for legacy accounts
+     created while the signup trigger / profile write was broken. */
+  try{
+    const{error:healErr}=await SB.rpc('ensure_profile_after_signup',{p_full_name:null,p_phone:null});
+    if(healErr) console.warn('[PlayPro] profile self-heal skipped:',healErr.message);
+  }catch(e){ console.warn('[PlayPro] profile self-heal threw:',e&&e.message); }
   _u=data.user;_pd=null;updateUI();closeLogin();
   toast('✅ Selamat datang, '+(_u.user_metadata?.full_name||_u.email.split('@')[0])+'!');
   if(_tab==='profile')loadProfile();
@@ -2960,28 +2978,67 @@ async function doRegister(){
   if(!name||!em||!pw){setMsg('d-msg','⚠️ Sila isi semua maklumat','err');return}
   if(pw.length<8){setMsg('d-msg','⚠️ Kata laluan mesti 8 aksara ke atas','err');return}
   btn.disabled=true;btn.innerHTML='<span class="spin"></span>Mendaftar...';
-  const{data,error}=await SB.auth.signUp({email:em,password:pw,options:{data:{full_name:name,role:role,phone:fullPhone}}});
-  btn.disabled=false;btn.textContent='Buat Akaun →';
-  if(error){setMsg('d-msg','❌ '+error.message,'err');return}
-  // Insert profiles terus selepas signup
-  if(data?.user){
-    try{
-      await SB.from('profiles').upsert({
-        id:data.user.id,
-        full_name:name,
-        phone:fullPhone||null,
-        role:role
-      },{onConflict:'id'});
-    }catch(e){console.warn('profiles insert on register:',e.message);}
-    _u=data.user;
-    updateUI();
-    closeLogin();
-    var userRole=role||'player';
-    if(userRole==='player'||userRole==='coach'||userRole==='referee'){
+
+  /* P0 REPAIR 2026-07-26 — delegate to Model 6 auth service.
+     Old code wrote profiles.role directly, which became an UPDATE
+     (the DB trigger had already inserted the row) and was rejected by
+     trg_prevent_role_escalation. It also omitted the NOT NULL email
+     column, and wrapped it all in a try/catch that could never fire
+     because supabase-js resolves with {error} instead of throwing.
+     Onboarding now opens ONLY after the profile row is confirmed. */
+  var AUTH=(window.PlayProModel6&&window.PlayProModel6.Auth&&window.PlayProModel6.Auth.Session)||null;
+
+  if(AUTH){
+    var res=await AUTH.signUp({email:em,password:pw,fullName:name,phone:fullPhone,role:role});
+    btn.disabled=false;btn.textContent='Buat Akaun →';
+
+    if(!res.ok){
+      setMsg('d-msg','❌ '+(res.error&&res.error.userMessage?res.error.userMessage:'Pendaftaran gagal'),'err');
+      if(res.partial){
+        console.error('[PlayPro] AUTH USER CREATED BUT PROFILE MISSING — do not start onboarding.',res.error);
+      }
+      return;
+    }
+    if(res.pendingConfirmation){
+      setMsg('d-msg','✅ '+res.message,'ok');
+      return;
+    }
+
+    _u=res.user; _pd=null;
+    updateUI(); closeLogin();
+
+    var confirmedRole=res.role||role||'player';
+    if(confirmedRole==='player'||confirmedRole==='coach'||confirmedRole==='referee'){
       showOnboarding();
     } else {
       toast('✅ Akaun dibuat! Selamat datang ke PlayPro!');
     }
+    return;
+  }
+
+  /* Fallback: module bundle failed to load. Never write profiles.role
+     from the client — let the DB trigger own it. */
+  const{data,error}=await SB.auth.signUp({email:em,password:pw,options:{data:{full_name:name,role:role,phone:fullPhone}}});
+  btn.disabled=false;btn.textContent='Buat Akaun →';
+  if(error){
+    var em2=String(error.message||'');
+    setMsg('d-msg', /Failed to fetch|NetworkError|Load failed/i.test(em2)
+      ? '❌ Tidak dapat hubungi pelayan PlayPro. Ini masalah sambungan/pelayan, bukan kata laluan anda.'
+      : '❌ '+em2, 'err');
+    return;
+  }
+  if(data?.user&&data?.session){
+    const{data:prof,error:profErr}=await SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:fullPhone||null});
+    if(profErr){
+      console.error('[PlayPro] ensure_profile_after_signup failed:',profErr);
+      setMsg('d-msg','❌ Akaun dibuat tetapi profil gagal disimpan. Sila log masuk semula.','err');
+      return;
+    }
+    _u=data.user; _pd=null;
+    updateUI(); closeLogin();
+    var r2=(prof&&prof.role)||role||'player';
+    if(r2==='player'||r2==='coach'||r2==='referee'){ showOnboarding(); }
+    else { toast('✅ Akaun dibuat! Selamat datang ke PlayPro!'); }
   } else {
     setMsg('d-msg','✅ Akaun dibuat! Semak emel '+em+' untuk pengesahan.','ok');
   }
@@ -5034,9 +5091,11 @@ async function obSkip(){
   var phone=_u.user_metadata?.phone||null;
   var fp=_obDOB?generateFPNo(_obDOB,_obStateCode,name):null;
   try{
-    await SB.from('profiles').upsert({
-      id:_u.id,full_name:name,phone:phone,role:role
-    },{onConflict:'id'});
+    /* P0 REPAIR: was upsert({...role}) -> became UPDATE -> rejected by
+       trg_prevent_role_escalation (42501), and omitted NOT NULL email.
+       RPC owns role + email server-side. */
+    var{error:profErr}=await SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
+    if(profErr) console.error('[PlayPro] ensure_profile failed:',profErr.message);
     var payload={
       profile_id:_u.id,full_name:name,preferred_name:name,
       is_active:true,is_passport_public:true,
@@ -5065,15 +5124,13 @@ async function saveOnboardingStep1(){
   var phone=_u.user_metadata?.phone||null;
   var fp=_obDOB?generateFPNo(_obDOB,_obStateCode,name):null;
 
-  // Step 1: Insert profiles dulu (FK requirement)
+  // Step 1: Guarantee profiles row (FK requirement)
+  // P0 REPAIR: client must not write profiles.role (42501 guard) and
+  // must not omit the NOT NULL email column. RPC handles both.
   try{
-    await SB.from('profiles').upsert({
-      id:_u.id,
-      full_name:name,
-      phone:phone,
-      role:role
-    },{onConflict:'id'});
-  }catch(e){console.warn('profiles upsert:',e.message);}
+    var{error:profErr1}=await SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
+    if(profErr1) console.error('[PlayPro] ensure_profile failed:',profErr1.message);
+  }catch(e){console.error('[PlayPro] ensure_profile threw:',e&&e.message);}
 
   // Step 2: Insert players
   var payload={
@@ -5135,12 +5192,12 @@ async function obComplete(){
     var phone=obPhoneNum?(obPhoneCode+obPhoneNum):(_u.user_metadata?.phone||null);
     var fp=_obDOB?generateFPNo(_obDOB,_obStateCode,name):null;
 
-    // 1. Insert profiles dulu
+    // 1. Guarantee profiles row
+    // P0 REPAIR: RPC owns role + email server-side (see 42501 guard).
     try{
-      await SB.from('profiles').upsert({
-        id:_u.id,full_name:name,phone:phone,role:role
-      },{onConflict:'id'});
-    }catch(pe){console.warn('profiles:',pe.message);}
+      var{error:profErr2}=await SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
+      if(profErr2) console.error('[PlayPro] ensure_profile failed:',profErr2.message);
+    }catch(pe){console.error('[PlayPro] ensure_profile threw:',pe&&pe.message);}
 
     // 2. Insert players
     var payload={

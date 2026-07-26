@@ -274,7 +274,7 @@ const PP = {
   /* ── SVG Chart: Bar ─────────────────────────────────────── */
   barChart(data, labels, opts={}) {
     const { w=280, h=80, color='var(--green)', highlightLast=true } = opts;
-    const pad = { t:14, r:6, b=18, l:6 };
+    const pad = { t:14, r:6, b:18, l:6 };
     const cw = w - pad.l - pad.r;
     const ch = h - pad.t - pad.b;
     const max = Math.max(...data, 1);

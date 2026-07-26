@@ -27,6 +27,7 @@
 
   var dependencies = [
     '/src/core/supabase-client.js',
+    '/src/modules/auth/auth-session.service.js',
     '/src/modules/passport/passport-status.js',
     '/src/modules/league-os/eligibility-engine.js',
     '/src/modules/league-os/matchday-engine.js',

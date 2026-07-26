@@ -129,7 +129,8 @@
       }
 
       if (!payload) {
-        var profileSelect = 'id,full_name,email,role,avatar_url,date_of_birth,ic_number,passport_number,nationality';
+        // P1 PRIVASI: emel/IC/pasport DIBUANG - jangan tarik data peribadi untuk paparan awam
+        var profileSelect = 'id,full_name,role,avatar_url,nationality';
         var profileResult = await supabase
           .from('profiles')
           .select(profileSelect)
@@ -139,7 +140,7 @@
         if (profileResult.error && profileResult.error.code === '42703') {
           profileResult = await supabase
             .from('profiles')
-            .select('id,full_name,email,role,avatar_url')
+            .select('id,full_name,role,avatar_url')
             .eq('id', profileId)
             .maybeSingle();
         }
@@ -188,22 +189,23 @@
     }
 
     try {
-      var selectFields = 'id,full_name,email,role,avatar_url,date_of_birth,ic_number,passport_number,nationality';
+      // P1 PRIVASI: emel/IC/pasport DIBUANG daripada carian awam
+      var selectFields = 'id,full_name,role,avatar_url,nationality';
       var query = supabase
         .from('profiles')
         .select(selectFields)
         .eq('role', 'coach');
 
-      if (q) query = query.or('full_name.ilike.%' + q + '%,email.ilike.%' + q + '%');
+      if (q) query = query.ilike('full_name', '%' + q + '%');
 
       var result = await query.order('full_name', { ascending: true }).limit(50);
 
       if (result.error && result.error.code === '42703') {
         var fallbackQuery = supabase
           .from('profiles')
-          .select('id,full_name,email,role,avatar_url')
+          .select('id,full_name,role,avatar_url')
           .eq('role', 'coach');
-        if (q) fallbackQuery = fallbackQuery.or('full_name.ilike.%' + q + '%,email.ilike.%' + q + '%');
+        if (q) fallbackQuery = fallbackQuery.ilike('full_name', '%' + q + '%');
         result = await fallbackQuery.order('full_name', { ascending: true }).limit(50);
       }
 
