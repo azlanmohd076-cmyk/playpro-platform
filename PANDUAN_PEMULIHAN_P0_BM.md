@@ -8,7 +8,7 @@
 
 ## Ringkasan dalam satu perenggan
 
-Backend Supabase bos **tidak wujud** — hostname `wxalcnpsbijxfmnzswxd.supabase.co`
+Backend Supabase bos **tidak wujud** — hostname `muirhenvjruvfxenoaxm.supabase.co`
 tidak boleh dicari dalam DNS dunia. Itulah punca `Failed to fetch`. Selain itu, saya
 jumpa **3 bug lagi** yang akan tetap merosakkan pendaftaran walaupun selepas backend
 dipulihkan. Ketiga-tiga bug itu sudah dibaiki, dan kali ini saya **betul-betul uji**
@@ -21,7 +21,7 @@ patch tersebut pada PostgreSQL sebenar — bukan sekadar baca kod.
 Saya tiada akses dashboard bos, jadi langkah ini wajib bos sendiri.
 
 1. Buka https://supabase.com/dashboard
-2. Cari projek dengan ref: **`wxalcnpsbijxfmnzswxd`**
+2. Cari projek dengan ref: **`muirhenvjruvfxenoaxm`**
 
 Kemudian ikut keadaan:
 

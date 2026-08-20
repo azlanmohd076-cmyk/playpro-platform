@@ -13,7 +13,7 @@
 # 1. RINGKASAN SATU PERENGGAN
 
 `Failed to fetch` **bukan bug kod**. Hostname Supabase
-`wxalcnpsbijxfmnzswxd.supabase.co` **tidak wujud dalam DNS dunia** — projek
+`muirhenvjruvfxenoaxm.supabase.co` **tidak wujud dalam DNS dunia** — projek
 paused atau deleted. Selain itu, **3 bug tambahan** ditemui yang akan tetap
 merosakkan pendaftaran walaupun backend hidup semula. Ketiga-tiganya sudah
 dibaiki dan **diuji hidup pada PostgreSQL 17**. Satu **kebocoran data peribadi
@@ -318,7 +318,7 @@ Kejujuran teknikal (peraturan #1 brief lama):
 ## Yang perlu bos buat (tiada siapa lain boleh)
 
 **LANGKAH 1** — Buka https://supabase.com/dashboard, cari ref
-`wxalcnpsbijxfmnzswxd`. Laporkan statusnya: **Paused / Deleted / Active**.
+`muirhenvjruvfxenoaxm`. Laporkan statusnya: **Paused / Deleted / Active**.
 
 Tanpa maklumat ini, tiada apa yang boleh bergerak.
 

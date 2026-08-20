@@ -11,7 +11,7 @@
 ## 0. Executive summary — for the boss, in one paragraph
 
 `Failed to fetch` is **not a code bug**. Your Supabase backend hostname
-`wxalcnpsbijxfmnzswxd.supabase.co` **does not exist in global DNS**. The project is
+`muirhenvjruvfxenoaxm.supabase.co` **does not exist in global DNS**. The project is
 paused or deleted. No frontend fix can repair this — the app is calling a server
 that is not there.
 
@@ -45,10 +45,10 @@ network failure. All three are now fixed, tested, and committed to your working 
 ### Evidence
 
 ```
-$ getent hosts wxalcnpsbijxfmnzswxd.supabase.co
+$ getent hosts muirhenvjruvfxenoaxm.supabase.co
    -> (no output, exit 2)
 
-$ curl https://wxalcnpsbijxfmnzswxd.supabase.co/auth/v1/health
+$ curl https://muirhenvjruvfxenoaxm.supabase.co/auth/v1/health
    curl: (6) Could not resolve host
 ```
 
@@ -56,7 +56,7 @@ Not a sandbox artefact. Verified against two independent public resolvers:
 
 | Query | Cloudflare `1.1.1.1` | Google `8.8.8.8` |
 |---|---|---|
-| `wxalcnpsbijxfmnzswxd.supabase.co` | **Status 3 (NXDOMAIN)** | **Status 3 (NXDOMAIN)** |
+| `muirhenvjruvfxenoaxm.supabase.co` | **Status 3 (NXDOMAIN)** | **Status 3 (NXDOMAIN)** |
 | `supabase.co` (control) | Status 0 → `76.76.21.21` | Status 0 |
 | `random-control-xyz-987.supabase.co` | Status 3 | — |
 
@@ -81,7 +81,7 @@ stops resolving, and the browser surfaces `ERR_NAME_NOT_RESOLVED` →
 
 ### Fix — only you can do this (needs dashboard access)
 
-1. Open the Supabase dashboard → find project ref `wxalcnpsbijxfmnzswxd`.
+1. Open the Supabase dashboard → find project ref `muirhenvjruvfxenoaxm`.
 2. **If paused** → **Restore**. Wait for status `Active`, then re-test.
 3. **If deleted** → create a new project, then:
    - run every file in `/database` in order,

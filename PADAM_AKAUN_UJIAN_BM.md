@@ -80,7 +80,7 @@ Jangkaan:
 # KAEDAH 2 — Melalui Dashboard (jika lebih selesa klik)
 
 1. Buka https://supabase.com/dashboard
-2. Pilih projek `wxalcnpsbijxfmnzswxd`
+2. Pilih projek `muirhenvjruvfxenoaxm`
 3. Menu kiri → **Authentication** → **Users**
 4. Dalam kotak carian, taip: `playpro-test`
 5. Bos akan nampak 8 pengguna

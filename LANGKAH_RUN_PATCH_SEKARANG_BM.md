@@ -123,7 +123,7 @@ kandungan. Pastikan fail betul-betul terbuka.
 ## LANGKAH 3 — Tampal ke Supabase SQL Editor
 
 1. Buka https://supabase.com/dashboard
-2. Pilih projek `wxalcnpsbijxfmnzswxd`
+2. Pilih projek `muirhenvjruvfxenoaxm`
 3. Menu kiri -> **SQL Editor**
 4. **Padam** teks lama dalam editor (yang menyebabkan ralat 42601)
 5. Tampal kod SQL yang bos salin tadi
