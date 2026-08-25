@@ -959,7 +959,7 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   transition: transform .45s cubic-bezier(.34,1.56,.64,1);
 }
 
-/* Floating animation — swing kiri kanan + sedikit naik turun */
+/* Floating animation �� swing kiri kanan + sedikit naik turun */
 .kad-modal-card.floating {
   animation: kadModalFloatNatural 6s ease-in-out infinite;
 }
@@ -1705,20 +1705,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
     </div>
     <div class="section">
       <div class="section-title">🔴 Sedang Berlangsung</div>
-      <div class="match-card" onclick="toast('Match live viewer akan datang!')">
-        <div class="mc-top">
-          <span class="mc-league">Liga Grassroot Selangor — U12 2026/27</span>
-          <span class="mc-live-badge"><div class="mc-live-dot"></div> LIVE</span>
-        </div>
-        <div class="mc-body">
-          <div class="mc-team"><div class="mc-logo">🦁</div><div class="mc-name">Kelab Muda Nilai</div></div>
-          <div class="mc-scores">
-            <div class="mc-score"><div class="mc-num">2</div><div class="mc-sep">—</div><div class="mc-num">1</div></div>
-            <div class="mc-min">67'</div>
-          </div>
-          <div class="mc-team"><div class="mc-logo">🦅</div><div class="mc-name">SS United FC</div></div>
-        </div>
-      </div>
+      <div class="empty-state">Belum ada perlawanan sedang berlangsung.</div>
     </div>
     <div class="section" style="padding-top:0">
       <div class="section-title">📰 Berita Terkini</div>
@@ -1947,15 +1934,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
             <div style="display:flex; align-items:center; gap:10px;">
               <span style="font-weight:800; color:#cbd5e1; font-size:.9rem;">Pilih Pemain:</span>
               <select class="form-select" id="ca-select-player" style="background:#1e293b; color:#fbbf24; border:2px solid #3b82f6; border-radius:8px; font-weight:850; font-size:.95rem; padding:8px 16px; cursor:pointer;" onchange="muatFormPenilaianCoach(this.value)">
-                <option value="Azlan">Azlan Mohd (OVR 91)</option>
-                <option value="L.Rom">L.Rom (OVR 91)</option>
-                <option value="Cikyut">Cikyut (OVR 92)</option>
-                <option value="Loko M">Loko M (OVR 82)</option>
-                <option value="Ebob">Ebob (OVR 80)</option>
-                <option value="Otai">Otai (OVR 73)</option>
-                <option value="Haji Boss">Haji Boss (OVR 51)</option>
-                <option value="Dayak">Dayak (OVR 0 - Lock)</option>
-                <option value="faro">faro (OVR 0 - Lock)</option>
+                <option value="">Tiada pemain dijumpai</option>
               </select>
             </div>
           </div>
@@ -5295,7 +5274,6 @@ async function loadTerTopDNA(){
       .not('dna_overall','is',null)
       .order('dna_overall',{ascending:false}).limit(5);
     if(dbData && dbData.length > 0) data = dbData;
-    if(!data || data.length === 0) data = DATABASE_PEMAIN_PLAYPRO.slice(0, 5);
     
     el.innerHTML='';
     data.forEach(function(p,i){
@@ -5325,7 +5303,6 @@ async function loadTerTopScorers(){
       .not('dna_overall','is',null)
       .order('dna_overall',{ascending:false}).limit(5);
     if(dbData && dbData.length > 0) data = dbData;
-    if(!data || data.length === 0) data = DATABASE_PEMAIN_PLAYPRO.slice(0, 5);
     
     el.innerHTML='';
     data.forEach(function(p,i){
@@ -5382,13 +5359,7 @@ async function onTerSearch(){
   }
 
   // Jika tiada hasil dari DB, gunakan fallback lokal
-  if(!data || !data.length){
-    data = DATABASE_PEMAIN_PLAYPRO.filter(function(p){
-      var matchNegeri = !negeri || (p.passport_number && p.passport_number.includes('-'+negeri+'-'));
-      var matchQ = !q || (p.full_name && p.full_name.toLowerCase().includes(q.toLowerCase())) || (p.preferred_name && p.preferred_name.toLowerCase().includes(q.toLowerCase())) || (p.nickname && p.nickname.toLowerCase().includes(q.toLowerCase()));
-      return matchNegeri && matchQ;
-    });
-  }
+  // Tiada fallback lokal: hasil mesti datang daripada Supabase.
 
   var count=document.getElementById('ter-results-count');
 
@@ -5436,7 +5407,8 @@ async function onTerSearch(){
 
 /* ── FEED ── */
 /* ── FEED DATA ── */
-const FEED=[
+const FEED=[]; /* Feed dimuatkan daripada Supabase sahaja. */
+/* const FEED=[
   {
     t:'keputusan', color:'#1a2744', accent:'#00B4D8',
     tag:'⚽ KEPUTUSAN AKHIR',
@@ -5471,11 +5443,15 @@ const FEED=[
     body:'🎯 2 assist dalam perlawanan semalam. Passport score naik ke <b>70</b>. Terima kasih kepada semua penyokong! 💚',
     l:78, c:19, s:5, age:'5 jam',
   },
-];
+]; */
 
 function buildFeed(){
   var feedEl = document.getElementById('feed');
   if(!feedEl) return;
+  if(!FEED.length){
+    feedEl.innerHTML='<div class="empty-state">Tiada rekod dijumpai.</div>';
+    return;
+  }
   feedEl.innerHTML = FEED.map(c => {
     if(c.t === 'keputusan') return `
       <div class="feed-card" style="overflow:hidden">
