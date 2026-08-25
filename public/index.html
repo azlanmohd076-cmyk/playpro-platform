@@ -17,6 +17,11 @@ window.PLAYPRO_SUPABASE_REDIRECT_URL='https://v0.app/chat/api/supabase/redirect/
 </script>
 <script src="/js/supabase.js"></script>
 <script src="/js/repositories.js"></script>
+<script>
+  // Expose the Supabase client as a true global lexical binding for legacy inline code.
+  // `window.SB` alone is not reliably resolved as bare `SB` in every preview runtime.
+  var SB = window.SB || null;
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
