@@ -1257,6 +1257,46 @@ const FollowRepo = {
 };
 
 /* ─────────────────────────────────────────────────────────────
+   REPOSITORY: Club Admin Squad Management
+───────────────────────────────────────────────────────────── */
+const SquadRepo = {
+  async players(clubId) {
+    const { data, error } = await SB.from('players')
+      .select('id, full_name, date_of_birth, position, jersey_number, nationality, is_active, photo_url')
+      .eq('club_id', clubId).eq('is_active', true)
+      .order('jersey_number', { ascending: true, nullsFirst: false });
+    if (error) { console.error('[SquadRepo.players]', error.message); return []; }
+    return _norm(data ?? []);
+  },
+  async coaches(clubId) {
+    const { data, error } = await SB.from('coaches')
+      .select('id, full_name, license, profile_id, is_active, photo_url')
+      .eq('club_id', clubId).eq('is_active', true).order('full_name');
+    if (error) { console.error('[SquadRepo.coaches]', error.message); return []; }
+    return _norm(data ?? []);
+  },
+  async addPlayer(clubId, input) {
+    const { data, error } = await SB.from('players').insert({
+      club_id: clubId, full_name: input.fullName.trim(), date_of_birth: input.dateOfBirth,
+      position: input.position, jersey_number: Number(input.jerseyNumber), is_active: true,
+    }).select('id, full_name, date_of_birth, position, jersey_number, is_active').single();
+    if (!error) cacheInvalidate('players:club:' + clubId);
+    return { data: _norm(data), error };
+  },
+  async addCoach(clubId, input) {
+    const { data, error } = await SB.from('coaches').insert({
+      club_id: clubId, full_name: input.fullName.trim(), license: input.license.trim() || null,
+      is_active: true,
+    }).select('id, full_name, license, is_active').single();
+    return { data: _norm(data), error };
+  },
+  async deactivate(table, id) {
+    const { error } = await SB.from(table).update({ is_active: false }).eq('id', id);
+    return { error };
+  },
+};
+
+/* ─────────────────────────────────────────────────────────────
    Utility helpers
 ───────────────────────────────────────────────────────────── */
 function _mondayOfThisWeek() {
@@ -1269,6 +1309,7 @@ function _mondayOfThisWeek() {
 
 /* ── Expose all repositories globally ─────────────────────── */
 window.UserRepo       = UserRepo;
+window.SquadRepo      = SquadRepo;
 window.PlayerRepo     = PlayerRepo;
 window.ClubRepo       = ClubRepo;
 window.LeagueRepo     = LeagueRepo;
