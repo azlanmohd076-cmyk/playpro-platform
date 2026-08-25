@@ -696,9 +696,50 @@ const FixtureRepo = {
     if (error) { return []; }
     return _norm(data ?? []);
   },
+
+  /** Full result for the League Admin ratification workflow. */
+  async result(fixtureId) {
+    const { data, error } = await SB
+      .from('match_results')
+      .select('*')
+      .eq('fixture_id', fixtureId)
+      .maybeSingle();
+    if (error) { console.error('[FixtureRepo.result]', error.message); return null; }
+    return _norm(data);
+  },
+
+  /** Save an official result and move the fixture into the official state. */
+  async ratifyResult(fixtureId, result, ratifiedBy) {
+    const payload = {
+      fixture_id: fixtureId,
+      ...result,
+      is_official: true,
+      ratified_by: ratifiedBy,
+      ratified_at: new Date().toISOString(),
+    };
+    const { data, error } = await SB
+      .from('match_results')
+      .upsert(payload, { onConflict: 'fixture_id' })
+      .select()
+      .single();
+    if (error) {
+      console.error('[FixtureRepo.ratifyResult]', error.message);
+      return { data: null, error };
+    }
+    const { error: fixtureError } = await SB
+      .from('fixtures')
+      .update({ status: 'official' })
+      .eq('id', fixtureId);
+    if (fixtureError) {
+      console.error('[FixtureRepo.ratifyResult.fixture]', fixtureError.message);
+      return { data: null, error: fixtureError };
+    }
+    cacheInvalidate('fixture:');
+    return { data: _norm(data), error: null };
+  },
 };
 
-/* ─────────────────────────────────────────────────────────────
+/* ─────────────────────────��───────────────────────────────────
    REPOSITORY: Passport
 ───────────────────────────────────────────────────────────── */
 const PassportRepo = {
