@@ -40,7 +40,9 @@ if (typeof supabase === 'undefined') {
 }
 
 /* ── Singleton Client ─────────────────────────────────────────── */
-const SB = supabase.createClient(
+// Use `var` intentionally: the legacy static frontend references SB directly.
+// A top-level `const` in this external script is not visible to a later script tag.
+var SB = window.supabase.createClient(
   PLAYPRO_CONFIG.supabaseUrl,
   PLAYPRO_CONFIG.supabaseAnonKey,
   {
