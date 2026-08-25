@@ -20,6 +20,7 @@ const PLAYPRO_CONFIG = {
   supabaseAnonKey: window.PLAYPRO_SUPABASE_ANON_KEY || 'YOUR_ANON_KEY',
 
   /* App settings */
+  authRedirectUrl: window.PLAYPRO_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`,
   defaultPageSize: 50,
   cacheTtlMs:      30_000,   // 30 s in-memory cache for read-heavy queries
 };
@@ -47,6 +48,7 @@ const SB = supabase.createClient(
       persistSession:    true,
       autoRefreshToken:  true,
       detectSessionInUrl: true,
+      flowType:          'pkce',
     },
     realtime: { params: { eventsPerSecond: 10 } },
     global: {
@@ -111,7 +113,14 @@ const Auth = {
 
   /** Register a new user. Returns { session, error }. */
   async signUp(email, password, meta = {}) {
-    return SB.auth.signUp({ email, password, options: { data: meta } });
+    return SB.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: PLAYPRO_CONFIG.authRedirectUrl,
+        data: meta,
+      },
+    });
   },
 
   /** Listen to auth state changes. */

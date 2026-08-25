@@ -13,6 +13,7 @@
 <script>
 window.PLAYPRO_SUPABASE_URL='https://muirhenvjruvfxenoaxm.supabase.co';
 window.PLAYPRO_SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11aXJoZW52anJ1dmZ4ZW5vYXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NjM0OTQsImV4cCI6MjA5MzEzOTQ5NH0.ZNphviTQfnMjkGIdZtevwC8jmJjTCaXHhojcv4g5R20';
+window.PLAYPRO_SUPABASE_REDIRECT_URL='https://v0.app/chat/api/supabase/redirect/sWOYxw7xZPa';
 </script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -1813,7 +1814,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
             <div class="d-flex gap-2 flex-wrap">
               <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('🔥 Pacing Padu')">🔥 Pacing Padu</button>
               <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('🏃‍♂️ Pancit FC')">🏃‍♂️ Pancit FC</button>
-              <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('🟨 Kad Kuning')">🟨 Kad Kuning</button>
+              <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('��� Kad Kuning')">🟨 Kad Kuning</button>
               <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('🏆 Otai Match')">🏆 Otai Match</button>
               <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('⚽ Score 2 Biji')">⚽ Score 2 Biji</button>
             </div>
@@ -2898,9 +2899,10 @@ function pickRole(r,ic,nm){
 function backRole(){document.getElementById('d-s1').style.display='block';document.getElementById('d-s2').style.display='none'}
 
 async function doGoogleLogin(){
+  const redirectTo=window.PLAYPRO_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`;
   const{error}=await SB.auth.signInWithOAuth({
     provider:'google',
-    options:{redirectTo:window.location.href}
+    options:{redirectTo}
   });
   if(error) toast('❌ Google login gagal: '+error.message);
 }
