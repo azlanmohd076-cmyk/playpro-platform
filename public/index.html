@@ -2513,9 +2513,16 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem">
         <div class="fg"><label class="fl">Tinggi (cm)</label><input class="fi" id="edit-height" type="number" min="100" max="230" placeholder="170"/></div>
-        <div class="fg"><label class="fl">Berat (kg)</label><input class="fi" id="edit-weight" type="number" min="30" max="150" placeholder="68"/></div>
-      </div>
-    </div>
+<div class="fg"><label class="fl">Berat (kg)</label><input class="fi" id="edit-weight" type="number" min="30" max="150" placeholder="68"/></div>
+  </div>
+  <div class="fg"><label class="fl">Nama Samaran / Gelaran Atas Padang</label><input class="fi" id="edit-pitch-nickname" type="text" maxlength="80" placeholder="Nama di jersi"/></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem">
+  <div class="fg"><label class="fl">Telefon Penjaga</label><input class="fi" id="edit-guardian-phone" type="tel" maxlength="30"/></div>
+  <div class="fg"><label class="fl">Kelab / Bandar</label><input class="fi" id="edit-city" type="text" maxlength="80"/></div>
+  </div>
+  <label style="display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:var(--mute);margin-bottom:.75rem"><input id="edit-free-agent" type="checkbox"/> Saya pemain bebas (free agent)</label>
+  </div>
+  </div>
 
     <button class="fb" id="edit-save-btn" onclick="saveEditProfile()">Simpan Perubahan →</button>
     <div class="fm" id="edit-msg" style="margin-top:.5rem"></div>
@@ -2654,8 +2661,13 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
 
       <div style="margin-bottom:.75rem">
         <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem">Nickname / Nama Samaran</label>
-        <input class="fi" id="ob-nickname" type="text" placeholder="e.g. Lan Rompa (optional)"/>
+        <input class="fi" id="ob-nickname" type="text" placeholder="Nama di jersi (optional)"/>
       </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.65rem">
+        <div><label class="fl">Telefon Penjaga</label><input class="fi" id="ob-guardian-phone" type="tel" maxlength="30"/></div>
+        <div><label class="fl">Bandar</label><input class="fi" id="ob-city" type="text" maxlength="80"/></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:var(--mute);margin-bottom:.75rem"><input id="ob-free-agent" type="checkbox"/> Saya pemain bebas (free agent)</label>
 
       <!-- SEJARAH KELAB -->
       <div style="margin-bottom:.75rem">
@@ -4952,13 +4964,18 @@ async function saveOnboardingStep2(){
   var height=document.getElementById('ob-height')?.value||null;
   var weight=document.getElementById('ob-weight')?.value||null;
   var nick=document.getElementById('ob-nickname')?.value?.trim()||null;
+  var guardianPhone=document.getElementById('ob-guardian-phone')?.value?.trim()||null;
+  var city=document.getElementById('ob-city')?.value?.trim()||null;
   var update={};
   if(pos){update.position=pos;update.best_position=pos.toUpperCase();}
-  if(foot) update.preferred_foot=foot;
-  if(jersey) update.jersey_number=parseInt(jersey);
+  if(foot) update.dominant_foot=foot;
+  if(jersey) update.preferred_jersey_no=parseInt(jersey);
   if(height) update.height_cm=parseInt(height);
   if(weight) update.weight_kg=parseInt(weight);
-  if(nick) update.nickname=nick;
+  if(nick) update.pitch_nickname=nick;
+  if(guardianPhone) update.guardian_phone=guardianPhone;
+  if(city) update.city=city;
+  update.is_free_agent=Boolean(document.getElementById('ob-free-agent')?.checked);
   if(Object.keys(update).length===0) return;
   try{
     await SB.from('players').update(update).eq('profile_id',_u.id);
@@ -5115,6 +5132,14 @@ function openEditModal(){
   if(jersey) jersey.value=_pd.jersey_number||'';
   if(height) height.value=_pd.height_cm||'';
   if(weight) weight.value=_pd.weight_kg||'';
+  var pitchNickname=document.getElementById('edit-pitch-nickname');
+  var guardianPhone=document.getElementById('edit-guardian-phone');
+  var city=document.getElementById('edit-city');
+  var freeAgent=document.getElementById('edit-free-agent');
+  if(pitchNickname) pitchNickname.value=_pd.pitch_nickname||_pd.nickname||'';
+  if(guardianPhone) guardianPhone.value=_pd.guardian_phone||'';
+  if(city) city.value=_pd.city||'';
+  if(freeAgent) freeAgent.checked=Boolean(_pd.is_free_agent);
 
   // Show photo if exists
   if(_pd.photo_url){
@@ -5187,6 +5212,14 @@ async function saveEditProfile(){
     if(jersey) { update.jersey_number=parseInt(jersey); activePlayer.jersey_number=parseInt(jersey); }
     if(height) { update.height_cm=parseInt(height); activePlayer.height_cm=parseInt(height); }
     if(weight) { update.weight_kg=parseInt(weight); activePlayer.weight_kg=parseInt(weight); }
+    var pitchNickname=document.getElementById('edit-pitch-nickname')?.value?.trim()||null;
+    var guardianPhone=document.getElementById('edit-guardian-phone')?.value?.trim()||null;
+    var city=document.getElementById('edit-city')?.value?.trim()||null;
+    update.pitch_nickname=pitchNickname;
+    update.guardian_phone=guardianPhone;
+    update.city=city;
+    update.is_free_agent=Boolean(document.getElementById('edit-free-agent')?.checked);
+    activePlayer.pitch_nickname=pitchNickname; activePlayer.guardian_phone=guardianPhone; activePlayer.city=city;
 
     if(_tempCustomPhotoBase64){
       activePlayer.photo_url = _tempCustomPhotoBase64;
