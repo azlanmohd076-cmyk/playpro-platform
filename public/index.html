@@ -3005,18 +3005,6 @@ function backRole(){document.getElementById('d-s1').style.display='block';docume
   toast('Log masuk Google gagal. Sila cuba lagi.');
   }
   }
-  const redirectTo=window.PLAYPRO_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`;
-  try{
-  const{error}=await client.auth.signInWithOAuth({
-  provider:'google',
-  options:{redirectTo}
-  });
-  if(error) toast('Log masuk Google gagal. Sila cuba lagi.');
-  }catch(error){
-  console.error('[PlayPro] Google login failed:',error);
-  toast('Log masuk Google gagal. Sila cuba lagi.');
-  }
-  }
 
 async function doFacebookLogin(){
   const{error}=await window.SB.auth.signInWithOAuth({
