@@ -1878,7 +1878,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
           <div style="font-size:.85rem;font-weight:700;color:var(--txt);margin-bottom:.25rem">Cari Pemain Malaysia</div>
           <div style="font-size:.7rem;line-height:1.6;margin-bottom:1rem">Pilih negeri atau taip nama untuk cari pemain, kelab dan pengadil.</div>
         </div>
-        <div class="section-title">��� Top DNA — Pemain Terbaik</div>
+        <div class="section-title">���� Top DNA — Pemain Terbaik</div>
         <div id="ter-top-dna"><div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Memuatkan...</div></div>
         <div class="section-title" style="margin-top:1rem">⚽ Penjaring Teratas</div>
         <div id="ter-top-scorers"><div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Memuatkan...</div></div>
@@ -6009,11 +6009,18 @@ function printKad(){
 }
 
 /* ── AUTH ── */
+// Resolve the client through window explicitly. Static pages can expose globals
+// differently across preview servers, so never rely on an undeclared SB binding.
+var SB = window.SB;
+if (!SB?.auth?.onAuthStateChange) {
+  console.error('[PlayPro] Supabase client unavailable; auth listeners disabled.');
+} else {
 SB.auth.onAuthStateChange((ev,session)=>{
   _u=session?.user||null;_pd=null;updateUI();
   if(_tab==='profile')loadProfile();
 });
 init();
+}
 </script>
 
 <!-- ═══════════════════════════════════
