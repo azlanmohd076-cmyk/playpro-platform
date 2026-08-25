@@ -2886,9 +2886,14 @@ async function init(){
 
     const client=window.SB;
     if(client?.auth){
-      const result=await client.auth.getSession();
-      const session=result?.data?.session;
-      if(session){_u=session.user;updateUI();await routeAuthenticatedUser(_u);}
+      client.auth.getSession().then(result=>{
+        const session=result?.data?.session;
+        if(session){
+          _u=session.user;
+          updateUI();
+          Promise.resolve(routeAuthenticatedUser(_u)).catch(error=>console.warn('[PlayPro] onboarding route skipped:',error.message));
+        }
+      }).catch(error=>console.warn('[PlayPro] session check skipped:',error.message));
       client.auth.onAuthStateChange((event,sessionState)=>{
         if(event==='SIGNED_OUT'){_u=null;_pd=null;updateUI();return;}
         if(sessionState?.user){_u=sessionState.user;updateUI();setTimeout(()=>routeAuthenticatedUser(sessionState.user),0);}
