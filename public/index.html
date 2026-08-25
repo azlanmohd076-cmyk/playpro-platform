@@ -10,6 +10,7 @@
 <title>PlayPro — Platform Bola Sepak Malaysia</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="/js/repositories.js"></script>
 <script>
 window.PLAYPRO_SUPABASE_URL='https://muirhenvjruvfxenoaxm.supabase.co';
 window.PLAYPRO_SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11aXJoZW52anJ1dmZ4ZW5vYXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NjM0OTQsImV4cCI6MjA5MzEzOTQ5NH0.ZNphviTQfnMjkGIdZtevwC8jmJjTCaXHhojcv4g5R20';
@@ -2833,7 +2834,7 @@ async function loadPublicPortal(){
     const x=document.getElementById('public-suspensions');x.innerHTML=suspensions.length?suspensions.map(r=>'<div class="public-row"><div class="public-row-main"><div class="public-row-title">'+publicEscape(r.playerName||r.displayName||r.fullName||r.players?.fullName||'Pemain')+'</div><div class="public-row-meta">'+publicEscape(r.clubName||r.reason||r.reasonNotes||'Penggantungan aktif')+'</div></div><span class="public-live">AKTIF</span></div>').join(''):'<div class="public-empty">Tiada penggantungan aktif</div>';
   }catch(error){console.error('[v0] Public portal load failed',error);ids.forEach(id=>publicBlock(id,'Data belum dapat dimuatkan'));}
 }
-function updateLencanaNotif(){
+window.updateLencanaNotif = function updateLencanaNotif(){
   const badge=document.getElementById('ndot');
   if(!badge)return;
   let notifications=[];
@@ -2849,7 +2850,7 @@ function updateLencanaNotif(){
   badge.style.display=unread?'flex':'none';
 }
 
-async function init(){  updateLencanaNotif();
+async function init(){  window.updateLencanaNotif();
   var params = new URLSearchParams(window.location.search);
   var targetPlayer = params.get('player');
   if(targetPlayer){
@@ -5581,7 +5582,7 @@ let _tt;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('on'),2600)}
 function setMsg(id,txt,type){const e=document.getElementById(id);e.textContent=txt;e.className='fm '+type}
 
-/* ═══════════════════════════════════════
+/* ═══════════════════���═══════════════════
    PASSPORT KAD — Fungsi Interaktif
 ═══════════════════════════════════════ */
 var _kadFlipped=false;
