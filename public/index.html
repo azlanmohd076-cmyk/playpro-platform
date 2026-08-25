@@ -13,6 +13,7 @@
 <script>
 window.PLAYPRO_SUPABASE_URL='https://muirhenvjruvfxenoaxm.supabase.co';
 window.PLAYPRO_SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11aXJoZW52anJ1dmZ4ZW5vYXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NjM0OTQsImV4cCI6MjA5MzEzOTQ5NH0.ZNphviTQfnMjkGIdZtevwC8jmJjTCaXHhojcv4g5R20';
+window.PLAYPRO_SUPABASE_REDIRECT_URL='https://v0.app/chat/api/supabase/redirect/sWOYxw7xZPa';
 </script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -1573,6 +1574,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
 .photo-upload-area img{width:100%;height:100%;object-fit:cover}
 .edit-section{background:var(--bg3);border-radius:12px;padding:.85rem;margin-bottom:.75rem}
 .edit-section-title{font-size:.65rem;font-weight:700;color:var(--g);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.65rem}
+.public-portal{max-width:1100px;margin:0 auto;padding:0 1rem 2rem}.public-portal-head{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:.7rem}.public-portal-title{font-size:1.25rem;font-weight:800;color:var(--txt)}.public-filter{background:var(--bg2);color:var(--txt);border:1px solid var(--bdr);border-radius:8px;padding:.55rem .7rem;font:inherit;font-size:.75rem}.public-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}.public-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;min-width:0}.public-card-head{display:flex;align-items:center;justify-content:space-between;padding:.8rem .9rem;border-bottom:1px solid var(--bdr)}.public-card h3{font-size:.8rem;color:var(--txt)}.public-live{font-size:.55rem;font-weight:800;color:var(--red);background:rgba(239,68,68,.1);padding:.2rem .4rem;border-radius:4px}.public-muted{font-size:.62rem;color:var(--mute)}.public-link{color:var(--g);font:600 .65rem inherit;cursor:pointer}.public-table-wrap,.public-list{padding:.35rem .8rem .7rem}.public-table{width:100%;border-collapse:collapse;font-size:.68rem}.public-table th{color:var(--mute);font-size:.58rem;font-weight:600;text-align:right;padding:.35rem .2rem}.public-table th:first-child,.public-table td:first-child{text-align:left}.public-table td{padding:.46rem .2rem;text-align:right;border-bottom:1px solid var(--bdr);color:var(--txt)}.public-table tr:last-child td{border-bottom:0}.public-team{display:flex;align-items:center;gap:.4rem;font-weight:700}.public-rank{color:var(--mute);width:1.1rem}.public-row{display:flex;align-items:center;gap:.6rem;padding:.55rem .1rem;border-bottom:1px solid var(--bdr)}.public-row:last-child{border-bottom:0}.public-row-main{flex:1;min-width:0}.public-row-title{font-size:.72rem;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.public-row-meta{font-size:.6rem;color:var(--mute);margin-top:.12rem}.public-score{font-size:.78rem;font-weight:900;color:var(--txt)}.public-empty,.public-loading{padding:1.2rem .3rem;text-align:center;font-size:.7rem;color:var(--mute)}@media(max-width:700px){.public-grid{grid-template-columns:1fr}.public-portal-head{align-items:flex-start;flex-direction:column}.public-filter{width:100%}}
 </style>
 </head>
 <body>
@@ -1741,7 +1743,18 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
     </div>
   </div>
 
-  <!-- PUSAT NOTIFIKASI INTERAKTIF MODAL (🔔) -->
+    <!-- PUBLIC COMPETITION PORTAL -->
+    <section id="public-competition-portal" class="public-portal">
+      <div class="public-portal-head"><div><div class="section-title">Pusat Pertandingan</div><h2 class="public-portal-title">Liga, jadual dan disiplin</h2></div><select id="public-league-filter" class="public-filter" aria-label="Pilih liga"><option value="">Semua liga</option></select></div>
+      <div class="public-grid">
+        <article class="public-card"><div class="public-card-head"><h3>Carta Kedudukan Liga</h3><span class="public-live">LIVE</span></div><div id="public-standings" class="public-table-wrap"><div class="public-loading">Memuatkan data…</div></div></article>
+        <article class="public-card"><div class="public-card-head"><h3>Jadual & Keputusan</h3><button class="public-link" onclick="loadPublicPortal()">Muat semula</button></div><div id="public-fixtures" class="public-list"><div class="public-loading">Memuatkan data…</div></div></article>
+        <article class="public-card"><div class="public-card-head"><h3>Penjaring Terbanyak</h3><span class="public-muted">Musim semasa</span></div><div id="public-scorers" class="public-list"><div class="public-loading">Memuatkan data…</div></div></article>
+        <article class="public-card"><div class="public-card-head"><h3>Penggantungan Aktif</h3><span class="public-muted">Disiplin</span></div><div id="public-suspensions" class="public-list"><div class="public-loading">Memuatkan data…</div></div></article>
+      </div>
+    </section>
+
+    <!-- PUSAT NOTIFIKASI INTERAKTIF MODAL (🔔) -->
   <div id="notif-center-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); justify-content:center; align-items:center; padding:16px;" onclick="if(event.target===this)tutupPusatNotifikasi()">
     <div class="card shadow-lg text-white" style="background:#0f172a; border:2px solid #38bdf8; border-radius:18px; width:100%; max-width:520px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 12px 40px rgba(0,0,0,.7);">
       <div class="card-header p-4" style="background:linear-gradient(135deg, #0f172a 0%, #050926 100%); border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
@@ -1813,7 +1826,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
             <div class="d-flex gap-2 flex-wrap">
               <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('🔥 Pacing Padu')">🔥 Pacing Padu</button>
               <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('🏃‍♂️ Pancit FC')">🏃‍♂️ Pancit FC</button>
-              <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('🟨 Kad Kuning')">🟨 Kad Kuning</button>
+              <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('��� Kad Kuning')">🟨 Kad Kuning</button>
               <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('🏆 Otai Match')">🏆 Otai Match</button>
               <button type="button" class="btn btn-sm btn-outline-warning sticker-opt" style="background:#374151; color:#fbbf24; border:1px solid #fbbf24; border-radius:6px; padding:4px 10px; font-weight:700; cursor:pointer;" onclick="pilihStickerMesej('⚽ Score 2 Biji')">⚽ Score 2 Biji</button>
             </div>
@@ -2799,6 +2812,27 @@ var currentActivePlayerKey = "Azlan";
 var _tempCustomPhotoBase64 = null;
 let _u=null,_lang=localStorage.getItem('pp_lang')||'ms',_tab='home',_pd=null;
 
+function publicEscape(value){return String(value??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));}
+function publicDate(value){if(!value)return 'Tarikh belum ditetapkan';return new Intl.DateTimeFormat('ms-MY',{day:'numeric',month:'short',year:'numeric'}).format(new Date(value));}
+function publicClub(row,side){const c=row?.[side+'_club'];return c?.name||row?.[side+'_club_name']||'TBA';}
+function publicBlock(id,message='Tiada rekod awam tersedia'){const el=document.getElementById(id);if(el)el.innerHTML='<div class="public-empty">'+publicEscape(message)+'</div>';}
+async function loadPublicPortal(){
+  const ids=['public-standings','public-fixtures','public-scorers','public-suspensions'];
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<div class="public-loading">Memuatkan data…</div>';});
+  try{
+    const leagues=await LeagueRepo.all('active');
+    const filter=document.getElementById('public-league-filter');
+    if(filter && filter.options.length===1) leagues.forEach(l=>filter.add(new Option(l.name+' '+(l.season||''),l.id)));
+    const leagueId=filter?.value||leagues[0]?.id||null;
+    const [standings,fixtures,scorers,suspensions]=await Promise.all([PublicRepo.standings(leagueId),PublicRepo.fixtures(leagueId),PublicRepo.topScorers(leagueId),PublicRepo.suspensions()]);
+    const s=document.getElementById('public-standings');
+    s.innerHTML=standings.length?'<table class="public-table"><thead><tr><th>Kelab</th><th>P</th><th>GD</th><th>Mata</th></tr></thead><tbody>'+standings.map((r,i)=>'<tr><td><span class="public-team"><span class="public-rank">'+(r.position||i+1)+'</span>'+publicEscape(r.clubName||r.clubs?.name||r.teamName||'Kelab')+'</span></td><td>'+Number(r.played||0)+'</td><td>'+Number(r.goalDifference||r.goal_difference||0)+'</td><td><strong>'+Number(r.points||0)+'</strong></td></tr>').join('')+'</tbody></table>':'<div class="public-empty">Tiada kedudukan tersedia</div>';
+    const f=document.getElementById('public-fixtures');
+    f.innerHTML=fixtures.length?fixtures.map(r=>'<div class="public-row"><div class="public-row-main"><div class="public-row-title">'+publicEscape(publicClub(r,'home')+' — '+publicClub(r,'away'))+'</div><div class="public-row-meta">'+publicDate(r.matchDate)+' · '+publicEscape(r.venue||'Venue TBA')+'</div></div><div class="public-score">'+(r.matchResults?.[0]?Number(r.matchResults[0].homeGoals)+' — '+Number(r.matchResults[0].awayGoals):'vs')+'</div></div>').join(''):'<div class="public-empty">Tiada jadual atau keputusan</div>';
+    const t=document.getElementById('public-scorers');t.innerHTML=scorers.length?scorers.map((r,i)=>'<div class="public-row"><span class="public-rank">'+(i+1)+'</span><div class="public-row-main"><div class="public-row-title">'+publicEscape(r.displayName||r.fullName||r.playerName||'Pemain')+'</div><div class="public-row-meta">'+publicEscape(r.clubName||'Kelab')+'</div></div><strong class="public-score">'+Number(r.goals||0)+' gol</strong></div>').join(''):'<div class="public-empty">Tiada penjaring direkodkan</div>';
+    const x=document.getElementById('public-suspensions');x.innerHTML=suspensions.length?suspensions.map(r=>'<div class="public-row"><div class="public-row-main"><div class="public-row-title">'+publicEscape(r.playerName||r.displayName||r.fullName||r.players?.fullName||'Pemain')+'</div><div class="public-row-meta">'+publicEscape(r.clubName||r.reason||r.reasonNotes||'Penggantungan aktif')+'</div></div><span class="public-live">AKTIF</span></div>').join(''):'<div class="public-empty">Tiada penggantungan aktif</div>';
+  }catch(error){console.error('[v0] Public portal load failed',error);ids.forEach(id=>publicBlock(id,'Data belum dapat dimuatkan'));}
+}
 async function init(){  updateLencanaNotif();
   var params = new URLSearchParams(window.location.search);
   var targetPlayer = params.get('player');
@@ -2814,6 +2848,9 @@ async function init(){  updateLencanaNotif();
   buildFeed();
   loadStats_strip();
   loadTopScorers();
+  loadPublicPortal();
+  const publicFilter=document.getElementById('public-league-filter');
+  if(publicFilter) publicFilter.addEventListener('change',loadPublicPortal);
   setTimeout(()=>{
     const s=document.getElementById('splash');
     s.classList.add('fade');
@@ -2898,9 +2935,10 @@ function pickRole(r,ic,nm){
 function backRole(){document.getElementById('d-s1').style.display='block';document.getElementById('d-s2').style.display='none'}
 
 async function doGoogleLogin(){
+  const redirectTo=window.PLAYPRO_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`;
   const{error}=await SB.auth.signInWithOAuth({
     provider:'google',
-    options:{redirectTo:window.location.href}
+    options:{redirectTo}
   });
   if(error) toast('❌ Google login gagal: '+error.message);
 }

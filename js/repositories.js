@@ -696,9 +696,50 @@ const FixtureRepo = {
     if (error) { return []; }
     return _norm(data ?? []);
   },
+
+  /** Full result for the League Admin ratification workflow. */
+  async result(fixtureId) {
+    const { data, error } = await SB
+      .from('match_results')
+      .select('*')
+      .eq('fixture_id', fixtureId)
+      .maybeSingle();
+    if (error) { console.error('[FixtureRepo.result]', error.message); return null; }
+    return _norm(data);
+  },
+
+  /** Save an official result and move the fixture into the official state. */
+  async ratifyResult(fixtureId, result, ratifiedBy) {
+    const payload = {
+      fixture_id: fixtureId,
+      ...result,
+      is_official: true,
+      ratified_by: ratifiedBy,
+      ratified_at: new Date().toISOString(),
+    };
+    const { data, error } = await SB
+      .from('match_results')
+      .upsert(payload, { onConflict: 'fixture_id' })
+      .select()
+      .single();
+    if (error) {
+      console.error('[FixtureRepo.ratifyResult]', error.message);
+      return { data: null, error };
+    }
+    const { error: fixtureError } = await SB
+      .from('fixtures')
+      .update({ status: 'official' })
+      .eq('id', fixtureId);
+    if (fixtureError) {
+      console.error('[FixtureRepo.ratifyResult.fixture]', fixtureError.message);
+      return { data: null, error: fixtureError };
+    }
+    cacheInvalidate('fixture:');
+    return { data: _norm(data), error: null };
+  },
 };
 
-/* ─────────────────────────────────────────────────────────────
+/* ─────────────────────────��───────────────────────────────────
    REPOSITORY: Passport
 ───────────────────────────────────────────────────────────── */
 const PassportRepo = {
@@ -869,7 +910,7 @@ const MarketValueRepo = {
   },
 };
 
-/* ─────────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────��
    REPOSITORY: Notifications
 ───────────────────────────────────────────────────────────── */
 const NotifRepo = {
@@ -1216,8 +1257,67 @@ const FollowRepo = {
 };
 
 /* ─────────────────────────────────────────────────────────────
-   Utility helpers
+   REPOSITORY: Club Admin Squad Management
 ───────────────────────────────────────────────────────────── */
+const SquadRepo = {
+  async players(clubId) {
+    const { data, error } = await SB.from('players')
+      .select('id, full_name, date_of_birth, position, jersey_number, nationality, is_active, photo_url')
+      .eq('club_id', clubId).eq('is_active', true)
+      .order('jersey_number', { ascending: true, nullsFirst: false });
+    if (error) { console.error('[SquadRepo.players]', error.message); return []; }
+    return _norm(data ?? []);
+  },
+  async coaches(clubId) {
+    const { data, error } = await SB.from('coaches')
+      .select('id, full_name, license, profile_id, is_active, photo_url')
+      .eq('club_id', clubId).eq('is_active', true).order('full_name');
+    if (error) { console.error('[SquadRepo.coaches]', error.message); return []; }
+    return _norm(data ?? []);
+  },
+  async addPlayer(clubId, input) {
+    const { data, error } = await SB.from('players').insert({
+      club_id: clubId, full_name: input.fullName.trim(), date_of_birth: input.dateOfBirth,
+      position: input.position, jersey_number: Number(input.jerseyNumber), is_active: true,
+    }).select('id, full_name, date_of_birth, position, jersey_number, is_active').single();
+    if (!error) cacheInvalidate('players:club:' + clubId);
+    return { data: _norm(data), error };
+  },
+  async addCoach(clubId, input) {
+    const { data, error } = await SB.from('coaches').insert({
+      club_id: clubId, full_name: input.fullName.trim(), license: input.license.trim() || null,
+      is_active: true,
+    }).select('id, full_name, license, is_active').single();
+    return { data: _norm(data), error };
+  },
+  async deactivate(table, id) {
+    const { error } = await SB.from(table).update({ is_active: false }).eq('id', id);
+    return { error };
+  },
+};
+
+  /* ─────────────────────────────────────────────────────────────
+   REPOSITORY: Technical Assessments
+  ───────────────────────────────────────────────────────────── */
+  const AssessmentRepo = {
+    async forPlayer(playerId) {
+      const { data, error } = await SB.from('player_assessments')
+        .select('id, player_id, assessor_id, passing, crossing, tackling, finishing, dribbling, first_touch, leadership, teamwork, determination, decisions, positioning, pace, strength, agility, balance, stamina, gk_handling, gk_reflexes, gk_positioning, notes, created_at')
+        .eq('player_id', playerId).order('created_at', { ascending: false });
+      if (error) { console.error('[AssessmentRepo.forPlayer]', error.message); return []; }
+      return _norm(data ?? []);
+    },
+    async save(playerId, assessorId, attributes, notes) {
+      const payload = { player_id: playerId, assessor_id: assessorId, ...attributes, notes: notes?.trim() || null };
+      const { data, error } = await SB.from('player_assessments').insert(payload).select().single();
+      if (error) console.error('[AssessmentRepo.save]', error.message);
+      return { data: _norm(data), error };
+    },
+  };
+
+  /* ─────────────────────────────────────────────────────────────
+   Utility helpers
+  ─���─────────────────────────────────────────────────────────── */
 function _mondayOfThisWeek() {
   const d = new Date();
   const day = d.getDay();
@@ -1226,8 +1326,42 @@ function _mondayOfThisWeek() {
   return d.toISOString().slice(0, 10);
 }
 
-/* ── Expose all repositories globally ─────────────────────── */
-window.UserRepo       = UserRepo;
+  /* ─────────────────────────────────────────────────────────────
+     REPOSITORY: Public Portal
+  ───────────────────────────────────────────────────────────── */
+  const PublicRepo = {
+    async standings(leagueId = null) {
+      let q = SB.from('v_standings').select('*').order('position', { ascending: true });
+      if (leagueId) q = q.eq('league_id', leagueId);
+      const { data, error } = await q;
+      if (error) { console.error('[PublicRepo.standings]', error.message); return []; }
+      return _norm(data ?? []);
+    },
+    async fixtures(leagueId = null, limit = 30) {
+      let q = SB.from('fixtures').select('id, league_id, match_date, status, venue, home_club:clubs!fixtures_home_club_id_fkey(id,name,logo_url), away_club:clubs!fixtures_away_club_id_fkey(id,name,logo_url), match_results(home_goals,away_goals)').order('match_date', { ascending: true }).limit(limit);
+      if (leagueId) q = q.eq('league_id', leagueId);
+      const { data, error } = await q;
+      if (error) { console.error('[PublicRepo.fixtures]', error.message); return []; }
+      return _norm(data ?? []);
+    },
+    async topScorers(leagueId = null, limit = 10) {
+      let q = SB.from('v_top_scorers').select('*').order('goals', { ascending: false }).limit(limit);
+      if (leagueId) q = q.eq('league_id', leagueId);
+      const { data, error } = await q;
+      if (error) { console.error('[PublicRepo.topScorers]', error.message); return []; }
+      return _norm(data ?? []);
+    },
+    async suspensions(limit = 20) {
+      const { data, error } = await SB.from('v_active_suspensions').select('*').limit(limit);
+      if (error) { console.error('[PublicRepo.suspensions]', error.message); return []; }
+      return _norm(data ?? []);
+    }
+  };
+
+  /* ── Expose all repositories globally ─────────────────────── */
+  window.PublicRepo     = PublicRepo;
+  window.UserRepo       = UserRepo;
+window.SquadRepo      = SquadRepo;
 window.PlayerRepo     = PlayerRepo;
 window.ClubRepo       = ClubRepo;
 window.LeagueRepo     = LeagueRepo;
