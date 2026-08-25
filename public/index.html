@@ -2860,37 +2860,44 @@ async function routeAuthenticatedUser(user){
   }
 }
 
-async function init(){  window.updateLencanaNotif();
-  var params = new URLSearchParams(window.location.search);
-  var targetPlayer = params.get('player');
-  if(targetPlayer){
-    setTimeout(function(){
-      toast('🔍 Muatkan pasport ' + targetPlayer + '...');
-      viewPlayerProfile(targetPlayer);
-    }, 450);
-  }
+async function init(){
+  const hideSplash=()=>{
+    const splash=document.getElementById('splash');
+    if(!splash)return;
+    splash.classList.add('fade');
+    setTimeout(()=>{splash.style.display='none';},420);
+  };
+  try{
+    if(typeof window.updateLencanaNotif==='function') window.updateLencanaNotif();
+    const params=new URLSearchParams(window.location.search);
+    const targetPlayer=params.get('player');
+    if(targetPlayer)setTimeout(()=>{toast('Muatkan pasport '+targetPlayer+'...');viewPlayerProfile(targetPlayer);},450);
 
-  const{data:{session}}=await window.SB.auth.getSession();
-  if(session){_u=session.user;updateUI();await routeAuthenticatedUser(_u);}
-  window.SB.auth.onAuthStateChange(function(event,sessionState){
-    if(event==='SIGNED_OUT'){_u=null;_pd=null;updateUI();return;}
-    if(sessionState?.user){
-      _u=sessionState.user;updateUI();
-      setTimeout(function(){routeAuthenticatedUser(sessionState.user);},0);
+    const client=window.SB;
+    if(client?.auth){
+      const result=await client.auth.getSession();
+      const session=result?.data?.session;
+      if(session){_u=session.user;updateUI();await routeAuthenticatedUser(_u);}
+      client.auth.onAuthStateChange((event,sessionState)=>{
+        if(event==='SIGNED_OUT'){_u=null;_pd=null;updateUI();return;}
+        if(sessionState?.user){_u=sessionState.user;updateUI();setTimeout(()=>routeAuthenticatedUser(sessionState.user),0);}
+      });
+    }else{
+      console.warn('[PlayPro] Supabase belum tersedia; memaparkan portal awam.');
     }
-  });
-  buildFeed();
-  loadStats_strip();
-  loadTopScorers();
-  loadPublicPortal();
-  const publicFilter=document.getElementById('public-league-filter');
-  if(publicFilter) publicFilter.addEventListener('change',loadPublicPortal);
-  setTimeout(()=>{
-    const s=document.getElementById('splash');
-    s.classList.add('fade');
-    setTimeout(()=>s.style.display='none',420);
-  },2000);
-  applyMode();
+    if(typeof buildFeed==='function') buildFeed();
+    if(typeof loadStats_strip==='function') loadStats_strip();
+    if(typeof loadTopScorers==='function') loadTopScorers();
+    if(typeof loadPublicPortal==='function' && typeof window.LeagueRepo!=='undefined' && typeof window.PublicRepo!=='undefined') loadPublicPortal();
+    const publicFilter=document.getElementById('public-league-filter');
+    if(publicFilter && typeof loadPublicPortal==='function') publicFilter.addEventListener('change',loadPublicPortal);
+    applyMode();
+  }catch(error){
+    console.error('[v0] PlayPro initialisation failed:',error);
+    document.querySelectorAll('.public-loading').forEach(el=>{el.textContent='Tiada rekod dijumpai';});
+  }finally{
+    hideSplash();
+  }
 }
 
 /* ── TABS ── */
@@ -6016,16 +6023,18 @@ function printKad(){
 /* ── AUTH ── */
 // Resolve the client through window explicitly. Static pages can expose globals
 // differently across preview servers, so never rely on an undeclared SB binding.
-var SB = window.SB;
+var SB = window.SB || null;
 if (!SB?.auth?.onAuthStateChange) {
-  console.error('[PlayPro] Supabase client unavailable; auth listeners disabled.');
+  console.warn('[PlayPro] Supabase client unavailable; auth listeners disabled.');
 } else {
-window.SB.auth.onAuthStateChange((ev,session)=>{
-  _u=session?.user||null;_pd=null;updateUI();
-  if(_tab==='profile')loadProfile();
-});
-init();
+  SB.auth.onAuthStateChange((ev,session)=>{
+    _u=session?.user||null;_pd=null;updateUI();
+    if(_tab==='profile')loadProfile();
+  });
 }
+// Always initialise the public shell, even when Supabase/CDN is unavailable.
+// Authentication is optional for the public portal and must not trap the splash screen.
+init();
 </script>
 
 <!-- ═══════════════════════════════════
