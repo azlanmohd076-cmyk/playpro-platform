@@ -3587,44 +3587,8 @@ function renderBio2(p){
 /* ======================================================== */
 var currentSelectedSticker = "";
 
-var DEFAULT_HUB_POSTS = [
-  {
-    id: "post_9901",
-    penulis: "Azlan",
-    mesej: "Malam ni game padu oii! Jangan ada yang pancit awal 🏃‍♂️🔥 Kita gempur piala otai!",
-    sticker: "🔥 Pacing Padu",
-    tarikh: "Malam tadi 11:35 PM",
-    likes: ["Cikyut", "Loko M", "Otai", "Ebob"],
-    comments: [
-      { pengomen: "Cikyut", teksKomen: "Steady bang! Kaki aku dah lama gatal nak rembat ni ⚽", timestamp: 1 },
-      { pengomen: "Haji Boss", teksKomen: "Awal sampai stadium bang, bawa air lebih sikit hehe", timestamp: 2 }
-    ]
-  },
-  {
-    id: "post_9902",
-    penulis: "Cikyut",
-    mesej: "Tali kasut putus pulak masa warm up tadi aduhai... nasib baik ada spare. Ada sesiapa nak join friendly game Jumaat ni?",
-    sticker: "🏆 Otai Match",
-    tarikh: "Semalam 6:15 PM",
-    likes: ["Azlan", "Haji Boss", "Dayak"],
-    comments: [
-      { pengomen: "Loko M", teksKomen: "Jumaat ni on bang! Pasukan Larkin Jaya FC sedia on", timestamp: 3 }
-    ]
-  },
-  {
-    id: "post_9903",
-    penulis: "Loko M",
-    mesej: "Alhamdulillah 3 mata penuh untuk tim Larkin Jaya FC! Terima kasih coach dan rakan-rakan sepasukan atas komitmen 100%",
-    sticker: "⚽ Score 2 Biji",
-    tarikh: "15 Jun 2026",
-    likes: ["Azlan", "Cikyut", "Ebob", "Otai", "Dayak"],
-    comments: []
-  }
-];
-
-if (!localStorage.getItem('PLAYPRO_HUB_POSTS_V2')) {
-  localStorage.setItem('PLAYPRO_HUB_POSTS_V2', JSON.stringify(DEFAULT_HUB_POSTS));
-}
+// MyHub menggunakan sumber Supabase sahaja. Tiada data seed atau fallback frontend.
+var DEFAULT_HUB_POSTS = [];
 
 function pilihStickerMesej(namaSticker) {
   currentSelectedSticker = namaSticker;
@@ -3644,206 +3608,22 @@ function hantarStatusHub() {
     return;
   }
 
-  var store = localStorage.getItem('PLAYPRO_HUB_POSTS_V2');
-  var senaraiPost = store ? JSON.parse(store) : [];
+  // Penulisan MyHub perlu melalui repository Supabase; localStorage tidak digunakan.
+  var senaraiPost = [];
 
-  var statusBaru = {
-    id: "post_" + Date.now(),
-    penulis: namaPenulis,
-    mesej: inputTeks.value.trim(),
-    sticker: currentSelectedSticker || "",
-    tarikh: "Baru sahaja",
-    likes: [],
-    comments: []
-  };
-
-  senaraiPost.unshift(statusBaru);
-  localStorage.setItem('PLAYPRO_HUB_POSTS_V2', JSON.stringify(senaraiPost));
-
-  inputTeks.value = "";
-  currentSelectedSticker = "";
-  var preview = document.getElementById('sticker-preview');
-  if (preview) preview.style.display = 'none';
-
-  muatTurunDanPaparHub();
-  toast('🚀 Status baharu berjaya di-up!');
+  // Ciptaan post akan memerlukan endpoint Supabase; jangan simpan data secara lokal.
+  toast('Sila gunakan sumber Supabase untuk menerbitkan status.');
 }
 
-/* ======================================================== */
-/* 🌟 KOMPLEKS SOSIAL MUTLAK: FOLLOWERS, FOLLOWER NEWSFEED & NOTIFICATIONS JS ENGINE */
-/* ======================================================== */
-var modeSiaranHub = "all"; // 'all' atau 'following'
-
-var SENARAI_NOTIFIKASI_LALAI = [
-  { id: "notif_101", penulis: "Cikyut", jenis: "like", mesej: "⚡ Cikyut menyukai status MyHub anda: 'Malam ni game padu oii!'", masa: "5 min lalu", unread: true },
-  { id: "notif_102", penulis: "Loko M", jenis: "komen", mesej: "⚡ Loko M membalas status anda: 'Steady bang! Kaki gatal nak rembat...'", masa: "15 min lalu", unread: true },
-  { id: "notif_103", penulis: "Haji Boss", jenis: "follow", mesej: "⚡ Haji Boss mula mengikuti kelab Football Passport anda!", masa: "1 jam lalu", unread: false }
-];
-
-if (!localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2')) {
-  localStorage.setItem('PLAYPRO_NOTIFICATIONS_V2', JSON.stringify(SENARAI_NOTIFIKASI_LALAI));
-}
-if (!localStorage.getItem('PLAYPRO_FOLLOWING_LIST')) {
-  // Secara lalai Azlan/L.Rom sentiasa mengikuti kawan-kawan Otai rapat
-  localStorage.setItem('PLAYPRO_FOLLOWING_LIST', JSON.stringify(['Cikyut', 'Loko M', 'Otai', 'Ebob']));
-}
-
-function sapaanSosialAwal() { updateLencanaNotif(); }
-
-function tukarSaringHubMode(mode) {
-  modeSiaranHub = mode;
-  var bAll = document.getElementById('hm-btn-all');
-  var bFol = document.getElementById('hm-btn-following');
-  if(bAll && bFol){
-    if(mode === 'all') { bAll.className = 'btn btn-sm hub-mode-btn on'; bAll.style.background = '#2563eb'; bAll.style.color = '#fff'; bAll.style.boxShadow = '0 4px 10px rgba(37,99,235,.4)'; bFol.className = 'btn btn-sm hub-mode-btn text-white-50'; bFol.style.background = '#334155'; bFol.style.color = '#cbd5e1'; bFol.style.boxShadow = 'none'; }
-    else { bFol.className = 'btn btn-sm hub-mode-btn on'; bFol.style.background = '#10B981'; bFol.style.color = '#fff'; bFol.style.boxShadow = '0 4px 10px rgba(16,185,129,.4)'; bAll.className = 'btn btn-sm hub-mode-btn text-white-50'; bAll.style.background = '#334155'; bAll.style.color = '#cbd5e1'; bAll.style.boxShadow = 'none'; }
-  }
-  muatTurunDanPaparHub();
-  toast('📰 Mode siaran feed ditukar kepada: ' + (mode==='all' ? 'Semua Awam' : 'Rakan Mengikut (Followers)'));
-}
-
-function updateLencanaNotif() {
-  var store = localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
-  var senarai = store ? JSON.parse(store) : [];
-  var unreadCount = senarai.filter(function(n){ return n.unread; }).length;
-
-  var dot = document.getElementById('ndot');
-  if(dot) {
-    if(unreadCount > 0) { dot.textContent = unreadCount; dot.style.display = 'flex'; }
-    else { dot.style.display = 'none'; }
-  }
-}
-
-function bukaPusatNotifikasi() {
-  var modal = document.getElementById('notif-center-modal');
-  if(!modal) return;
-
-  var store = localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
-  var senarai = store ? JSON.parse(store) : [];
-  var cont = document.getElementById('notif-list-container');
-  
-  if(senarai.length === 0) {
-    if(cont) cont.innerHTML = '<div class="text-center text-muted p-4 bg-dark rounded">Tiada notifikasi interaksi.</div>';
-  } else {
-    var h = "";
-    senarai.forEach(function(n){
-      var bgCard = n.unread ? '#1e293b' : '#0f172a';
-      var bdrCard = n.unread ? 'border:2px solid #fbbf24;' : 'border:1px solid #334155;';
-      var ic = '🔔';
-      if(n.jenis === 'like') ic = '❤️';
-      else if(n.jenis === 'komen') ic = '💬';
-      else if(n.jenis === 'follow') ic = '🤝';
-
-      h += '<div class="card p-3.5 mb-2.5 shadow-sm text-white" style="background:' + bgCard + '; ' + bdrCard + ' border-radius:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="klikAksiNotif(\'' + n.id + '\', \'' + n.penulis + '\')">'
-        + '<div style="display:flex; align-items:center; gap:12px;">'
-          + '<span style="font-size:1.6rem">' + ic + '</span>'
-          + '<div>'
-            + '<div style="font-size:.95rem; font-weight:800; color:#fff; line-height:1.4;">' + n.mesej + '</div>'
-            + '<small style="color:#94a3b8; font-size:.78rem; font-weight:600; margin-top:3px; display:block;">' + n.masa + '</small>'
-          + '</div>'
-        + '</div>'
-        + '<span style="color:#00B4D8; font-weight:800; font-size:.85rem;">↗</span>'
-      + '</div>';
-    });
-    if(cont) cont.innerHTML = h;
-  }
-
-  modal.style.display = 'flex';
-  updateLencanaNotif();
-}
-
-function tutupPusatNotifikasi() {
-  var modal = document.getElementById('notif-center-modal');
-  if(modal) modal.style.display = 'none';
-}
-
-function tandakanSemuaNotifDibaca() {
-  var store = localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
-  var senarai = store ? JSON.parse(store) : [];
-  senarai.forEach(function(n){ n.unread = false; });
-  localStorage.setItem('PLAYPRO_NOTIFICATIONS_V2', JSON.stringify(senarai));
-  bukaPusatNotifikasi();
-  updateLencanaNotif();
-  toast('✓ Kesemua notifikasi telah ditandakan dibaca!');
-}
-
-function klikAksiNotif(notifId, penulis) {
-  var store = localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
-  var senarai = store ? JSON.parse(store) : [];
-  var nItem = senarai.find(function(n){ return n.id === notifId; });
-  if(nItem) { nItem.unread = false; localStorage.setItem('PLAYPRO_NOTIFICATIONS_V2', JSON.stringify(senarai)); }
-
-  tutupPusatNotifikasi();
-  updateLencanaNotif();
-
-  if(penulis && penulis !== 'Azlan' && penulis !== 'L.Rom') {
-    viewPlayerProfile(penulis);
-  } else {
-    go('myhub');
-  }
-}
-
-function getFollowTargetName(p) {
-  var player = p || window._overrideProfileData || window._pd || {};
-  return player.preferred_name || player.full_name || window.currentActivePlayerKey || currentActivePlayerKey || '';
-}
-
-function updateFollowButtonStateForProfile(p) {
-  var btn = document.getElementById('btn-follow-action');
-  if(!btn) return;
-  var targetName = getFollowTargetName(p);
-  var fList = [];
-  try { fList = JSON.parse(localStorage.getItem('PLAYPRO_FOLLOWING_LIST') || '[]'); } catch(e) { fList = []; }
-  var isFollowed = targetName && fList.indexOf(targetName) !== -1;
-  btn.textContent = isFollowed ? '✓ FOLLOWED' : '+ FOLLOW';
-  btn.title = isFollowed ? 'Batal follow pemain ini' : 'Follow pemain ini';
-  btn.style.background = isFollowed ? '#10B981' : '#2563eb';
-  btn.style.boxShadow = isFollowed ? '0 4px 12px rgba(16,185,129,.5)' : '0 4px 12px rgba(37,99,235,.5)';
-}
-
-function aksiToggleFollowPlayer() {
-  var targetName = getFollowTargetName();
-  if(!targetName) return;
-
-  var store = localStorage.getItem('PLAYPRO_FOLLOWING_LIST');
-  var fList = store ? JSON.parse(store) : [];
-  var countVal = document.getElementById('count-followers-val');
-
-  var curCount = parseInt((countVal && countVal.textContent ? countVal.textContent : '').replace(',','')) || 1284;
-
-  var idx = fList.indexOf(targetName);
-  if(idx === -1) {
-    fList.push(targetName);
-    curCount++;
-    toast('🤝 Anda kini follow ' + targetName + '. Status beliau akan muncul di newsfeed Mengikut.');
-    
-    // Create Notif
-    var nStore = localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
-    var nList = nStore ? JSON.parse(nStore) : [];
-    nList.unshift({ id: "notif_" + Date.now(), penulis: targetName, jenis: "follow", mesej: "⚡ Anda mula follow " + targetName + ".", masa: "Baru sahaja", unread: true });
-    localStorage.setItem('PLAYPRO_NOTIFICATIONS_V2', JSON.stringify(nList));
-    updateLencanaNotif();
-  } else {
-    fList.splice(idx, 1);
-    curCount--;
-    toast('🌐 Batal follow ' + targetName + '.');
-  }
-
-  if(countVal) countVal.textContent = curCount.toLocaleString('en-US');
-  localStorage.setItem('PLAYPRO_FOLLOWING_LIST', JSON.stringify(fList));
-  updateFollowButtonStateForProfile();
-}
-
-/* ======================================================== */
-/* KEMAS KINI FUNGSI muatTurunDanPaparHub UNTUK KONSEP FOLLOWER TIMELINE */
-/* ======================================================== */
 function muatTurunDanPaparHub() {
-  var container = document.getElementById('myhub-newsfeed-container');
-  if (!container) return;
+  var namaUserSemasa = window.currentActivePlayerKey || currentActivePlayerKey || '';
 
-  var store = localStorage.getItem('PLAYPRO_HUB_POSTS_V2');
-  var senaraiPost = store ? JSON.parse(store) : [];
-  var namaUserSemasa = window.currentActivePlayerKey || currentActivePlayerKey || "Azlan";
+  var fStore = null;
+  var fList = [];
+  if(false && fStore) { fList = JSON.parse(fStore); }
+
+  /* Supabase-only feed: repository belum menyediakan jadual post, jadi paparkan empty state. */
+  var senaraiPost = [];
 
   var fStore = localStorage.getItem('PLAYPRO_FOLLOWING_LIST');
   var fList = fStore ? JSON.parse(fStore) : ['Cikyut', 'Loko M', 'Otai', 'Ebob'];
@@ -4484,10 +4264,10 @@ if (!localStorage.getItem('PLAYPRO_REGISTRY_V3') || !JSON.parse(localStorage.get
   console.warn("⚠️ Mengesan rekod induk rosak atau kosong. Membina semula storan bersih...");
   localStorage.setItem('PLAYPRO_REGISTRY_V3', JSON.stringify(DEFAULT_PLAYER_REGISTRY));
 }
-var PLAYPRO_PLAYER_REGISTRY = JSON.parse(localStorage.getItem('PLAYPRO_REGISTRY_V3')) || {};
+var PLAYPRO_PLAYER_REGISTRY = {};
 window.PLAYPRO_PLAYER_REGISTRY = PLAYPRO_PLAYER_REGISTRY;
-window.currentActivePlayerKey = "Azlan";
-var currentActivePlayerKey = "Azlan";
+window.currentActivePlayerKey = null;
+var currentActivePlayerKey = null;
 
 function getRegistryPlayerSafe(key) {
   var reg = PLAYPRO_PLAYER_REGISTRY || {};
@@ -4539,33 +4319,7 @@ async function viewPlayerProfile(elOrId){
     const {data:dbPlayers, error} = await query.limit(1);
     if(dbPlayers && dbPlayers.length > 0) p = dbPlayers[0];
 
-    // Carian Fallback Lokal (jika DB gagal/kosong)
-    if(!p) {
-      const fb = DATABASE_PEMAIN_PLAYPRO.find(function(item){
-        return item.id === playerId || item.preferred_name?.toLowerCase() === playerId?.toLowerCase() || item.full_name?.toLowerCase() === playerId?.toLowerCase();
-      }) || PLAYPRO_PLAYER_REGISTRY[playerId] || PLAYPRO_PLAYER_REGISTRY[playerId?.toLowerCase()];
-      
-      if(fb) {
-        p = {
-          id: fb.id || playerId,
-          full_name: fb.namaPenuh || fb.full_name || playerId,
-          preferred_name: fb.nama || fb.preferred_name || playerId,
-          nickname: fb.nama || fb.nickname || playerId,
-          position: fb.posisi || fb.position || '—',
-          best_position: fb.posisi || fb.best_position || '—',
-          jersey_number: fb.jersey ? fb.jersey.replace('#','') : fb.jersey_number,
-          height_cm: fb.tinggi ? fb.tinggi.replace('cm','').replace(' cm','') : fb.height_cm,
-          weight_kg: fb.berat ? fb.berat.replace('kg','').replace(' kg','') : fb.weight_kg,
-          preferred_foot: fb.kaki ? (fb.kaki==='Kiri'?'left':'right') : fb.preferred_foot,
-          passport_number: fb.passport_number || 'PP-000-XX',
-          kyc_status: (fb.isVerified !== undefined ? (fb.isVerified ? 'verified' : 'unverified') : fb.kyc_status),
-          dna_overall: fb.ovr !== undefined ? fb.ovr : fb.dna_overall,
-          clubs: { name: fb.kelab || fb.clubs?.name || 'Tiada Kelab' },
-          date_of_birth: fb.tarikhLahir ? fb.tarikhLahir : fb.date_of_birth,
-          nationality: fb.warganegara || fb.nationality || 'Malaysian'
-        };
-      }
-    }
+  // Profil hanya boleh datang daripada Supabase; tiada fallback frontend.
 
     if(!p){
       toast('❌ Profil tidak dijumpai atau tidak awam');
