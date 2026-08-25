@@ -2796,8 +2796,8 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
 
 <script>
 'use strict';
-window.currentActivePlayerKey = "Azlan";
-var currentActivePlayerKey = "Azlan";
+window.currentActivePlayerKey = null;
+var currentActivePlayerKey = null;
 var _tempCustomPhotoBase64 = null;
 let _u=null,_lang=localStorage.getItem('pp_lang')||'ms',_tab='home',_pd=null;
 
@@ -2892,8 +2892,8 @@ async function init(){  window.updateLencanaNotif();
 function patahKeProfilPemilik() {
   window._overrideProfileData = null;
   window._viewingOtherPlayer = null;
-  currentActivePlayerKey = "Azlan";
-  window.currentActivePlayerKey = "Azlan";
+  currentActivePlayerKey = _u?.id || null;
+  window.currentActivePlayerKey = _u?.id || null;
   
   var ppMain = document.getElementById('pp-main');     if(ppMain) ppMain.style.display='block';
   var ppData = document.getElementById('pp-data-wrap');if(ppData) ppData.style.display='block';
@@ -3240,7 +3240,7 @@ async function loadProfile(){
   let p = null;
   try{
     var {data:dbPlayer, error} = await SB.from('players')
-      .select('id,full_name,preferred_name,nickname,position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,best_position,secondary_position,nationality,phone,clubs(name)')
+      .select('id,profile_id,full_name,preferred_name,nickname,pitch_nickname,position,jersey_number,preferred_jersey_no,height_cm,weight_kg,preferred_foot,dominant_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,best_position,secondary_position,nationality,phone,city,is_free_agent,clubs(name)')
       .eq('profile_id',_u.id)
       .maybeSingle();
     if(dbPlayer) p = dbPlayer;
@@ -3283,9 +3283,8 @@ function renderPP2Header(p){
   
   function safeSet(id, val){var el=document.getElementById(id);if(el)el.textContent=val;}
   
-  /* 🔒 SEMAKAN PRIVASI: Hanya tunjuk butang edit kepada Pemilik Akaun Sahaja (Menyokong Azlan dan L.Rom) */
-  var loggedInUser = "Azlan"; var altUser = "L.Rom";
-  var isOwnProfile = dn.toLowerCase() === loggedInUser.toLowerCase() || dn.toLowerCase() === altUser.toLowerCase() || p.id === window._pd?.id || (p.full_name && p.full_name.toLowerCase().includes("azlan"));
+  /* Privacy: edit is available only for the authenticated user's own player record. */
+  var isOwnProfile = Boolean(_u && ((p.profile_id && p.profile_id === _u.id) || p.id === window._pd?.id));
   var editWrap = document.getElementById('pp2-edit-btn-wrap');
   if(editWrap){
     editWrap.style.display = isOwnProfile ? 'flex' : 'none';
@@ -4281,22 +4280,15 @@ function getRegistryPlayerSafe(key) {
 
 function syncWithLocalRegistry(p) {
   if(!p) return p;
-  var key = p.preferred_name || p.full_name || p.nickname || p.nama || 'Azlan';
-  var reg = getRegistryPlayerSafe(key);
-  if(!reg || Object.keys(reg).length === 0) reg = getRegistryPlayerSafe('Azlan');
   return {
     ...p,
-    full_name: reg.namaPenuh || reg.full_name || p.full_name || key,
-    preferred_name: reg.nama || reg.preferred_name || p.preferred_name || key,
-    nickname: reg.nama || reg.nickname || p.nickname || key,
-    position: reg.posisi || reg.position || p.position || '—',
-    best_position: reg.posisi || reg.best_position || p.best_position || '—',
-    jersey_number: reg.jersey ? reg.jersey.replace('#','') : p.jersey_number,
-    height_cm: reg.tinggi ? reg.tinggi.replace(/\D/g,'') : p.height_cm,
-    weight_kg: reg.berat ? reg.berat.replace(/\D/g,'') : p.weight_kg,
-    photo_url: reg.photo_url || reg.avatarCustomUrl || p.photo_url,
-    avatarCustomUrl: reg.avatarCustomUrl || reg.photo_url || p.avatarCustomUrl || p.photo_url,
-    clubs: { name: reg.kelab || reg.clubs?.name || p.clubs?.name || 'Tiada Kelab' }
+    preferred_name: p.pitch_nickname || p.preferred_name || p.full_name || 'Pemain',
+    nickname: p.pitch_nickname || p.nickname || p.preferred_name || '',
+    position: p.position || p.best_position || '',
+    best_position: p.best_position || p.position || '',
+    jersey_number: p.preferred_jersey_no ?? p.jersey_number ?? null,
+    preferred_foot: p.dominant_foot || p.preferred_foot || null,
+    clubs: p.clubs || { name: 'Tiada Kelab' }
   };
 }
 
@@ -4997,10 +4989,15 @@ async function obComplete(){
       if(profErr2) console.error('[PlayPro] ensure_profile failed:',profErr2.message);
     }catch(pe){console.error('[PlayPro] ensure_profile threw:',pe&&pe.message);}
 
-    // 2. Insert players
+    // 2. Insert/update players using the authenticated user only
     var payload={
       profile_id:_u.id,full_name:name,preferred_name:name,
       is_active:true,is_passport_public:true,
+      pitch_nickname:document.getElementById('ob-nickname')?.value?.trim()||null,
+      dominant_foot:document.getElementById('ob-foot')?.value||null,
+      preferred_jersey_no:document.getElementById('ob-jersey')?.value ? parseInt(document.getElementById('ob-jersey').value) : null,
+      height_cm:document.getElementById('ob-height')?.value ? parseInt(document.getElementById('ob-height').value) : null,
+      weight_kg:document.getElementById('ob-weight')?.value ? parseInt(document.getElementById('ob-weight').value) : null,
       kyc_status:'unverified',passport_frame:'unverified',
     };
     if(_obDocType!=='passport'&&_obDocNo) payload.ic_number=_obDocNo;
@@ -5192,8 +5189,8 @@ async function saveEditProfile(){
 
     var update={};
     if(nick!==null){ 
-      update.nickname=nick; update.preferred_name=nick; update.full_name=nick;
-      activePlayer.nickname=nick; activePlayer.preferred_name=nick; activePlayer.full_name=nick;
+      update.pitch_nickname=nick; update.nickname=nick; update.preferred_name=activePlayer.full_name||nick;
+      activePlayer.pitch_nickname=nick; activePlayer.nickname=nick; activePlayer.preferred_name=activePlayer.full_name||nick;
       currentActivePlayerKey=nick; window.currentActivePlayerKey=nick;
     }
     if(fullPhone)  { update.phone=fullPhone; activePlayer.phone=fullPhone; }
@@ -5202,7 +5199,7 @@ async function saveEditProfile(){
       activePlayer.position=pos; activePlayer.best_position=pos.toUpperCase();
     }
     if(foot) { update.preferred_foot=foot; activePlayer.preferred_foot=foot; }
-    if(jersey) { update.jersey_number=parseInt(jersey); activePlayer.jersey_number=parseInt(jersey); }
+    if(jersey) { update.preferred_jersey_no=parseInt(jersey); update.jersey_number=parseInt(jersey); activePlayer.preferred_jersey_no=parseInt(jersey); activePlayer.jersey_number=parseInt(jersey); }
     if(height) { update.height_cm=parseInt(height); activePlayer.height_cm=parseInt(height); }
     if(weight) { update.weight_kg=parseInt(weight); activePlayer.weight_kg=parseInt(weight); }
     var pitchNickname=document.getElementById('edit-pitch-nickname')?.value?.trim()||null;
@@ -5217,7 +5214,7 @@ async function saveEditProfile(){
     if(_tempCustomPhotoBase64){
       activePlayer.photo_url = _tempCustomPhotoBase64;
       activePlayer.avatarCustomUrl = _tempCustomPhotoBase64;
-      reg.avatarCustomUrl = _tempCustomPhotoBase64; reg.photo_url = _tempCustomPhotoBase64;
+      update.photo_url = _tempCustomPhotoBase64;
     }
 
     if(activePlayer.id && activePlayer.id.length === 36){

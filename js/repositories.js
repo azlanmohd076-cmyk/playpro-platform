@@ -84,6 +84,28 @@ const UserRepo = {
 };
 
 /* ─────────────────────────────────────────────────────────────
+   REPOSITORY: Profiles
+───────────────────────────────────────────────────────────── */
+const ProfileRepo = {
+  async current() {
+    const uid = await Auth.uid();
+    if (!uid) return null;
+    const { data, error } = await SB.from('profiles').select('*').eq('id', uid).maybeSingle();
+    if (error) { console.error('[ProfileRepo.current]', error.message); return null; }
+    return _norm(data);
+  },
+  async save(profile, player) {
+    const uid = await Auth.uid();
+    if (!uid) return { data: null, error: new Error('Sesi pengguna tidak ditemui') };
+    const { data: profileData, error: profileError } = await SB.from('profiles').upsert({ ...profile, id: uid }, { onConflict: 'id' }).select().single();
+    if (profileError) return { data: null, error: profileError };
+    const { data: playerData, error: playerError } = await SB.from('players').upsert({ ...player, profile_id: uid }, { onConflict: 'profile_id' }).select().single();
+    if (playerError) return { data: null, error: playerError };
+    return { data: { profile: _norm(profileData), player: _norm(playerData) }, error: null };
+  }
+};
+
+/* ─────────────────────────────────────────────────────────────
    REPOSITORY: Players
 ───────────────────────────────────────────────────────────── */
 const PlayerRepo = {
