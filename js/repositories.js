@@ -1296,9 +1296,28 @@ const SquadRepo = {
   },
 };
 
-/* ─────────────────────────────────────────────────────────────
+  /* ─────────────────────────────────────────────────────────────
+   REPOSITORY: Technical Assessments
+  ───────────────────────────────────────────────────────────── */
+  const AssessmentRepo = {
+    async forPlayer(playerId) {
+      const { data, error } = await SB.from('player_assessments')
+        .select('id, player_id, assessor_id, passing, crossing, tackling, finishing, dribbling, first_touch, leadership, teamwork, determination, decisions, positioning, pace, strength, agility, balance, stamina, gk_handling, gk_reflexes, gk_positioning, notes, created_at')
+        .eq('player_id', playerId).order('created_at', { ascending: false });
+      if (error) { console.error('[AssessmentRepo.forPlayer]', error.message); return []; }
+      return _norm(data ?? []);
+    },
+    async save(playerId, assessorId, attributes, notes) {
+      const payload = { player_id: playerId, assessor_id: assessorId, ...attributes, notes: notes?.trim() || null };
+      const { data, error } = await SB.from('player_assessments').insert(payload).select().single();
+      if (error) console.error('[AssessmentRepo.save]', error.message);
+      return { data: _norm(data), error };
+    },
+  };
+
+  /* ─────────────────────────────────────────────────────────────
    Utility helpers
-───────────────────────────────────────────────────────────── */
+  ───────────────────────────────────────────────────────────── */
 function _mondayOfThisWeek() {
   const d = new Date();
   const day = d.getDay();
