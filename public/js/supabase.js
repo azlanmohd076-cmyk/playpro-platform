@@ -35,27 +35,53 @@ const PLAYPRO_CONFIG = {
  *
  * We access it via the global `supabase` namespace the CDN exposes.
  */
-if (typeof supabase === 'undefined') {
-  console.error('[PlayPro] Supabase JS not loaded. Add the CDN <script> before supabase.js.');
+/* ── Singleton Client ─────────────────────────────────────────── */
+// Publish the client on window as well as the legacy global name. This avoids
+// a ReferenceError when the static HTML calls SB before module code runs.
+var SB = window.SB;
+var supabaseSdk = window.supabase;
+
+if (!SB && supabaseSdk && typeof supabaseSdk.createClient === 'function') {
+  SB = supabaseSdk.createClient(
+    PLAYPRO_CONFIG.supabaseUrl,
+    PLAYPRO_CONFIG.supabaseAnonKey,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        flowType: 'pkce',
+      },
+      realtime: { params: { eventsPerSecond: 10 } },
+      global: {
+        headers: { 'x-application-name': 'playpro-dashboard' },
+      },
+    }
+  );
 }
 
-/* ── Singleton Client ─────────────────────────────────────────── */
-const SB = supabase.createClient(
-  PLAYPRO_CONFIG.supabaseUrl,
-  PLAYPRO_CONFIG.supabaseAnonKey,
-  {
+if (!SB) {
+  console.error('[PlayPro] Supabase client unavailable; using safe empty client.');
+  const emptyQuery = () => ({
+    select: emptyQuery, eq: emptyQuery, neq: emptyQuery, in: emptyQuery,
+    order: emptyQuery, limit: emptyQuery, maybeSingle: async () => ({ data: null, error: null }),
+    single: async () => ({ data: null, error: null }), then: (resolve) => resolve({ data: [], error: null }),
+  });
+  SB = {
+    from: emptyQuery,
+    rpc: async () => ({ data: null, error: null }),
     auth: {
-      persistSession:    true,
-      autoRefreshToken:  true,
-      detectSessionInUrl: true,
-      flowType:          'pkce',
+      getSession: async () => ({ data: { session: null }, error: null }),
+      getUser: async () => ({ data: { user: null }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+      signInWithPassword: async () => ({ data: { session: null, user: null }, error: null }),
+      signUp: async () => ({ data: { session: null, user: null }, error: null }),
+      signOut: async () => ({ error: null }),
     },
-    realtime: { params: { eventsPerSecond: 10 } },
-    global: {
-      headers: { 'x-application-name': 'playpro-dashboard' },
-    },
-  }
-);
+  };
+}
+
+window.SB = SB;
 
 /* ── Simple in-memory cache ───────────────────────────────────── */
 const _cache = new Map();
