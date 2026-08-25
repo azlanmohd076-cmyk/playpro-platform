@@ -2846,12 +2846,12 @@ window.updateLencanaNotif = function updateLencanaNotif(){
 async function routeAuthenticatedUser(user){
   if(!user||!window.SB) return;
   try{
-    const{data:profile,error:profileError}=await SB.from('profiles').select('id,role').eq('id',user.id).maybeSingle();
+    const{data:profile,error:profileError}=await window.SB.from('profiles').select('id,role').eq('id',user.id).maybeSingle();
     if(profileError) throw profileError;
     const role=profile?.role;
     if(!profile||!role){ showOnboarding(); return; }
     if(role==='player'){
-      const{data:player,error:playerError}=await SB.from('players').select('id').eq('profile_id',user.id).maybeSingle();
+      const{data:player,error:playerError}=await window.SB.from('players').select('id').eq('profile_id',user.id).maybeSingle();
       if(playerError) throw playerError;
       if(!player) showOnboarding();
     }
@@ -2870,9 +2870,9 @@ async function init(){  window.updateLencanaNotif();
     }, 450);
   }
 
-  const{data:{session}}=await SB.auth.getSession();
+  const{data:{session}}=await window.SB.auth.getSession();
   if(session){_u=session.user;updateUI();await routeAuthenticatedUser(_u);}
-  SB.auth.onAuthStateChange(function(event,sessionState){
+  window.SB.auth.onAuthStateChange(function(event,sessionState){
     if(event==='SIGNED_OUT'){_u=null;_pd=null;updateUI();return;}
     if(sessionState?.user){
       _u=sessionState.user;updateUI();
@@ -2970,7 +2970,7 @@ function backRole(){document.getElementById('d-s1').style.display='block';docume
 
 async function doGoogleLogin(){
   const redirectTo=window.PLAYPRO_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`;
-  const{error}=await SB.auth.signInWithOAuth({
+  const{error}=await window.SB.auth.signInWithOAuth({
     provider:'google',
     options:{redirectTo}
   });
@@ -2978,7 +2978,7 @@ async function doGoogleLogin(){
 }
 
 async function doFacebookLogin(){
-  const{error}=await SB.auth.signInWithOAuth({
+  const{error}=await window.SB.auth.signInWithOAuth({
     provider:'facebook',
     options:{redirectTo:window.location.href}
   });
@@ -2986,7 +2986,7 @@ async function doFacebookLogin(){
 }
 
 async function doTwitterLogin(){
-  const{error}=await SB.auth.signInWithOAuth({
+  const{error}=await window.SB.auth.signInWithOAuth({
     provider:'twitter',
     options:{redirectTo:window.location.href}
   });
@@ -2999,7 +2999,7 @@ async function doLogin(){
   const btn=document.getElementById('l-btn');
   if(!em||!pw){setMsg('l-msg','⚠️ Sila isi emel dan kata laluan','err');return}
   btn.disabled=true;btn.innerHTML='<span class="spin"></span>Sedang masuk...';
-  const{data,error}=await SB.auth.signInWithPassword({email:em,password:pw});
+  const{data,error}=await window.SB.auth.signInWithPassword({email:em,password:pw});
   btn.disabled=false;btn.textContent='Log Masuk →';
   if(error){
     /* P0 REPAIR 2026-07-26 — never blame the user's password for a
@@ -3022,7 +3022,7 @@ async function doLogin(){
   /* Self-heal: guarantee a profiles row exists for legacy accounts
      created while the signup trigger / profile write was broken. */
   try{
-    const{error:healErr}=await SB.rpc('ensure_profile_after_signup',{p_full_name:null,p_phone:null});
+    const{error:healErr}=await window.SB.rpc('ensure_profile_after_signup',{p_full_name:null,p_phone:null});
     if(healErr) console.warn('[PlayPro] profile self-heal skipped:',healErr.message);
   }catch(e){ console.warn('[PlayPro] profile self-heal threw:',e&&e.message); }
   _u=data.user;_pd=null;updateUI();closeLogin();
@@ -3034,7 +3034,7 @@ async function doLogin(){
 async function doForgot(){
   const em=document.getElementById('l-em').value.trim();
   if(!em){setMsg('l-msg','⚠️ Masukkan emel kau dahulu, kemudian klik "Lupa kata laluan?"','err');return}
-  const{error}=await SB.auth.resetPasswordForEmail(em,{redirectTo:window.location.origin});
+  const{error}=await window.SB.auth.resetPasswordForEmail(em,{redirectTo:window.location.origin});
   if(error){setMsg('l-msg','❌ '+error.message,'err');return}
   setMsg('l-msg','📧 Email reset kata laluan dihantar ke '+em+'. Semak inbox (dan folder spam).','ok');
 }
@@ -3091,7 +3091,7 @@ async function doRegister(){
 
   /* Fallback: module bundle failed to load. Never write profiles.role
      from the client — let the DB trigger own it. */
-  const{data,error}=await SB.auth.signUp({email:em,password:pw,options:{data:{full_name:name,role:role,phone:fullPhone}}});
+  const{data,error}=await window.SB.auth.signUp({email:em,password:pw,options:{data:{full_name:name,role:role,phone:fullPhone}}});
   btn.disabled=false;btn.textContent='Buat Akaun →';
   if(error){
     var em2=String(error.message||'');
@@ -3101,7 +3101,7 @@ async function doRegister(){
     return;
   }
   if(data?.user&&data?.session){
-    const{data:prof,error:profErr}=await SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:fullPhone||null});
+    const{data:prof,error:profErr}=await window.SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:fullPhone||null});
     if(profErr){
       console.error('[PlayPro] ensure_profile_after_signup failed:',profErr);
       setMsg('d-msg','❌ Akaun dibuat tetapi profil gagal disimpan. Sila log masuk semula.','err');
@@ -3118,7 +3118,7 @@ async function doRegister(){
 }
 
 async function doLogout(){
-  await SB.auth.signOut();_u=null;_pd=null;
+  await window.SB.auth.signOut();_u=null;_pd=null;
   updateUI();closeDr();toast('👋 Jumpa lagi!');
   if(_tab==='profile')loadProfile();
 }
@@ -3144,7 +3144,7 @@ function updateUI(){
 async function loadTopScorers(){
   const el=document.getElementById('top-scorers-home');if(!el)return;
   try{
-    const{data}=await SB.from('players')
+    const{data}=await window.SB.from('players')
       .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,clubs(name)')
       .not('dna_overall','is',null).eq('is_active',true)
       .order('dna_overall',{ascending:false}).limit(5);
@@ -3244,7 +3244,7 @@ async function loadProfile(){
   
   let p = null;
   try{
-    var {data:dbPlayer, error} = await SB.from('players')
+    var {data:dbPlayer, error} = await window.SB.from('players')
       .select('id,profile_id,full_name,preferred_name,nickname,pitch_nickname,position,jersey_number,preferred_jersey_no,height_cm,weight_kg,preferred_foot,dominant_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,best_position,secondary_position,nationality,phone,city,is_free_agent,clubs(name)')
       .eq('profile_id',_u.id)
       .maybeSingle();
@@ -3350,7 +3350,7 @@ function renderCatBars2(p){
 
 async function loadAttr2(pid){
   try{
-    const{data}=await SB.from('player_attributes')
+    const{data}=await window.SB.from('player_attributes')
       .select('attribute_code,current_value,attribute_definitions(label,category,display_order)')
       .eq('player_id',pid).eq('is_public',true);
     _attrData2=data||[];
@@ -3454,7 +3454,7 @@ function renderClubHistory2(p){
   el.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--mute);font-size:.75rem">Memuatkan sejarah kelab...</div>';
   // Ambil dari DB
   if(p && p.id){
-    SB.from('player_club_history')
+    window.SB.from('player_club_history')
       .select('*')
       .eq('player_id', p.id)
       .order('year_from', {ascending:false, nullsFirst:true})
@@ -4074,7 +4074,7 @@ function pp2Tab(t){
 async function loadStats2(pid){
   try{
     // Ambil dari player_match_stats table
-    var{data,error}=await SB.from('player_match_stats')
+    var{data,error}=await window.SB.from('player_match_stats')
       .select('goals,assists,yellow_cards,red_cards,minutes_played')
       .eq('player_id',pid).limit(200);
 
@@ -4153,7 +4153,7 @@ function buildSeasonChart2(apps,goals,ast){
 async function loadLB(){
   const el=document.getElementById('pp-lb');if(!el)return;
   try{
-    const{data}=await SB.from('players')
+    const{data}=await window.SB.from('players')
       .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,passport_frame,clubs(name)')
       .not('dna_overall','is',null).eq('is_active',true)
       .order('dna_overall',{ascending:false,nullsFirst:false}).limit(8);
@@ -4308,7 +4308,7 @@ async function viewPlayerProfile(elOrId){
     let p = null;
     
     // Carian Supabase DB (menyokong UUID dan nama samaran/penuh)
-    let query = SB.from('players').select('id,full_name,preferred_name,nickname,position,best_position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,nationality,phone,clubs(name)');
+    let query = window.SB.from('players').select('id,full_name,preferred_name,nickname,position,best_position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,nationality,phone,clubs(name)');
     if (playerId.length === 36 && playerId.split('-').length === 5) {
       query = query.eq('id', playerId);
     } else {
@@ -4414,7 +4414,7 @@ function closeOtherPassport(){
 
 async function loadAttr2ForOther(pid){
   try{
-    var{data}=await SB.from('player_attributes')
+    var{data}=await window.SB.from('player_attributes')
       .select('attribute_code,current_value,attribute_definitions(label,category,display_order)')
       .eq('player_id',pid).eq('is_public',true);
     window._attrData2=data||[];
@@ -4454,7 +4454,7 @@ async function loadAttr2ForOther(pid){
 
 async function loadStats2Other(pid){
   try{
-    var{data}=await SB.from('player_match_stats')
+    var{data}=await window.SB.from('player_match_stats')
       .select('goals,assists,yellow_cards,red_cards,minutes_played')
       .eq('player_id',pid).limit(200);
     if(!data||!data.length){buildSeasonChart2(0,0,0);return;}
@@ -4492,7 +4492,7 @@ async function loadViewerAttributes(playerId){
   const grid = document.getElementById('vp-attr-grid');
   if(!grid) return;
   try{
-    const{data}=await SB.from('player_attributes')
+    const{data}=await window.SB.from('player_attributes')
       .select('attribute_code,current_value,attribute_definitions(label,category,display_order)')
       .eq('player_id',playerId)
       .eq('is_public',true);
@@ -4702,15 +4702,15 @@ function sendMsg(){
       </div>
     </div>`;
   msgsEl.scrollTop = msgsEl.scrollHeight;
-  // TODO: dalam production — SB.from('messages').insert(...)
+  // TODO: dalam production — window.SB.from('messages').insert(...)
 }
 
 
 async function loadStats_strip(){
   try{
     const[{count:p},{count:m}]=await Promise.all([
-      SB.from('players').select('*',{count:'exact',head:true}).eq('is_active',true),
-      SB.from('fixtures').select('*',{count:'exact',head:true}).eq('status','completed'),
+      window.SB.from('players').select('*',{count:'exact',head:true}).eq('is_active',true),
+      window.SB.from('fixtures').select('*',{count:'exact',head:true}).eq('status','completed'),
     ]);
     document.getElementById('ss-liga').textContent='0';
     document.getElementById('ss-kelab').textContent='0';
@@ -4884,7 +4884,7 @@ async function obSkip(){
     /* P0 REPAIR: was upsert({...role}) -> became UPDATE -> rejected by
        trg_prevent_role_escalation (42501), and omitted NOT NULL email.
        RPC owns role + email server-side. */
-    var{error:profErr}=await SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
+    var{error:profErr}=await window.SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
     if(profErr) console.error('[PlayPro] ensure_profile failed:',profErr.message);
     var payload={
       profile_id:_u.id,full_name:name,preferred_name:name,
@@ -4894,9 +4894,9 @@ async function obSkip(){
     if(_obDocType!=='passport'&&_obDocNo) payload.ic_number=_obDocNo;
     if(_obDOB) payload.date_of_birth=_obDOB;
     if(fp) payload.passport_number=fp;
-    var{error}=await SB.from('players').insert(payload);
+    var{error}=await window.SB.from('players').insert(payload);
     if(error){
-      await SB.from('players').update(payload).eq('profile_id',_u.id);
+      await window.SB.from('players').update(payload).eq('profile_id',_u.id);
     }
   }catch(e){console.warn('skip save:',e.message);}
   hideOnboarding();
@@ -4918,7 +4918,7 @@ async function saveOnboardingStep1(){
   // P0 REPAIR: client must not write profiles.role (42501 guard) and
   // must not omit the NOT NULL email column. RPC handles both.
   try{
-    var{error:profErr1}=await SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
+    var{error:profErr1}=await window.SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
     if(profErr1) console.error('[PlayPro] ensure_profile failed:',profErr1.message);
   }catch(e){console.error('[PlayPro] ensure_profile threw:',e&&e.message);}
 
@@ -4937,9 +4937,9 @@ async function saveOnboardingStep1(){
   if(fp) payload.passport_number=fp;
 
   try{
-    var{error:insErr}=await SB.from('players').insert(payload);
+    var{error:insErr}=await window.SB.from('players').insert(payload);
     if(insErr){
-      var{error:updErr}=await SB.from('players')
+      var{error:updErr}=await window.SB.from('players')
         .update(payload).eq('profile_id',_u.id);
       if(updErr) console.warn('players update:',updErr.message);
     }
@@ -4968,7 +4968,7 @@ async function saveOnboardingStep2(){
   update.is_free_agent=Boolean(document.getElementById('ob-free-agent')?.checked);
   if(Object.keys(update).length===0) return;
   try{
-    await SB.from('players').update(update).eq('profile_id',_u.id);
+    await window.SB.from('players').update(update).eq('profile_id',_u.id);
   }catch(e){console.warn('step2:',e.message);}
 }
 
@@ -4990,7 +4990,7 @@ async function obComplete(){
     // 1. Guarantee profiles row
     // P0 REPAIR: RPC owns role + email server-side (see 42501 guard).
     try{
-      var{error:profErr2}=await SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
+      var{error:profErr2}=await window.SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
       if(profErr2) console.error('[PlayPro] ensure_profile failed:',profErr2.message);
     }catch(pe){console.error('[PlayPro] ensure_profile threw:',pe&&pe.message);}
 
@@ -5009,16 +5009,16 @@ async function obComplete(){
     if(_obDOB) payload.date_of_birth=_obDOB;
     if(fp) payload.passport_number=fp;
 
-    var{error:insErr}=await SB.from('players').insert(payload);
+    var{error:insErr}=await window.SB.from('players').insert(payload);
     if(insErr){
       console.warn('insert failed:',insErr.message);
-      var{error:updErr}=await SB.from('players')
+      var{error:updErr}=await window.SB.from('players')
         .update(payload).eq('profile_id',_u.id);
       if(updErr) console.warn('update failed:',updErr.message);
     }
 
     // 3. Get player ID yang baru dibuat
-    var{data:newPlayer}=await SB.from('players').select('id').eq('profile_id',_u.id).single();
+    var{data:newPlayer}=await window.SB.from('players').select('id').eq('profile_id',_u.id).single();
     var newPlayerId=newPlayer?.id||null;
 
     // 4. Save club history
@@ -5039,7 +5039,7 @@ async function obComplete(){
     if(weight) upd.weight_kg=parseInt(weight);
     if(nick) upd.nickname=nick;
     if(Object.keys(upd).length>0){
-      await SB.from('players').update(upd).eq('profile_id',_u.id);
+      await window.SB.from('players').update(upd).eq('profile_id',_u.id);
     }
 
     hideOnboarding();
@@ -5090,7 +5090,7 @@ async function saveClubHistoryOnboarding(playerId){
     }
   });
   if(payload.length>0){
-    var{error}=await SB.from('player_club_history').insert(payload);
+    var{error}=await window.SB.from('player_club_history').insert(payload);
     if(error) console.warn('club history save:',error.message);
   }
 }
@@ -5223,7 +5223,7 @@ async function saveEditProfile(){
     }
 
     if(activePlayer.id && activePlayer.id.length === 36){
-      var playerResult = await SB.from('players').update(update).eq('id',activePlayer.id).select().maybeSingle();
+      var playerResult = await window.SB.from('players').update(update).eq('id',activePlayer.id).select().maybeSingle();
       if(playerResult.error) throw playerResult.error;
     }
 
@@ -5231,7 +5231,7 @@ async function saveEditProfile(){
     if(nick !== null) profileUpdate.full_name = nick;
     if(fullPhone !== null) profileUpdate.phone = fullPhone;
     if(Object.keys(profileUpdate).length && _u?.id){
-      var profileResult = await SB.from('profiles').update(profileUpdate).eq('id',_u.id).select().maybeSingle();
+      var profileResult = await window.SB.from('profiles').update(profileUpdate).eq('id',_u.id).select().maybeSingle();
       if(profileResult.error) console.warn('[PlayPro] profiles update:', profileResult.error.message);
     }
 
@@ -5279,7 +5279,7 @@ function loadTerokai(){
 
 async function loadTerLeagues(){
   try{
-    var{data}=await SB.from('leagues').select('id,name').limit(20);
+    var{data}=await window.SB.from('leagues').select('id,name').limit(20);
     var sel=document.getElementById('tr-liga');
     if(!sel||!data) return;
     data.forEach(function(l){
@@ -5296,7 +5296,7 @@ async function loadTerTopDNA(){
   if(!el) return;
   try{
     let data = [];
-    var {data:dbData} = await SB.from('players')
+    var {data:dbData} = await window.SB.from('players')
       .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,passport_frame,passport_number,date_of_birth,kyc_status,clubs(name)')
       .not('dna_overall','is',null)
       .order('dna_overall',{ascending:false}).limit(5);
@@ -5325,7 +5325,7 @@ async function loadTerTopScorers(){
   if(!el) return;
   try{
     let data = [];
-    var {data:dbData} = await SB.from('players')
+    var {data:dbData} = await window.SB.from('players')
       .select('id,full_name,preferred_name,position,best_position,dna_overall,dna_band,passport_number,date_of_birth,kyc_status,clubs(name)')
       .not('dna_overall','is',null)
       .order('dna_overall',{ascending:false}).limit(5);
@@ -5373,7 +5373,7 @@ async function onTerSearch(){
 
   var data = [];
   try{
-    var query=SB.from('players')
+    var query=window.SB.from('players')
       .select('id,full_name,preferred_name,nickname,position,best_position,dna_overall,dna_band,passport_frame,passport_number,date_of_birth,kyc_status,clubs(name)')
       .not('full_name','is',null);
 
@@ -6020,7 +6020,7 @@ var SB = window.SB;
 if (!SB?.auth?.onAuthStateChange) {
   console.error('[PlayPro] Supabase client unavailable; auth listeners disabled.');
 } else {
-SB.auth.onAuthStateChange((ev,session)=>{
+window.SB.auth.onAuthStateChange((ev,session)=>{
   _u=session?.user||null;_pd=null;updateUI();
   if(_tab==='profile')loadProfile();
 });
