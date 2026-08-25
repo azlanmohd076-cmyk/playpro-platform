@@ -2833,6 +2833,22 @@ async function loadPublicPortal(){
     const x=document.getElementById('public-suspensions');x.innerHTML=suspensions.length?suspensions.map(r=>'<div class="public-row"><div class="public-row-main"><div class="public-row-title">'+publicEscape(r.playerName||r.displayName||r.fullName||r.players?.fullName||'Pemain')+'</div><div class="public-row-meta">'+publicEscape(r.clubName||r.reason||r.reasonNotes||'Penggantungan aktif')+'</div></div><span class="public-live">AKTIF</span></div>').join(''):'<div class="public-empty">Tiada penggantungan aktif</div>';
   }catch(error){console.error('[v0] Public portal load failed',error);ids.forEach(id=>publicBlock(id,'Data belum dapat dimuatkan'));}
 }
+function updateLencanaNotif(){
+  const badge=document.getElementById('ndot');
+  if(!badge)return;
+  let notifications=[];
+  try{
+    const stored=localStorage.getItem('PLAYPRO_NOTIFICATIONS_V2');
+    const parsed=stored?JSON.parse(stored):[];
+    notifications=Array.isArray(parsed)?parsed:[];
+  }catch(error){
+    console.warn('[PlayPro] Notifications could not be read',error);
+  }
+  const unread=notifications.filter(item=>item&&item.unread===true).length;
+  badge.textContent=unread>99?'99+':String(unread);
+  badge.style.display=unread?'flex':'none';
+}
+
 async function init(){  updateLencanaNotif();
   var params = new URLSearchParams(window.location.search);
   var targetPlayer = params.get('player');
