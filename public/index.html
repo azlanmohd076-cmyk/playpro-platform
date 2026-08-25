@@ -21,6 +21,17 @@ window.PLAYPRO_SUPABASE_REDIRECT_URL='https://v0.app/chat/api/supabase/redirect/
   // Expose the Supabase client as a true global lexical binding for legacy inline code.
   // `window.SB` alone is not reliably resolved as bare `SB` in every preview runtime.
   var SB = window.SB || null;
+  // Keep onboarding usable even if the external helper script is delayed or unavailable.
+  window.getPlayProSupabase = function(){
+  if(window.SB && typeof window.SB.from === 'function') return window.SB;
+  if(window.supabase && typeof window.supabase.createClient === 'function' && window.PLAYPRO_SUPABASE_URL && window.PLAYPRO_SUPABASE_ANON_KEY){
+  try{
+  window.SB = window.supabase.createClient(window.PLAYPRO_SUPABASE_URL,window.PLAYPRO_SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}});
+  return window.SB;
+  }catch(error){ console.warn('[PlayPro] Supabase init failed:',error.message); }
+  }
+  return null;
+  };
 </script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -4985,7 +4996,12 @@ async function obComplete(){
   btn.disabled=true;
   btn.textContent='Menyimpan...';
   try{
-    if(!_u){toast('⚠️ Sila log masuk dahulu');return;}
+    var onboardingClient=window.getPlayProSupabase?.()||window.SB;
+    if(!onboardingClient || typeof onboardingClient.from!=='function'){
+      throw new Error('Sambungan Supabase belum tersedia. Sila muat semula halaman dan cuba lagi.');
+    }
+    window.SB=onboardingClient;
+    if(!_u){toast('Sila log masuk dahulu');return;}
     var name=_u.user_metadata?.full_name||'Pemain Baru';
     var role=_u.user_metadata?.role||'player';
     // Ambil no telefon dari onboarding form atau user_metadata
