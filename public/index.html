@@ -5155,9 +5155,8 @@ function previewPhoto(event){
 }
 
 async function saveEditProfile(){
-  var activePlayerKey = window.currentActivePlayerKey || currentActivePlayerKey || 'Azlan';
-  var reg = PLAYPRO_PLAYER_REGISTRY[activePlayerKey] || PLAYPRO_PLAYER_REGISTRY[activePlayerKey.toLowerCase()] || PLAYPRO_PLAYER_REGISTRY['Azlan'] || {};
-  var activePlayer = window._overrideProfileData || window._pd || _pd || {};
+    var activePlayer = window._overrideProfileData || window._pd || _pd || {};
+    var activePlayerKey = window.currentActivePlayerKey || currentActivePlayerKey || activePlayer.id || '';
 
   var btn=document.getElementById('edit-save-btn');
   if(btn){ btn.disabled=true; btn.textContent='Menyimpan...'; }
@@ -5177,19 +5176,17 @@ async function saveEditProfile(){
     if(nick!==null){ 
       update.nickname=nick; update.preferred_name=nick; update.full_name=nick;
       activePlayer.nickname=nick; activePlayer.preferred_name=nick; activePlayer.full_name=nick;
-      reg.nama=nick; reg.namaPenuh=nick; reg.full_name=nick; reg.preferred_name=nick; reg.nickname=nick;
       currentActivePlayerKey=nick; window.currentActivePlayerKey=nick;
     }
-    if(fullPhone)  { update.phone=fullPhone; activePlayer.phone=fullPhone; reg.phone=fullPhone; }
+    if(fullPhone)  { update.phone=fullPhone; activePlayer.phone=fullPhone; }
     if(pos){
       update.position=pos; update.best_position=pos.toUpperCase();
       activePlayer.position=pos; activePlayer.best_position=pos.toUpperCase();
-      reg.posisi=pos.toUpperCase(); reg.posisiPenuh=posFull2(pos); reg.position=pos;
     }
-    if(foot) { update.preferred_foot=foot; activePlayer.preferred_foot=foot; reg.kaki=(foot==='left'?'Kiri':'Kanan'); reg.preferred_foot=foot; }
-    if(jersey) { update.jersey_number=parseInt(jersey); activePlayer.jersey_number=parseInt(jersey); reg.jersey='#'+jersey; reg.jersey_number=parseInt(jersey); }
-    if(height) { update.height_cm=parseInt(height); activePlayer.height_cm=parseInt(height); reg.tinggi=height+' cm'; reg.height_cm=parseInt(height); }
-    if(weight) { update.weight_kg=parseInt(weight); activePlayer.weight_kg=parseInt(weight); reg.berat=weight+' kg'; reg.weight_kg=parseInt(weight); }
+    if(foot) { update.preferred_foot=foot; activePlayer.preferred_foot=foot; }
+    if(jersey) { update.jersey_number=parseInt(jersey); activePlayer.jersey_number=parseInt(jersey); }
+    if(height) { update.height_cm=parseInt(height); activePlayer.height_cm=parseInt(height); }
+    if(weight) { update.weight_kg=parseInt(weight); activePlayer.weight_kg=parseInt(weight); }
 
     if(_tempCustomPhotoBase64){
       activePlayer.photo_url = _tempCustomPhotoBase64;
@@ -5197,15 +5194,17 @@ async function saveEditProfile(){
       reg.avatarCustomUrl = _tempCustomPhotoBase64; reg.photo_url = _tempCustomPhotoBase64;
     }
 
-    // 💾 SIMPAN PERSISTENT KE LOCALSTORAGE DENGAN ISOLATED DEEP CLONING SUPAYA TIADA MEMORY BLEEDING KE PEMAIN LAIN!
-    var registryClone = JSON.parse(JSON.stringify(PLAYPRO_PLAYER_REGISTRY));
-    registryClone[activePlayerKey] = reg;
-    if(nick && nick !== activePlayerKey) registryClone[nick] = reg;
-    PLAYPRO_PLAYER_REGISTRY = registryClone; window.PLAYPRO_PLAYER_REGISTRY = registryClone;
-    localStorage.setItem('PLAYPRO_REGISTRY_V3', JSON.stringify(registryClone));
-
     if(activePlayer.id && activePlayer.id.length === 36){
-      await SB.from('players').update(update).eq('id',activePlayer.id);
+      var playerResult = await SB.from('players').update(update).eq('id',activePlayer.id).select().maybeSingle();
+      if(playerResult.error) throw playerResult.error;
+    }
+
+    var profileUpdate = {};
+    if(nick !== null) profileUpdate.full_name = nick;
+    if(fullPhone !== null) profileUpdate.phone = fullPhone;
+    if(Object.keys(profileUpdate).length && _u?.id){
+      var profileResult = await SB.from('profiles').update(profileUpdate).eq('id',_u.id).select().maybeSingle();
+      if(profileResult.error) console.warn('[PlayPro] profiles update:', profileResult.error.message);
     }
 
     renderPP2Header(activePlayer);
