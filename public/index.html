@@ -2986,14 +2986,37 @@ function pickRole(r,ic,nm){
 }
 function backRole(){document.getElementById('d-s1').style.display='block';document.getElementById('d-s2').style.display='none'}
 
-async function doGoogleLogin(){
+  async function doGoogleLogin(){
+  const client=window.getPlayProSupabase?.() || window.SB;
+  if(!client || !client.auth || typeof client.auth.signInWithOAuth!=='function'){
+  console.warn('[PlayPro] Google login skipped: Supabase client unavailable.');
+  toast('Sambungan log masuk belum tersedia. Sila cuba lagi sebentar lagi.');
+  return;
+  }
   const redirectTo=window.PLAYPRO_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`;
-  const{error}=await window.SB.auth.signInWithOAuth({
-    provider:'google',
-    options:{redirectTo}
+  try{
+  const result=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo}});
+  if(result?.error){
+  console.error('[PlayPro] Google OAuth error:',result.error);
+  toast('Log masuk Google gagal. Sila cuba lagi.');
+  }
+  }catch(error){
+  console.error('[PlayPro] Google OAuth request failed:',error);
+  toast('Log masuk Google gagal. Sila cuba lagi.');
+  }
+  }
+  const redirectTo=window.PLAYPRO_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`;
+  try{
+  const{error}=await client.auth.signInWithOAuth({
+  provider:'google',
+  options:{redirectTo}
   });
-  if(error) toast('❌ Google login gagal: '+error.message);
-}
+  if(error) toast('Log masuk Google gagal. Sila cuba lagi.');
+  }catch(error){
+  console.error('[PlayPro] Google login failed:',error);
+  toast('Log masuk Google gagal. Sila cuba lagi.');
+  }
+  }
 
 async function doFacebookLogin(){
   const{error}=await window.SB.auth.signInWithOAuth({
@@ -6039,11 +6062,11 @@ function printKad(){
 /* ── AUTH ── */
 // Resolve the client through window explicitly. Static pages can expose globals
 // differently across preview servers, so never rely on an undeclared SB binding.
-var SB = window.SB || null;
-if (!SB?.auth?.onAuthStateChange) {
+const authClient=window.SB;
+if (!authClient?.auth?.onAuthStateChange) {
   console.warn('[PlayPro] Supabase client unavailable; auth listeners disabled.');
 } else {
-  SB.auth.onAuthStateChange((ev,session)=>{
+  authClient.auth.onAuthStateChange((ev,session)=>{
     _u=session?.user||null;_pd=null;updateUI();
     if(_tab==='profile')loadProfile();
   });
