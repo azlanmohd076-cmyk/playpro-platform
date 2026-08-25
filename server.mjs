@@ -3,7 +3,8 @@ import { createReadStream, existsSync, statSync } from 'node:fs'
 import { join, normalize, extname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const root = join(fileURLToPath(new URL('.', import.meta.url)), 'public')
+const projectRoot = fileURLToPath(new URL('.', import.meta.url))
+const root = join(projectRoot, 'public')
 const port = Number(process.env.PORT || 3000)
 const types = {
   '.html': 'text/html; charset=utf-8',
@@ -20,8 +21,10 @@ const types = {
 createServer((request, response) => {
   const pathname = decodeURIComponent(new URL(request.url || '/', `http://${request.headers.host || 'localhost'}`).pathname)
   const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '')
-  const file = normalize(join(root, relative))
-  const safeRoot = `${root}/`
+  const file = pathname.startsWith('/js/')
+    ? normalize(join(projectRoot, relative))
+    : normalize(join(root, relative))
+  const safeRoot = pathname.startsWith('/js/') ? `${projectRoot}/` : `${root}/`
 
   if (!file.startsWith(safeRoot) || !existsSync(file) || !statSync(file).isFile()) {
     response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' })
