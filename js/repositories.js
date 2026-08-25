@@ -910,7 +910,7 @@ const MarketValueRepo = {
   },
 };
 
-/* ─────────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────��
    REPOSITORY: Notifications
 ───────────────────────────────────────────────────────────── */
 const NotifRepo = {
@@ -1317,7 +1317,7 @@ const SquadRepo = {
 
   /* ─────────────────────────────────────────────────────────────
    Utility helpers
-  ───────────────────────────────────────────────────────────── */
+  ─���─────────────────────────────────────────────────────────── */
 function _mondayOfThisWeek() {
   const d = new Date();
   const day = d.getDay();
@@ -1326,8 +1326,41 @@ function _mondayOfThisWeek() {
   return d.toISOString().slice(0, 10);
 }
 
-/* ── Expose all repositories globally ─────────────────────── */
-window.UserRepo       = UserRepo;
+  /* ─────────────────────────────────────────────────────────────
+     REPOSITORY: Public Portal
+  ───────────────────────────────────────────────────────────── */
+  const PublicRepo = {
+    async standings(leagueId = null) {
+      let q = SB.from('v_standings').select('*').order('position', { ascending: true });
+      if (leagueId) q = q.eq('league_id', leagueId);
+      const { data, error } = await q;
+      if (error) { console.error('[PublicRepo.standings]', error.message); return []; }
+      return _norm(data ?? []);
+    },
+    async fixtures(leagueId = null, limit = 30) {
+      let q = SB.from('fixtures').select('id, league_id, match_date, status, venue, home_club:clubs!fixtures_home_club_id_fkey(id,name,logo_url), away_club:clubs!fixtures_away_club_id_fkey(id,name,logo_url), match_results(home_goals,away_goals)').order('match_date', { ascending: true }).limit(limit);
+      if (leagueId) q = q.eq('league_id', leagueId);
+      const { data, error } = await q;
+      if (error) { console.error('[PublicRepo.fixtures]', error.message); return []; }
+      return _norm(data ?? []);
+    },
+    async topScorers(leagueId = null, limit = 10) {
+      let q = SB.from('v_top_scorers').select('*').order('goals', { ascending: false }).limit(limit);
+      if (leagueId) q = q.eq('league_id', leagueId);
+      const { data, error } = await q;
+      if (error) { console.error('[PublicRepo.topScorers]', error.message); return []; }
+      return _norm(data ?? []);
+    },
+    async suspensions(limit = 20) {
+      const { data, error } = await SB.from('v_active_suspensions').select('*').limit(limit);
+      if (error) { console.error('[PublicRepo.suspensions]', error.message); return []; }
+      return _norm(data ?? []);
+    }
+  };
+
+  /* ── Expose all repositories globally ─────────────────────── */
+  window.PublicRepo     = PublicRepo;
+  window.UserRepo       = UserRepo;
 window.SquadRepo      = SquadRepo;
 window.PlayerRepo     = PlayerRepo;
 window.ClubRepo       = ClubRepo;
