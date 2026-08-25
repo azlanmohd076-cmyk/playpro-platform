@@ -1878,7 +1878,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
           <div style="font-size:.85rem;font-weight:700;color:var(--txt);margin-bottom:.25rem">Cari Pemain Malaysia</div>
           <div style="font-size:.7rem;line-height:1.6;margin-bottom:1rem">Pilih negeri atau taip nama untuk cari pemain, kelab dan pengadil.</div>
         </div>
-        <div class="section-title">🏅 Top DNA — Pemain Terbaik</div>
+        <div class="section-title">��� Top DNA — Pemain Terbaik</div>
         <div id="ter-top-dna"><div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Memuatkan...</div></div>
         <div class="section-title" style="margin-top:1rem">⚽ Penjaring Teratas</div>
         <div id="ter-top-scorers"><div style="text-align:center;padding:1rem;color:var(--mute);font-size:.75rem">Memuatkan...</div></div>
@@ -2292,7 +2292,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
                 <div class="af2 af2-phys"   onclick="setAttrFilter2('physical',this)">💪</div>
                 <div class="af2 af2-ment"   onclick="setAttrFilter2('mental',this)">🧠</div>
                 <div class="af2 af2-tact"   onclick="setAttrFilter2('tactical',this)">🎯</div>
-                <div class="af2 af2-gk"     onclick="setAttrFilter2('gk',this)">🥅</div>
+                <div class="af2 af2-gk"     onclick="setAttrFilter2('gk',this)">���</div>
               </div>
             </div>
             <div class="attr2-grid" id="attr2-grid"></div>
@@ -2838,6 +2838,23 @@ window.updateLencanaNotif = function updateLencanaNotif(){
   badge.style.display=unread?'flex':'none';
 }
 
+async function routeAuthenticatedUser(user){
+  if(!user||!window.SB) return;
+  try{
+    const{data:profile,error:profileError}=await SB.from('profiles').select('id,role').eq('id',user.id).maybeSingle();
+    if(profileError) throw profileError;
+    const role=profile?.role;
+    if(!profile||!role){ showOnboarding(); return; }
+    if(role==='player'){
+      const{data:player,error:playerError}=await SB.from('players').select('id').eq('profile_id',user.id).maybeSingle();
+      if(playerError) throw playerError;
+      if(!player) showOnboarding();
+    }
+  }catch(error){
+    console.warn('[PlayPro] onboarding status check skipped:',error.message);
+  }
+}
+
 async function init(){  window.updateLencanaNotif();
   var params = new URLSearchParams(window.location.search);
   var targetPlayer = params.get('player');
@@ -2849,7 +2866,14 @@ async function init(){  window.updateLencanaNotif();
   }
 
   const{data:{session}}=await SB.auth.getSession();
-  if(session){_u=session.user;updateUI();}
+  if(session){_u=session.user;updateUI();await routeAuthenticatedUser(_u);}
+  SB.auth.onAuthStateChange(function(event,sessionState){
+    if(event==='SIGNED_OUT'){_u=null;_pd=null;updateUI();return;}
+    if(sessionState?.user){
+      _u=sessionState.user;updateUI();
+      setTimeout(function(){routeAuthenticatedUser(sessionState.user);},0);
+    }
+  });
   buildFeed();
   loadStats_strip();
   loadTopScorers();
@@ -2998,6 +3022,7 @@ async function doLogin(){
   }catch(e){ console.warn('[PlayPro] profile self-heal threw:',e&&e.message); }
   _u=data.user;_pd=null;updateUI();closeLogin();
   toast('✅ Selamat datang, '+(_u.user_metadata?.full_name||_u.email.split('@')[0])+'!');
+  await routeAuthenticatedUser(_u);
   if(_tab==='profile')loadProfile();
 }
 
@@ -3223,33 +3248,19 @@ async function loadProfile(){
     console.warn('Supabase DB loadProfile error, using persistent Auto-Heal:', e.message);
   }
 
-  /* 🛡️ EMERGENCY SELF-HEALING MUTLAK: Jika DB Supabase gagal atau kosong, terus pulihkan akaun Azlan/L.Rom secara suci bersih! */
   if(!p){
-    console.warn("⚠️ Mengesan rekod Azlan belum wujud di DB Supabase. Melakukan pemulihan automatik Self-Healing...");
-    var regHeal = getRegistryPlayerSafe('Azlan') || getRegistryPlayerSafe('L.Rom') || {};
-    p = {
-      id: regHeal.id || '550e8400-e29b-41d4-a716-446655440001',
-      full_name: regHeal.namaPenuh || regHeal.full_name || "Azlan Mohd",
-      preferred_name: regHeal.nama || regHeal.preferred_name || "L.Rom",
-      nickname: regHeal.nama || regHeal.nickname || "L.Rom",
-      position: regHeal.posisi || regHeal.position || "CM",
-      best_position: regHeal.posisi || regHeal.best_position || "CM",
-      dna_overall: regHeal.ovr !== undefined ? regHeal.ovr : (regHeal.dna_overall || 91),
-      kyc_status: regHeal.isVerified !== undefined ? (regHeal.isVerified ? 'verified' : 'unverified') : (regHeal.kyc_status || 'verified'),
-      passport_number: regHeal.passport_number || "27091976-05-AZLN",
-      date_of_birth: regHeal.tarikhLahir || regHeal.date_of_birth || "1976-09-27",
-      nationality: regHeal.warganegara || regHeal.nationality || "Malaysian",
-      clubs: { name: regHeal.kelab || regHeal.clubs?.name || "Kelab Bolasepak Kepayang" },
-      jersey_number: regHeal.jersey ? regHeal.jersey.replace('#','') : "8",
-      height_cm: regHeal.tinggi ? regHeal.tinggi.replace(/\D/g,'').replace('cm','') : "170",
-      weight_kg: regHeal.berat ? regHeal.berat.replace(/\D/g,'').replace('kg','') : "68",
-      photo_url: regHeal.photo_url || regHeal.avatarCustomUrl || "",
-      avatarCustomUrl: regHeal.avatarCustomUrl || regHeal.photo_url || ""
-    };
+    if(el.loading) el.loading.style.display='none';
+    if(el.main) el.main.style.display='block';
+    if(el.norec){
+      el.norec.style.display='block';
+      const sub=document.getElementById('pp-norec-sub');
+      if(sub) sub.innerHTML='Profil anda belum lengkap. <button type="button" onclick="showOnboarding()" style="margin-top:.7rem;padding:.55rem .8rem;border:1px solid var(--g);border-radius:8px;background:var(--g);color:#fff;font-weight:700;cursor:pointer;font-family:inherit">Lengkapkan onboarding</button>';
+    }
+    _pd=null; window._pd=null; window._attrData2=[];
+    return;
   }
 
   window._obJustCompleted=false;
-  p = syncWithLocalRegistry(p);
   _pd=p; window._pd=p;
   
   if(el.loading) el.loading.style.display='none';
@@ -3340,23 +3351,8 @@ async function loadAttr2(pid){
       .eq('player_id',pid).eq('is_public',true);
     _attrData2=data||[];
     
-    /* Stabilkan DNA Radar: Jika Supabase kosong, automatik petakan dari PLAYPRO_PLAYER_REGISTRY */
-    if (!_attrData2 || !_attrData2.length) {
-      var nameKey = window.currentActivePlayerKey || 'Azlan';
-      var reg = PLAYPRO_PLAYER_REGISTRY[nameKey] || PLAYPRO_PLAYER_REGISTRY['Azlan'];
-      if (reg && reg.dnaAttributes) {
-        var aList = [];
-        Object.keys(reg.dnaAttributes).forEach(function(k){
-          aList.push({
-            attribute_code: k,
-            current_value: reg.dnaAttributes[k] * 5,
-            attribute_definitions: { label: k.toUpperCase(), category: 'technical', display_order: 1 }
-          });
-        });
-        _attrData2 = aList; window._attrData2 = aList;
-      }
-    }
-    
+    _attrData2 = Array.isArray(data) ? data : [];
+    window._attrData2 = _attrData2;
     window._attrScale2=Math.max(1,..._attrData2.map(r=>r.current_value||0))<=20?20:100;
     renderRadar2('all');
     renderAttrCards2('all');
