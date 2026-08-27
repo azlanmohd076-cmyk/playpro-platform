@@ -5024,16 +5024,47 @@ async function obComplete(){
       document_number:_obDocNo||null
     };
     var playerResult=await onboardingClient.rpc('register_my_player',{p_payload:payload});
-    if(playerResult.error) throw playerResult.error;
-    if(!playerResult.data?.ok) throw new Error('Rekod pemain tidak dapat disahkan.');
 
-    var newPlayerId=playerResult.data.player_id;
+    var rpcData=playerResult?.data;
+    var rpcError=playerResult?.error;
+
+    // RPC may return a JSON string or a parsed object — normalise both
+    if(typeof rpcData==='string'){
+      try{ rpcData=JSON.parse(rpcData); }catch(pe){ rpcData=null; }
+    }
+
+    // Success is signalled by rpcData.ok===true OR rpcData.success===true
+    var rpcOk=Boolean(rpcData&&(rpcData.ok===true||rpcData.success===true));
+
+    // Extract player ID from rpcData.player_id or rpcData.id
+    var newPlayerId=rpcData?(rpcData.player_id||rpcData.id||null):null;
+
+    if(rpcError||!rpcOk){
+      var errMsg=rpcError?.message||(rpcData?.error)||'Pendaftaran pemain gagal. Sila cuba lagi.';
+      console.error('[PlayPro] register_my_player failed:',errMsg,'rpcData:',rpcData);
+      throw new Error(String(errMsg));
+    }
+
+    if(!newPlayerId){
+      console.error('[PlayPro] register_my_player returned no player ID',rpcData);
+      throw new Error('ID pemain tidak dikembalikan. Sila cuba lagi.');
+    }
+
+    // Persist player ID for downstream modules
+    window.currentPlayerId=newPlayerId;
+    try{ sessionStorage.setItem('currentPlayerId',newPlayerId); }catch(se){}
+
     if(newPlayerId) await saveClubHistoryOnboarding(newPlayerId);
 
+    // Close onboarding modal
     hideOnboarding();
     toast('✅ Profil disimpan! Selamat datang ke PlayPro!');
     window._obJustCompleted=true;
+
+    // Reset cached profile data so loadProfile fetches fresh
     _pd=null;
+    window._pd=null;
+
     go('profile');
     setTimeout(function(){loadProfile();},800);
   }catch(e){
