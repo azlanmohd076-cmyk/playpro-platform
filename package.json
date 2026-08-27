@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "node server.mjs",
     "start": "node server.mjs",
-    "test": "node tests/obcomplete-register.test.js"
+    "test": "node tests/obcomplete-register.test.js && node tests/auth-session.test.js && node --test tests/repository-sync.test.js tests/server.test.js",
+    "test:obcomplete": "node tests/obcomplete-register.test.js",
+    "check": "node --check server.mjs && node --check js/supabase.js && node --check js/repositories.js && node --check src/modules/auth/auth-session.service.js"
   }
 }
