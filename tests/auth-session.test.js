@@ -10,9 +10,10 @@
  * the legacy `try{...}catch(e){console.warn(e)}` in doRegister() never
  * fired and every profile failure was invisible.
  */
-'use strict';
+import { readFileSync } from 'node:fs';
+import { runInThisContext } from 'node:vm';
 
-const path = require('path');
+const serviceSource = readFileSync(new URL('../src/modules/auth/auth-session.service.js', import.meta.url), 'utf8');
 
 /* ---------- tiny assertion kit ---------- */
 let passed = 0, failed = 0;
@@ -97,20 +98,18 @@ function makeMock(cfg) {
 /* ---------- load service into a fresh global ---------- */
 function loadService(mock, opts) {
   opts = opts || {};
-  delete require.cache[require.resolve('../src/modules/auth/auth-session.service.js')];
-
-  global.window = global;
-  global.PlayProModel6 = {
+  globalThis.window = globalThis;
+  globalThis.PlayProModel6 = {
     Core: { getSupabase: () => mock, supabase: mock }
   };
-  global.PLAYPRO_SUPABASE_URL = 'https://example.supabase.co';
-  global.PLAYPRO_SUPABASE_ANON_KEY = 'anon-key';
-  global.fetch = opts.networkDown
+  globalThis.PLAYPRO_SUPABASE_URL = 'https://example.supabase.co';
+  globalThis.PLAYPRO_SUPABASE_ANON_KEY = 'anon-key';
+  globalThis.fetch = opts.networkDown
     ? () => Promise.reject(new TypeError('Failed to fetch'))
     : () => Promise.resolve({ ok: true, status: 200 });
 
-  require('../src/modules/auth/auth-session.service.js');
-  return global.PlayProModel6.Auth.Session;
+  runInThisContext(serviceSource, { filename: 'auth-session.service.js' });
+  return globalThis.PlayProModel6.Auth.Session;
 }
 
 (async function run() {
