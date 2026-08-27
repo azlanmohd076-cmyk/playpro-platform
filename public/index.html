@@ -2615,15 +2615,15 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
       <div class="fm" id="ob-msg"></div>
     </div>
 
-    <!-- Step 2: Maklumat Tambahan (Optional) -->
+    <!-- Step 2: Maklumat Pemain -->
     <div id="ob-step2" style="display:none">
       <div style="margin-bottom:1rem">
         <div style="font-size:1rem;font-weight:800;color:var(--txt);margin-bottom:.3rem">Lengkapkan Profil Kau ⚽</div>
-        <div style="font-size:.73rem;color:var(--mute)">Boleh skip dan isi kemudian dalam Football Passport.</div>
+        <div style="font-size:.73rem;color:var(--mute)">Posisi utama diperlukan untuk mencipta Football Passport. Maklumat lain boleh diisi kemudian.</div>
       </div>
 
       <div style="margin-bottom:.65rem">
-        <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem">Posisi Utama</label>
+        <label style="font-size:.65rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:.4rem">Posisi Utama <span style="color:#ef4444">*</span></label>
         <select class="fi" id="ob-position" style="cursor:pointer">
           <option value="">-- Pilih Posisi --</option>
           <optgroup label="Penjaga Gol"><option value="gk">GK — Goalkeeper</option></optgroup>
@@ -4909,36 +4909,12 @@ async function obNext(){
 }
 
 async function obSkip(){
-  if(!_u) return;
-  var name=_u.user_metadata?.full_name||'Pemain Baru';
-  var role=_u.user_metadata?.role||'player';
-  var phone=_u.user_metadata?.phone||null;
-  var fp=_obDOB?generateFPNo(_obDOB,_obStateCode,name):null;
-  try{
-    /* P0 REPAIR: was upsert({...role}) -> became UPDATE -> rejected by
-       trg_prevent_role_escalation (42501), and omitted NOT NULL email.
-       RPC owns role + email server-side. */
-    var{error:profErr}=await window.SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
-    if(profErr) console.error('[PlayPro] ensure_profile failed:',profErr.message);
-    var payload={
-      profile_id:_u.id,full_name:name,preferred_name:name,
-      is_active:true,is_passport_public:true,
-      kyc_status:'unverified',passport_frame:'unverified',
-    };
-    if(_obDocType!=='passport'&&_obDocNo) payload.ic_number=_obDocNo;
-    if(_obDOB) payload.date_of_birth=_obDOB;
-    if(fp) payload.passport_number=fp;
-    var{error}=await window.SB.from('players').insert(payload);
-    if(error){
-      await window.SB.from('players').update(payload).eq('profile_id',_u.id);
-    }
-  }catch(e){console.warn('skip save:',e.message);}
+  // Skipping must never claim that a player record was created. The players
+  // schema requires a DOB and position, so incomplete onboarding is deferred.
   hideOnboarding();
-  toast('✅ Football Passport dicipta!');
-  window._obJustCompleted=true;
+  toast('Maklumat belum disimpan. Lengkapkan Football Passport melalui profil anda.');
   _pd=null;
   go('profile');
-  setTimeout(function(){loadProfile();},800);
 }
 
 async function saveOnboardingStep1(){
@@ -5013,73 +4989,46 @@ async function obComplete(){
   btn.textContent='Menyimpan...';
   try{
     var onboardingClient=window.getPlayProSupabase?.()||window.SB;
-    if(!onboardingClient || typeof onboardingClient.from!=='function'){
+    if(!onboardingClient || typeof onboardingClient.rpc!=='function'){
       throw new Error('Sambungan Supabase belum tersedia. Sila muat semula halaman dan cuba lagi.');
     }
-    window.SB=onboardingClient;
-    if(!_u){toast('Sila log masuk dahulu');return;}
+    if(!_u) throw new Error('Sila log masuk dahulu.');
+
+    var position=document.getElementById('ob-position')?.value||'';
+    if(!_obDOB) throw new Error('Tarikh lahir yang sah diperlukan.');
+    if(!position) throw new Error('Sila pilih posisi utama.');
+
     var name=_u.user_metadata?.full_name||'Pemain Baru';
-    var role=_u.user_metadata?.role||'player';
-    // Ambil no telefon dari onboarding form atau user_metadata
     var obPhoneCode=document.getElementById('ob-phone-code')?.value||'+60';
     var obPhoneNum=(document.getElementById('ob-phone')?.value||'').trim();
     var phone=obPhoneNum?(obPhoneCode+obPhoneNum):(_u.user_metadata?.phone||null);
-    var fp=_obDOB?generateFPNo(_obDOB,_obStateCode,name):null;
 
-    // 1. Guarantee profiles row
-    // P0 REPAIR: RPC owns role + email server-side (see 42501 guard).
-    try{
-      var{error:profErr2}=await window.SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
-      if(profErr2) console.error('[PlayPro] ensure_profile failed:',profErr2.message);
-    }catch(pe){console.error('[PlayPro] ensure_profile threw:',pe&&pe.message);}
+    // Guarantee the private profile first. Errors are fatal and visible.
+    var profileResult=await onboardingClient.rpc('ensure_profile_after_signup',{
+      p_full_name:name,p_phone:phone
+    });
+    if(profileResult.error) throw profileResult.error;
 
-    // 2. Insert/update players using the authenticated user only
+    // Atomic server-side upsert. Identity and role are derived from auth.uid();
+    // the browser cannot choose another profile or elevate its permissions.
     var payload={
-      profile_id:_u.id,full_name:name,preferred_name:name,
-      is_active:true,is_passport_public:true,
-      pitch_nickname:document.getElementById('ob-nickname')?.value?.trim()||null,
-      dominant_foot:document.getElementById('ob-foot')?.value||null,
-      preferred_jersey_no:document.getElementById('ob-jersey')?.value ? parseInt(document.getElementById('ob-jersey').value) : null,
-      height_cm:document.getElementById('ob-height')?.value ? parseInt(document.getElementById('ob-height').value) : null,
-      weight_kg:document.getElementById('ob-weight')?.value ? parseInt(document.getElementById('ob-weight').value) : null,
-      kyc_status:'unverified',passport_frame:'unverified',
+      date_of_birth:_obDOB,
+      position:position,
+      preferred_foot:document.getElementById('ob-foot')?.value||null,
+      jersey_number:document.getElementById('ob-jersey')?.value||null,
+      height_cm:document.getElementById('ob-height')?.value||null,
+      weight_kg:document.getElementById('ob-weight')?.value||null,
+      preferred_name:document.getElementById('ob-nickname')?.value?.trim()||name,
+      phone:phone,
+      document_type:_obDocType,
+      document_number:_obDocNo||null
     };
-    if(_obDocType!=='passport'&&_obDocNo) payload.ic_number=_obDocNo;
-    if(_obDOB) payload.date_of_birth=_obDOB;
-    if(fp) payload.passport_number=fp;
+    var playerResult=await onboardingClient.rpc('register_my_player',{p_payload:payload});
+    if(playerResult.error) throw playerResult.error;
+    if(!playerResult.data?.ok) throw new Error('Rekod pemain tidak dapat disahkan.');
 
-    var{error:insErr}=await window.SB.from('players').insert(payload);
-    if(insErr){
-      console.warn('insert failed:',insErr.message);
-      var{error:updErr}=await window.SB.from('players')
-        .update(payload).eq('profile_id',_u.id);
-      if(updErr) console.warn('update failed:',updErr.message);
-    }
-
-    // 3. Get player ID yang baru dibuat
-    var{data:newPlayer}=await window.SB.from('players').select('id').eq('profile_id',_u.id).single();
-    var newPlayerId=newPlayer?.id||null;
-
-    // 4. Save club history
+    var newPlayerId=playerResult.data.player_id;
     if(newPlayerId) await saveClubHistoryOnboarding(newPlayerId);
-
-    // 5. Save step 2 data
-    var pos=document.getElementById('ob-position')?.value||null;
-    var foot=document.getElementById('ob-foot')?.value||null;
-    var jersey=document.getElementById('ob-jersey')?.value||null;
-    var height=document.getElementById('ob-height')?.value||null;
-    var weight=document.getElementById('ob-weight')?.value||null;
-    var nick=document.getElementById('ob-nickname')?.value?.trim()||null;
-    var upd={};
-    if(pos){upd.position=pos;upd.best_position=pos.toUpperCase();}
-    if(foot) upd.preferred_foot=foot;
-    if(jersey) upd.jersey_number=parseInt(jersey);
-    if(height) upd.height_cm=parseInt(height);
-    if(weight) upd.weight_kg=parseInt(weight);
-    if(nick) upd.nickname=nick;
-    if(Object.keys(upd).length>0){
-      await window.SB.from('players').update(upd).eq('profile_id',_u.id);
-    }
 
     hideOnboarding();
     toast('✅ Profil disimpan! Selamat datang ke PlayPro!');
@@ -5087,10 +5036,11 @@ async function obComplete(){
     _pd=null;
     go('profile');
     setTimeout(function(){loadProfile();},800);
-
   }catch(e){
-    console.error('obComplete error:',e);
-    toast('⚠️ '+e.message);
+    console.error('[PlayPro onboarding]',e);
+    var message=String(e?.message||'Pendaftaran pemain gagal. Sila cuba lagi.');
+    setMsg('ob-msg2','❌ '+message,'err');
+    toast('⚠️ '+message);
   }finally{
     btn.disabled=false;
     btn.textContent='Simpan & Mula →';

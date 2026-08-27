@@ -84,6 +84,45 @@ const UserRepo = {
 };
 
 /* ─────────────────────────────────────────────────────────────
+   REPOSITORY: Profiles
+───────────────────────────────────────────────────────────── */
+const ProfileRepo = {
+  async current() {
+    const uid = await Auth.uid();
+    if (!uid) return null;
+    const { data, error } = await SB.from('profiles').select('*').eq('id', uid).maybeSingle();
+    if (error) { console.error('[ProfileRepo.current]', error.message); return null; }
+    return _norm(data);
+  },
+  async save(profile = {}, player = null) {
+    const uid = await Auth.uid();
+    if (!uid) return { data: null, error: new Error('Sesi pengguna tidak ditemui') };
+
+    // Never spread untrusted objects into profiles: role, id and email are
+    // server-owned identity fields. Only explicitly editable fields pass.
+    const profilePatch = {};
+    for (const key of ['full_name', 'phone', 'avatar_url']) {
+      if (Object.prototype.hasOwnProperty.call(profile, key)) profilePatch[key] = profile[key];
+    }
+    let profileData = null;
+    if (Object.keys(profilePatch).length) {
+      const result = await SB.from('profiles').update(profilePatch).eq('id', uid).select().single();
+      if (result.error) return { data: null, error: result.error };
+      profileData = result.data;
+    }
+
+    let playerData = null;
+    if (player) {
+      const result = await SB.rpc('register_my_player', { p_payload: player });
+      if (result.error) return { data: null, error: result.error };
+      playerData = result.data;
+    }
+    cacheInvalidate('profile:');
+    return { data: { profile: _norm(profileData), player: _norm(playerData) }, error: null };
+  }
+};
+
+/* ─────────────────────────────────────────────────────────────
    REPOSITORY: Players
 ───────────────────────────────────────────────────────────── */
 const PlayerRepo = {
@@ -910,7 +949,7 @@ const MarketValueRepo = {
   },
 };
 
-/* ────────────────────────────────────────────────────────────���
+/* ─────────────────────────────────────────────────────────────
    REPOSITORY: Notifications
 ───────────────────────────────────────────────────────────── */
 const NotifRepo = {
@@ -1317,7 +1356,7 @@ const SquadRepo = {
 
   /* ─────────────────────────────────────────────────────────────
    Utility helpers
-  ������─────────────────────────────────────────────────────────── */
+  ───────────────────────────────────────────────────────────── */
 function _mondayOfThisWeek() {
   const d = new Date();
   const day = d.getDay();
@@ -1361,6 +1400,7 @@ function _mondayOfThisWeek() {
   /* ── Expose all repositories globally ─────────────────────── */
   window.PublicRepo     = PublicRepo;
   window.UserRepo       = UserRepo;
+window.ProfileRepo    = ProfileRepo;
 window.SquadRepo      = SquadRepo;
 window.PlayerRepo     = PlayerRepo;
 window.ClubRepo       = ClubRepo;
