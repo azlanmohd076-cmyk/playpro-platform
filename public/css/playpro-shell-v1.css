@@ -1,0 +1,20 @@
+/* PlayPro Shell v1 — conservative overrides only. */
+
+[data-playpro-shell="secondary-global"] {
+  display: none !important;
+}
+
+[data-playpro-shell="primary"] [data-playpro-shell-hidden="true"],
+[data-playpro-shell="bottom"] [data-playpro-shell-hidden="true"] {
+  display: none !important;
+}
+
+/* Keep the primary navigation visually compact after removing redundant destinations. */
+[data-playpro-shell="primary"] {
+  gap: 8px;
+}
+
+/* Keep the bottom bar focused on the four permanent destinations. */
+[data-playpro-shell="bottom"] {
+  gap: 8px;
+}
