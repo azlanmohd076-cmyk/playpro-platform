@@ -1,0 +1,51 @@
+name: PlayPro Shell v1
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  wire-shell:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Inject shell controller
+        shell: python
+        run: |
+          from pathlib import Path
+
+          targets = [Path('public/index.html'), Path('public/playpro_public.html')]
+          css = '<link rel="stylesheet" href="/css/playpro-shell-v1.css">'
+          js = '<script src="/js/playpro-shell-v1.js"></script>'
+
+          for path in targets:
+              if not path.exists():
+                  continue
+              text = path.read_text(encoding='utf-8')
+              original = text
+              if '/css/playpro-shell-v1.css' not in text and '</head>' in text.lower():
+                  pos = text.lower().rfind('</head>')
+                  text = text[:pos] + css + '\n' + text[pos:]
+              if '/js/playpro-shell-v1.js' not in text and '</body>' in text.lower():
+                  pos = text.lower().rfind('</body>')
+                  text = text[:pos] + js + '\n' + text[pos:]
+              if text != original:
+                  path.write_text(text, encoding='utf-8')
+
+      - name: Commit wired shell
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "Shell already wired."
+            exit 0
+          fi
+          git config user.name "playpro-shell-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/index.html public/playpro_public.html
+          git commit -m "ui: wire PlayPro shell navigation v1"
+          git push
