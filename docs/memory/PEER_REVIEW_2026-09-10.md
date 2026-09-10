@@ -254,3 +254,95 @@ ARCHITECTURE FREEZE      🔴 BELUM  <- R2 betul, dan sebabnya ialah WO-01: tida
 ```
 
 Satu baris daripada R2 yang saya jadikan panduan sepanjang fasa: **"jumpa drift → terus tambah column/table/function" ialah kesilapan lama yang tidak akan kita ulang.**
+
+---
+
+## 11. SEMAKAN KETIGA (R3, mantan CTO) malam 9 — jawapan kepada 5 permintaan §10.6
+
+R3 dijalankan **selepas** commit `fac0acf` (head PR #5 pada masa itu — disahkannya dia membaca kerja terkini, bukan petikan lama). Kaedahnya: SQL Editor read-only + `pg_proc` + badan fungsi + Security Advisor `playpro2`. Dia mengaku: tiada perubahan dibuat. **`DISAHKAN-BY-REVIEWER` (2026-09-10, malam); BUKAN `DISAHKAN-BY-CTO`.**
+
+### 11.1 Fakta R3 (lengkap, kerana §10.5(3) menuntut senarai penuh — bukan "antara lain")
+
+| # | Fakta R3 | Status permintaan CTO | Kesan |
+|---|---|---|---|
+| 1 | `match_events` = **0 baris** · `player_match_stats` = **0** · `match_results` = **0** · `standings` = **0**; semua timestamp `NULL` | **menjawab (a)** → `WO-33` tertutup | Tiada bukti sebarang perlawanan pernah masuk DB. **TAPI R3 sendiri berhati-hati:** ini *bukan* bukti 100% UI observer gagal. `WO-28` menjadi **pengesahan**, bukan penentuan |
+| 2 | **0 materialized view** (21 jadual · 5 view biasa) | **menjawab soalan matview CTO** | `DRIFT-021` (baharu): klien memanggil `refresh_all_public_views` dan `connection_test.html` menguji **T10 "MatView Refresh"** + **T14 "MatView Data"** → alat itu akan melaporkan TRUE/FALSE terhadap sesuatu yang memang tiada |
+| 3 | Nama fungsi yang **disebut**: `start_match` · `end_match` · `finalize_match` · `record_match_event` · `void_match_event` · `match_observer_scope_for` · `update_standings_on_official_result` · `update_updated_at` | **separuh menjawab (b)** | 8 daripada **20** nama. **12 nama masih belum disenaraikan** → `WO-36` kekal terbuka |
+| 4 | `run_post_match_pipeline()` **TIADA** · `trg_fixture_status_pipeline` **TIADA** · trigger `fixtures` hanya `trg_fixtures_updated_at` | **menjawab** | Mengesahkan `DRIFT-015`/`DRIFT-019`/`DRIFT-020` sepenuhnya |
+| 5 | **`trg_official_result_standings` ADA** di live, pada `match_results`, memanggil `update_standings_on_official_result()` | **tidak diminta — berita besar** | `DRIFT-022` (baharu): **live sudah mengira standings daripada `match_results`** → `match_results` bukan "salinan kebenaran" semata-mata (R2 §9), ia **input** kepada standings. Ini mengubah bentuk soalan `DEC-041` |
+| 6 | Badan `record_match_event()` disemak: gateway `SECURITY DEFINER` dengan pemeriksaan `autentikasi → pelantikan observer → fixture → keadaan perlawanan → pasukan → pemain → skop observer` | **menjawab (d) sebahagian** | R3: "Masalahnya bukan `record_match_event()` tak wujud. **Masalahnya UI tidak memanggilnya**." → **tepat** `DRIFT-018`. Reka bentuk DB **selari v1.3** |
+| 7 | Badan `register_my_player()`: `UPDATE public.profiles SET identification_number = v_doc_no` — lajur itu **TIADA**; dan fungsi ini `SECURITY DEFINER` | **menjawab (d)** | **Punca P0 disahkan bebas, dua kali.** Rujukan **keras** (bukan SQL dinamik) → pendaftaran pemain **pasti gagal setiap kali**, bukan kadang-kadang |
+| 8 | Keistimewaan/policy `match_events`: R3 perhalusi → **tiada POLICY INSERT** (R2 tulis "tiada INSERT") | membetulkan laras bahasa kami | Kesimpulannya sama; dokumen kini memetik sebab yang tepat: **tiada polisi INSERT**, dan SELECT sahaja |
+| 9 | Advisor: `referees` RLS ON/0 policy · **13** `SECURITY DEFINER` WARN · **18** initplan · **16** permissive berganda · **24** FK tanpa index · **35** index tak guna · leaked-password **disabled** | konsisten R2 | Tiada perubahan pada `EVIDENCE.md` §C |
+| 10 | PR #5: head `fac0acf` · base `23569ac` · **12 commit / 10 fail** · dokumen sahaja · `main` protection **BELUM enforced** | — | CTO ukur semula selepas R3: `mergeable=MERGEABLE`, `mergeStateStatus=**CLEAN**` → semakan Vercel sudah selesai, tiada `behind_by` |
+| 11 | Senarai "TIDAK setuju buat sekarang": tambah `identification_number` · apply `phase6_7` · baiki trigger · kunci `sequence` · **hidupkan `public/src`** · baiki RLS merata · bina jadual sebab frontend minta · migrasi legacy pukul rata | — | Semua sepadan dengan `DEC-022` + larangan DDL Fasa 2C + `WO-29`/`WO-34`/`WO-35`. **Termasuk godaan terbesar pusingan ini: "hidupkan `public/src`"** — tidak dibuat |
+
+### 11.2 Arahan Owner malam 9 → `DEC-042` (siapa Observer)
+
+Owner menjawab soalan yang menggantung (siapa yang layak jadi Match Observer) secara langsung:
+
+```
+1. Observer = 2 orang "admin" yang DILANTIK oleh organisator bagi SETIAP perlawanan.
+2. Pelantikan tidak had 2 orang sahaja - organisator boleh lantik berapa ramai pun,
+   kerana sehari boleh ada lebih 8 perlawanan (dan orang yang sama boleh dilantik
+   untuk lebih dari satu perlawanan).
+```
+
+Yang **sepadan** dengan live: R3 sahaja `record_match_event()` menyemak **"pelantikan observer"** + **"skop observer"** dan DB mempunyai fungsi `match_observer_scope_for()` + jadual `match_admin_assignments`. ⇒ Model "dilantik per perlawanan, boleh ramai" itu **sudah dijangka oleh reka bentuk DB**. Yang **tidak** sepadan: `match_observer.html` mengandungi **0** konsep pelantikan/pasangan pegawai — UI hari ini ialah **perakam solo**, bukan skrin 2-pegawai.
+
+Tiga halangan jujur sebelum ini boleh direka bentuk (bukan terus ditulis ke DB):
+
+1. **`match_admin_assignments` TIADA definisinya di Git.** `grep` ke atas `database/*.sql` + `supabase/` = **0** padanan → kita tidak tahu lajur/kekangan/uniknya; satu-satunya jalan ialah **introspeksi live** (`WO-37`).
+2. **Konflik berpotensi dengan `DEC-004`** (beku): pelantikan **tidak boleh** disahkan melalui `organizer.status` atau kelulusan dokumen — autoriti mesti dari **capability** (Fasa A, `DEC-033`), bukan dari "status pelindung". Ini untuk **CEO sahkan** sebagai konsistensi, bukan untuk aku laruskan sendiri.
+3. **"Perlu 2 orang" = minimum atau keras?** Aku letak **lalai selamat**: *minimum 2, lebih dibenarkan sebagai pembantu*, dan pemeriksaan itu diletak di **RPC** (`start_match`/`finalize_match`), bukan di skrin — sebab skrin boleh ditipu, RPC tidak. Kalau kau mahu **tepat 2**, katakan; itu mengubah kekangan DB (`WO-39`).
+
+### 11.3 Dua perkara lagi yang hanya nampak dari `[GIT]` (selepas R3)
+
+🟠 **`DRIFT-021` — alat diagnosis menguji objek yang memang tiada.** Klien memanggil `refresh_all_public_views`; `connection_test.html` ada **T10 "MatView Refresh"** dan **T14 "MatView Data"**; `db_readiness_report.html` menyenaraikan matview. R3 ukur: **0 materialized view**. ⇒ Sebahagian "doctor report" yang dibaca Owner selama ini **tidak mungkin** lulus, dan kegagalan itu bukan salah DB — ia salah jangkaan dalam alat. (Ini juga sebab `refresh_all_public_views` tidak akan pernah wujud kalau kita kekal tanpa matview: **jangan cipta matview sebab alat minta** — sama seperti larangan "jangan cipta jadual sebab legacy SQL menyebutnya".)
+
+🟠 **`DRIFT-022` — live DB ialah KEK BERLAPIS dengan satu lapisan tanggal, bukan "generasi terakhir".** `trg_official_result_standings` + `update_standings_on_official_result()` yang R3 jumpa di live didefinisikan di `database/01_phase1_core_schema.sql:1229` dan `:1339` (**Fasa 1**), manakala `handle_official_result_correction()` + `trg_official_result_correction` ada di `database/playpro_phase4_critical_fix_pack.sql:1593`/`:1661` (**Fasa 4**) — dengan komen di `:2796`/`:2915-2925` dan `:1435-1438` yang **menyuruh** trigger Fasa 1 dibuang bagi "production bersih". Dipetik kata-per-kata (jangan diparafrasekan):
+```
+database/playpro_phase4_critical_fix_pack.sql:2795  -- FIX 9 - Standings reversal (optional, keeps both triggers active):
+                                        :2796  --   DROP TRIGGER IF EXISTS trg_official_result_standings ON match_results;
+                                        :1435  -- For full correctness, in a migration window:
+                                        :1438  -- and rely solely on the Phase 4 trigger below.
+                                        :2919  -- RISK 3 - FIX 9 trigger coexistence
+                                        :2921  --   match_results. On a fresh is_official = false -> true transition,
+                                        :2922  --   BOTH triggers fire. Phase 1 adds standings; Phase 4 correction
+                                        :2923  --   trigger only fires if old and new scores differ (no double count
+                                        :2924  --   on initial ratification). SAFE as-is.
+                                        :2925  --   For clean production, drop the Phase 1 trigger per migration notes.
+```
+⇒ Tiga bacaan yang mungkin di `playpro2` hari ini, dan **kita belum tahu yang mana satu**:
+   (i) hanya Fasa 1 → pembetulan/de-ratifikasi keputusan **tidak akan mengira semula `standings`** → jadual boleh kekal salah selepas keputusan dibetulkan (isu **keadilan pertandingan**, bukan kosmetik);
+   (ii) Fasa 1 + Fasa 4 → kata fail itu sendiri "SAFE as-is" untuk ratifikasi pertama, dengan risiko kiraan berganda yang **diterima secara sedar** oleh penulis lama;
+   (iii) Fasa 4 sahaja → tak sesuai dengan laporan R3 (dia nampak `trg_official_result_standings`).
+Fungsi lain yang mungkin hidup dan belum dinamakan: `recalculate_standings(p_league_id)` (didefinisikan di `:1440` selepas komen itu) — masuk dalam 12 nama yang kita masih tunggu. ⇒ live nampak seperti **Fasa 1 + Fasa 4 separuh + Fasa-3 September**, dan **tanpa** Fasa 6/7. Soalan penentu untuk R3 (semalam dia belum jawab): **adakah `trg_official_result_correction` juga wujud di live?** Kalau TIADA, `standings` hari ini boleh salah selepas pembetulan keputusan — dan itu bukan isu kosmetik (`WO-38`).
+
+### 11.4 Impak kepada `DEC-041` — aku buka **opsyen (C)** sebagai INPUT, bukan keputusan
+
+Dua pusingan kita bergelut sama (A) RPC-only lwn (B) legacy klien-tulis+trigger. Fakta R3 (§11.1#5) menunjukkan live **sudah** ada generasi ketiga: standings dijana daripada `match_results` melalui trigger. Maka (A) vs (B) mungkin soal yang salah. Cadangan untuk CEO/Owner (tiada apa-apa dilaksanakan):
+
+```
+(C) RANTAI BERTINGKAT - menggunakan SEMUA yang sudah ada di live, tanpa tambah lajur:
+
+    tangan manusia HANYA di peranti perlawanan
+              |
+              v
+    record_match_event()  <- RPC sah; SELECT-only untuk klien; sequence + void di sini
+              |
+              v
+    match_events (buku kira-kira) -> dikira oleh pelayan -> match_results (keputusan RASMI)
+              |
+              v
+    trg_official_result_standings -> standings  <- INI SUDAH HIDUP di live
+              |
+              v
+    player_match_stats = PANDANGAN terkira (bukan tulisan klien)
+
+    Yang MATI/DIBUANG: MatchRepo.saveEvents/savePlayerStats/completeFixture (kod mati, DRIFT-019)
+    Yang TIDAK DITERAPKAN: run_post_match_pipeline (Fasa 6/7) - kekal LEGACY, jangan hidupkan buta
+    Yang PERLU DITAMBAH: laluan UI ke RPC (DRIFT-018) + pelantikan pegawai (DEC-042) + sequence (WO-24)
+```
+
+Kelebihan (C): ia **tidak** menentang `DEC-013`/`DEC-014` (satu sumber kebenaran perlawanan: `match_events` sebagai **satu-satunya tulisan manusia**) dan **tidak** membuangkan trigger live yang kini bekerja. Kekurangannya: `match_results` kekal wujud sebagai hasil kiraan, jadi DRIFT-009 R2 perlu dijawab dengan "jadikan dia output, bukan input". **Status: `PROPOSED` → diluluskan CEO+Owner sahaja; CTO tidak meluluskan reka bentuknya sendiri.**

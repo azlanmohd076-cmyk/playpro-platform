@@ -45,6 +45,16 @@ Jika arahan dalam chat bercanggah dengan fail ini → AI mesti berhenti dan makl
 5. **Sandbox AI tiada akses rangkaian ke `supabase.com`** (TLS disekat). Maka apa-apa dakwaan tentang keadaan RLS / enum / RPC / jumlah row di produksi **mesti ditanda `DILAPORKAN`**, bukan `DISAHKAN`. Skrip pemeriksaan read-only ada di `EVIDENCE.md` §D.
 6. **Kaunter tanpa ahli = bukan bukti; senarai separuh = soalan BELUM ditutup.** "20 fungsi" yang tidak disenaraikan namanya tidak mengesahkan apa-apa (dua pusingan review Reviewer memberi kaunter, bukan senarai). "antara lain: started, goals, …" tidak boleh digunakan untuk menyimpulkan "lajt X tiada". Setiap kali satu himpunan dipakai untuk menutup kerja, ia mesti **senarai penuh** (contoh: `q20` untuk DDL, `q10` untuk policy) — atau status kekal `SEPARUH`.
 7. **Prosa chat BUKAN sumber semakan.** R2 membantah ayat "semua halangan semantik diselesaikan sepenuhnya" — rangkaian itu **tiada** dalam mana-mana fail (`grep` = 0). Setiap bantahan/temuan mesti memetik `fail:baris` dalam repo; dan setiap review mesti **masuk ke repo sebagai fail atau PR comment**, kalau tidak ia akan ditemui semula sebagai "kenangan" pada sesi hadapan (`PEER_REVIEW_2026-09-10.md` wujud tepat untuk sebab itu).
+8. **Kiraan baris (0) ialah DATA, bukan bukti reka bentuk — dan jangan sesekali menulis "UI gagal" daripada "jadual kosong".** Contoh sebenar pusingan 3: `match_events` = 0 baris **mengesahkan** tiada perlawanan masuk, tetapi ia **tidak** membuktikan halaman observer rosak (mungkin memang tiada orang pernah menjalankan perlawanan ujian di `playpro2`). Setiap kali menulis kesimpulan daripada kiraan baris, tulis **kedua-dua** bacaan yang mungkin, dan namakan ujian yang membezakannya (`WO-28`).
+9. **Bahaya persekitaran: sesi baharu boleh klon semula repo dan meletakkan branch kerja pada `main`.**
+   Yang berlaku malam 9: `git reflog` memaparkan `clone: → checkout: moving from main to
+   arena/01a089e0-playpro-platform` pada `23569ac`, manakala fail di disk **sudah** mengandungi 12 commit
+   sebelumnya — lalu 1 commit baharu aku terniat bapa = `main`, bukan tip branch. `git push` **DITOLAK**
+   (`fetch first`) dan itu **pertahanan yang baik**. Kaedah selamat (tanpa `--force`, dan jangan sesekali
+   `--force` ke branch ini): `git fetch origin "refs/heads/<branch>:refs/remotes/origin/<lokal)"` →
+   `git diff --stat origin/<lokal> HEAD` (pastikan beza = kerja pusingan ini sahaja) →
+   `git reset --soft origin/<lokal>` → commit semula. **Kalau beza itu menyentuh `public/`, `src/`,
+   `tests/` atau SQL — BERHENTI dan tanya Owner**, jangan teruskan.
 
 ---
 

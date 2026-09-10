@@ -116,6 +116,41 @@ grep -rhoE "\.rpc\('[a-z_]+'" public/*.html public/js/*.js | sort | uniq -c
 wc -lc database/playpro_phase6_7_pipeline.sql && grep -n "run_post_match_pipeline\|trg_fixture_status_pipeline" database/playpro_phase6_7_pipeline.sql | head
 ```
 
+### R3 (2026-09-10 malam 9) — ukuran `[DB]` oleh mantan CTO + ukuran `[GIT]` susulan oleh CTO
+
+**`[DB]` — `DISAHKAN-BY-REVIEWER` (R3: SQL Editor read-only + `pg_proc` + badan fungsi + Security Advisor `playpro2`). CTO tidak menyahihkan sendiri.**
+
+| Ukuran R3 | Nilai |
+|---|---|
+| Bilangan baris | `match_events` = **0** · `player_match_stats` = **0** · `match_results` = **0** · `standings` = **0** (timestamp `NULL`) |
+| Jenis relation | 21 jadual biasa · 5 view biasa · **0 materialized view** |
+| Fungsi (8 daripada 20, bernama) | `start_match` · `end_match` · `finalize_match` · `record_match_event` · `void_match_event` · `match_observer_scope_for` · `update_standings_on_official_result` · `update_updated_at` — **12 nama masih belum diberi** |
+| Trigger `fixtures` | hanya `trg_fixtures_updated_at` |
+| Trigger `match_results` | **`trg_official_result_standings` ADA** |
+| `record_match_event()` | `SECURITY DEFINER`; semakan `autentikasi → pelantikan observer → fixture → keadaan perlawanan → pasukan → pemain → skop observer` |
+| `register_my_player()` | `UPDATE public.profiles SET identification_number = v_doc_no` — lajur TIADA → rujukan **keras** |
+| `match_events` | SELECT untuk `authenticated`; **tiada polisi INSERT** (laras bahasa R2 "tiada INSERT" diperhalusi) |
+| Advisor | `referees` RLS/0 policy · 13 `SECURITY DEFINER` · 18 initplan · 16 permissive · 24 FK · 35 index · leaked-password disabled · **0 matview** |
+
+**`[GIT]` — `DISAHKAN-BY-CTO` malam 9 (hasilkan semula dengan arahan ini):**
+
+```bash
+# 1) match_admin_assignments TIDAK didefinisikan di mana-mana dalam Git (DRIFT-dec-042 halangan #1)
+grep -rn "match_admin_assignments" --include="*.sql" database/ supabase/ 2>/dev/null | wc -l   # = 0
+# 2) generasi trigger standings = Fasa 1; pembetulan keputusan = Fasa 4 (live cuma Fasa 1, kata R3)
+grep -n "update_standings_on_official_result\|trg_official_result_standings" database/01_phase1_core_schema.sql
+grep -n "handle_official_result_correction\|trg_official_result_correction" database/playpro_phase4_critical_fix_pack.sql
+# 3) UI tidak kenal konsep pelantikan pegawai (0 padanan di halaman observer)
+grep -c "match_admin_assignments" public/match_observer.html   # = 0
+# 4) halaman observer hanya boleh dicapai dari 2 butang coach_command_center (0 pautan dari index)
+# 5) komen lama yang membenarkan dua trigger standings hidup serentak (bacaan DRIFT-022)
+sed -n '2795,2796p;1435,1438p;2919,2925p' database/playpro_phase4_critical_fix_pack.sql
+grep -c "match_observer" public/index.html ; grep -n "match_observer" public/coach_command_center.html
+```
+
+R3 juga **mengesahkan PR #5** terhadap head `fac0acf` (12 commit · 10 fail · dokumen sahaja). Selepas itu CTO ukur: `mergeable=MERGEABLE` · `mergeStateStatus=CLEAN` · `behind_by=0` → **tiada lagi sebab teknikal untuk menangguh penggabungan dokumen ini.**
+
+
 
 ---
 
