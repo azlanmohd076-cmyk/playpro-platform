@@ -43,6 +43,8 @@ Disediakan oleh CTO (Arena), 2026-09-10. `DISAHKAN` = diukur dari API GitHub / f
 | Vercel | `vercel.json` → `outputDirectory: "public"`, rewrites: `/`→`index.html`, `/app`→`app.html`, `/card`→`player_card.html`, `/ops`→`dev_panel.html` | DISAHKAN |
 | Kesan penting | Fail di `/js/*.js` (akar) **tidak dihidang** (404) kerana hanya `public/` yang di-deploy. `public/js/*.js` = versi yang hidup | DISAHKAN |
 | `public/index.html` | Aplikasi produksi sebenar, 1,204,835 B / 6,127 baris | DISAHKAN |
+| `public/match_observer.html` | **61,219 B / 1,394 baris** / blob `be7b98c6` (identik `main` ↔ branch CTO). **0 pautan dari `index.html`** — jalan masuk hanya 2 butang `coach_command_center.html` L218/L324. Halaman `public/` = 17 buah; 16 rujukan `/js/*.js` → 404 | DISAHKAN |
+| Ref Supabase yang apl GUNA | `index.html:14` = `https://muirhenvjruvfxenoaxm.supabase.co`; anon key L15 **bukan** placeholder (dinyahkod: `ref=muirhenvjruvfxenoaxm`, `role=anon`, `iat=2026-04-30`) → apl diterajui ke situ. **Nama projek bagi ref itu belum disahkan** → `WO-30` (lihat baris alamat dashboard) | DISAHKAN → separuh |
 | Konfigurasi auth | `window.PLAYPRO_SUPABASE_REDIRECT_URL = 'https://v0.app/chat/api/supabase/redirect/…'` (baris 16) — redirect masih lalu infrastruktur **V0** | DISAHKAN |
 | Domain live yang dipakai Owner | `v0.app` / Vercel preview (disebut dalam audit 27 Ogos) | DILAPORKAN |
 | **Projek Vercel yang menghidang repo ini** | `vercel.com/**worldohsem-7845**/playpro-platform` — terlihat pada semakan PR #5 (`Vercel – playpro-platform`, SUCCESS 2026-09-10) | **DISAHKAN** |

@@ -127,12 +127,13 @@ Berbanding lajur `match_events` **live** yang Reviewer laporkan (`fixture_id, ev
 `repositories.js:1128` (`savePlayerStats`) membuat `from('player_match_stats').upsert(rows, {onConflict:'fixture_id,player_id'})` **sebelum** "mencetus pipeline" — komen pada baris 1164 menyatakan reka bentuknya: `trg_fixture_status_pipeline` pada `fixtures` → `run_post_match_pipeline()`. Jadi reka bentuk **lama** = *klien tulis jadual mentah → trigger derive*, manakala Fasa-3 **live** = *RPC observer ialah satu-satunya penulis event-driven*. Dua model ini tidak boleh hidup serentak; ini keputusan fasa skema (→ `WO-24`), bukan kerja keemasan.
 
 **DRIFT-016 🟠 — 3 skrip yang langsung tidak dimuat di produksi.**
-6 halaman memuat skrip yang 404 (`vercel.json`: `outputDirectory: "public"`; fail hanya wujud di `js/`):
+Diukur (bukan diingat): `public/` mengandungi **17 halaman `.html`**; **16 rujukan** `<script src="/js/...">` menghala ke **3 fail yang tidak wujud** di `public/js/` — `vercel.json`: `outputDirectory: "public"`, fail hanya ada di `js/` (akar):
 ```
 /js/dashboard_integration.js        → club_command_center, coach_command_center, match_observer,
                                       parent_command_center, player_command_center, playpro_public
 /js/playpro_audit_fixes.js          → 6 halaman di atas
-/js/shared_dashboard_components.js  → 5 command center
+/js/shared_dashboard_components.js  → 4 command center
+Jumlah rujukan 404: 6 + 6 + 4 = 16. Semakan lengkap: tiada skrip /js/* LAIN yang 404.
 ```
 Maknanya: **pembaikan audit yang ditulis sebagai `playpro_audit_fixes.js` tidak pernah berjalan di produksi**, walaupun failnya ada dalam repo dan ada dalam sejarah git. Kelas ralat yang sama seperti `is_club_admin`: bukan isu pangkalan data, isu **laluan hidang** — dan sebab itu `docs/DEPLOYMENT.md` (yang menamakan migrasi palsu) bahaya.
 
@@ -146,3 +147,30 @@ sed -n '1100,1132p' public/js/repositories.js
 for f in $(grep -rl 'src="/js/' --include=*.html public/); do for p in $(grep -o '/js/[a-z_]*\.js' $f|sort -u); do test -f public$p || echo "404 $f -> $p"; done; done
 grep -n "PLAYPRO_SUPABASE_URL=" public/*.html | head
 ```
+
+
+### 9.6 Kebolehcapaian — ditulis semula selepas Owner bertanya "mana fail `match_observer.html` ni?"
+
+Diukur 2026-09-10, disahkan melalui GitHub API (bukan ingatan):
+
+1. **Fail itu wujud, dan ada di `main`.** `public/match_observer.html` · **61,219 B** · **1,394 baris** · blob `be7b98c6`
+   · md5 `f15a4167b70b9834bc5100722ac4c6cb` · **IDENTIKAL** di `main` dan di branch CTO. Ia di dalam `public/` — bukan
+   di `docs/memory/`, bukan di akar repo, jadi cari dalam folder `public` di GitHub UI.
+2. **Ia halaman YATIM.** `public/index.html` mengandungi **0** rujukan ke `match_observer` (`grep -c` = 0). Satu-satunya
+   jalan masuk: **2 butang dalam `coach_command_center.html`** (L218 "Open Match Observer →" dan L324
+   "⚡ Open Match Observer"), kedua-duanya `window.open('match_observer.html','_blank')`. Dalam shell yang
+   dikunci (LIVE/CARI/MYTEAM/KEDAI) halaman ini **tidak pernah muncul** — itu sebab yang paling munasabah
+   mengapa DRIFT-013 (kiyasan berjaya) kekal tak perasan selama ini. **Bukan sahaja penulisnya 404, mangsanya
+   pun sukar ditemui.**
+3. **Cara buka untuk `WO-28`:** taip terus `https://playpro-platform.vercel.app/match_observer.html` (domain yang
+   disebut dalam `PANDUAN_PEMULIHAN_P0_BM.md:74,161` dan `PLAYPRO_KAJIAN_TRIGGER_RLS_CACHE_BM.md:354`) ATAU buka
+   `coach_command_center.html` → klik "Open Match Observer". CTO **tidak dapat mengesahkan** mana-mana satunya
+   hidup: egress sandbox ke Vercel disekat (`curl` → `SSL_ERROR_SYSCALL`, HTTP 000) seperti juga ke Supabase, dan
+   domain sebenar belum disahkan milik projek ini (`WO-18`).
+4. **`WO-30` separuh terjawab dari sisi `[GIT]`:** anon key di `index.html:15` ialah **key sebenar, bukan placeholder**.
+   Claims yang dinyahkod: `iss=supabase`, `ref=muirhenvjruvfxenoaxm`, `role=anon`, `iat=2026-04-30` (208 aksara) —
+   ref-nya sepadan dengan URL di L14. Jadi apl memang **diterajui** ke projek itu. Yang tinggal: **nama** projek bagi
+   ref itu. Cara 10 saat, tanpa SQL: di Supabase dashboard, buka projek dan lihat baris alamat
+   `https://supabase.com/dashboard/project/<ref>` — `<ref>` yang bersamaan `muirhenvjruvfxenoaxm` itulah DB yang apl guna.
+5. `index.html:16` = `PLAYPRO_SUPABASE_REDIRECT_URL='https://v0.app/chat/api/supabase/redirect/sWOYxw7xZPa'` —
+   **baris 16**, tepat; mengesahkan `WO-13` (alur login masih bergantung pada platform binaan v0).
