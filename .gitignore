@@ -4,7 +4,9 @@
 .env.*.local
 
 # IDE and Editors
-.vscode/
+# NOTA: jangan tulis `.vscode/` di sini — ia mematikan senarai pengecualian
+# `!.vscode/...` di bahagian bawah fail (git tidak masuk ke dalam direktori
+# yang sudah diabaikan). Guna `.vscode/*` di bahagian "IDE specific".
 .idea/
 *.swp
 *.swo
@@ -69,3 +71,4 @@ Thumbs.db
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+!.vscode/mcp.json
