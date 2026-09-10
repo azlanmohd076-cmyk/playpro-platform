@@ -84,7 +84,7 @@ Semua 7 faktor. Tiada satu boleh dibuang demi kemudahan. Frontend **bukan** fakt
 
 | ID | Soalan terbuka | Siapa |
 |---|---|---|
-| R-01 | Bentuk skema untuk organizer **fizikal** (venue/kompleks) — perlu entiti berasingan atau atribut? | CEO |
+| R-01 | Bentuk skema untuk organizer **fizikal** (venue/kompleks) — perlu entiti berasingan atau atribut? | ✅ **DIJAWAB CEO 2026-09-10 → DEC-032** (entiti berasingan; skop direkod sebagai `WO-19`, Fasa C) |
 | R-02 | Penamaan legacy `leagues` / `tournaments` — peta kepada `Competition.format` atau kekal + view? | ✅ **DIJAWAB CEO 2026-09-10 → DEC-023** |
 | R-03 | Tahap KYC/verification & bukti yang diterima bagi setiap tahap risiko | ✅ **DIJAWAB CEO 2026-09-10 → DEC-029** (butiran dasar tertunggak: `R-03a`) |
 | R-04 | Model custody dana (selepas DEC-006 dibuka semula) | CEO |
@@ -161,7 +161,41 @@ Skop Fasa A kini tetap (berdasarkan keputusan yang sudah ada, bukan rekaan CTO):
 
 ---
 
-## H. Log append-only
+---
+
+## H. Keputusan CEO pusingan 3 (Gemini) 2026-09-10 — jawapan H1…H3
+
+Petikan **VERBATIM** seperti Owner tampal dari chat CEO. Nota CTO sentiasa dilabel; **tiada satu pun nota CTO yang mengubah maksud keputusan** — nota hanya menegur percanggahan dengan keputusan yang sudah dibekukan lebih awal.
+
+> **H1.** "(a) Kelulusan atau penolakan dokumen dikendalikan oleh Penganjur Pertandingan yang sah; (b) Tempoh sah laku pengesahan ditetapkan selama satu tahun kalendar; (c) Status automatik menjadi `INELEGIBLE_EXPIRED` apabila tamat tempoh dengan notifikasi sistem; (d) Hak rayuan dikendalikan melalui jawatankuasa rayuan penganjur, selaras dengan DEC-004 bahawa kelulusan dokumen bukan satu-satunya sempadan keselamatan."
+> **H2.** "Entiti berasingan diperlukan untuk venue/kompleks fizikal kerana ia melibatkan pengurusan aset, jadual fasiliti, dan logistik pelbagai perlawanan yang melangkaui sekadar atribut metadata."
+> **H3.** "Skop Fasa A disahkan merangkumi item (i) hingga (v) seperti yang disenaraikan, dengan ketetapan bahawa pembaikan WO-09 dan audit keselamatan RLS dilaksanakan segera manakala logik `auto_suspend` kekal dikhususkan untuk Fasa F."
+
+**DEC-031 — proses pengesahan LANJUT (menutup `WO-16` / `R-03a`).**
+(a) **Penganjur Pertandingan yang sah** adalah pelulus/penolak dokumen — konsisten dengan `DEC-012` (kendiri), `DEC-009` (`organizer_context` + `competition_context` + `resource` wajib ada dalam setiap laluan kelulusan), dan `DEC-004`.
+(b) **Tempoh sah laku = satu tahun kalendar.**
+(c) Status menjadi **`INELIGIBLE_EXPIRED` secara automatik** apabila tamat tempoh, **disertai notifikasi sistem**.
+(d) Rayuan melalui **jawatankuasa rayuan penganjur** = tingkat (i) dalam `DEC-007` (dalam pertandingan, oleh Organizer) → **konsisten**, tiada pertindihan dengan tingkat (ii)/(iii).
+*Nota CTO — dua perkara yang mesti diselesaikan sebelum fasa skema, bukan selepas:*
+1. **Ejaan.** CEO menulis `INELEGIBLE_EXPIRED`. Nilai kanonik yang betul ialah **`INELIGIBLE_EXPIRED`** (satu `E` selepas `IN`). `DECISIONS.md`/`BOUNDARIES.md` sedia ada memakai `INELIGIBLE_PENDING`/`INELIGIBLE_BLOCKED`. CTO **menolak** menanam typo dalam enum produksi — nilai enum yang salah eja tinggal selama-lamanya kerana setiap migrasi selepas itu perlu pertukaran data.
+2. **`DEC-031(b)` TAK TAMAT maknanya — "satu tahun kalendar" ada dua tafsir.** (i) **12 bulan dari tarikh kelulusan** (rolling), atau (ii) **tamat pada 31 Disember tahun kelulusan** (tahun kalendar sebenar, pola pentadbiran MY). Bezasnya material: tafsir (ii) membuatkan pengesahan pemain yang dilulus pada November hanya sah ~2 bulan, dan boleh menyingkirkan pemain di tengah musim. CTO **tidak** akan pilih salah satu. Perlu CEO tetapkan (soalan `J1` di `BACKLOG.md`) sebelum fasa skema mengira tarikh luput.
+3. **Nama vs senarai sedia ada.** `BOUNDARIES.md` §1 sudah menyenaraikan keadaan kelayakan sebagai `… / EXPIRED / SUSPENDED_BY_SANCTION`. Arahan CEO melahirkan nama **baharu** (`INELIGIBLE_EXPIRED`) untuk keadaan yang sudah ada nama (`EXPIRED`). Perlu **satu** nama sahaja → pilih `EXPIRED` **atau** `INELIGIBLE_EXPIRED` (keutamaan CTO: `INELIGIBLE_EXPIRED`, kerana ia jelas dalam senarai `ELIGIBILITY` dan selari pola `INELIGIBLE_*` yang sedia ada), kemudian `BOUNDARIES.md` §1 dibetulkan **sebagai pembetulan konsistensi**, bukan keputusan baharu.
+
+**DEC-032 — R-01 ditutup: venue/fasiliti ialah entiti BERASINGAN.** Venue/kompleks fizikal **tidak** boleh menjadi atribut metadata sahaja, kerana ia membawa pengurusan aset, jadual fasiliti, dan logistik pelbagai perlawanan.
+*Nota CTO:* (i) keputusan ini **menambah skop Fasa C** (Organizer) — direkod sebagai `WO-19` supaya tidak hilang; (ii) "jadual fasiliti" akan bersentuhan dengan penjadualan perlawanan (Fasa F) dan dengan rumus autoriti `DEC-009` — `resource` nanti termasuk venue, jadi polisinya perlu dirancang awal; (iii) **tiada** jadual venue dicipta sekarang (fasa skema belum dibuka); (iv) legacy `database/` mungkin sudah ada `matches.venue`/sebagainya — itu akan terbukti daripada `WO-08`, bukan daripada ingatan.
+
+**DEC-033 — Skop Fasa A disahkan (i)–(v), dengan dua ketetapan yang perlu dibaca bersama gerbang.**
+Setuju: (i) model capability menggantikan `profiles.role` · (ii) tahap pengesahan ASAS/LANJUT (`DEC-029` + `DEC-031`) · (iii) laluan autoriti backend untuk pendaftaran (Fasa 2C `P1-8`) · (iv) pembetulan `register_my_player()` (`WO-09`) · (v) audit grant/RLS tertunggak. `auto_suspend_on_red_card()` 1→2 kekal **Fasa F** (`WO-10`) ✔.
+⚠️ **Percanggahan yang wajib Owner tahu (inilah sebab CTO melaporkan, bukan menyembunyikan):** CEO tulis "pelaksanaan **segera**" untuk (iv) dan (v), manakala `DEC-022` (jawapan K2 CEO sendiri, 1 hari lebih awal) menetapkan **tiada** sebarang reka bentuk skema sebelum `WO-08` eksport + `0001_baseline` siap, dan gerbang Fasa 2C (`BOUNDARIES.md` §7, verbatim) menutup **mana-mana DDL produksi** sehingga langkah 1–6 selesai.
+**Penyelesaian yang CTO cadangkan (memenuhi kedua-dua arahan tanpa memecahkan gerbang):**
+- **(a) Boleh dan wajar dibuat SEGERA, tanpa satu pun penulisan:** `WO-08` eksport read-only → keluaran yang sama **ialah** audit RLS/policy/grant untuk (v), dan bukti lajur untuk (iv) (`q03b`, `q07`, `q08`, `q10`, `q10b`, `q17`). 12 minit Owner, tiada risiko, dan ia **menyelesaikan** (v) pada tahap audit.
+- **(b) Boleh dibuat SEGERA pada kertas:** draf *spesifikasi* pembetulan `WO-09` + senarai grant yang akan di-`REVOKE`, sebagai teks dalam dokumen fasa skema (tiada SQL dijalankan).
+- **(c) Yang TIDAK boleh "segera":** `ALTER`/`CREATE OR REPLACE FUNCTION`/perubahan policy di **produksi**. Ia tetap menunggu langkah 1–6 Fasa 2C.
+Cuti: jika Owner/CEO mahu (iv) didahulukan **melepasi** `DEC-022`, itu hak mereka — tetapi ia mesti direkod sebagai `DEC-034` yang menjelaskan **`SUPERSEDES DEC-022`**, supaya tiada AI selepas ini menyangka ia penyimpangan. CTO tidak akan menggabungkan (c) tanpa rekod itu.
+
+---
+
+## I. Log append-only
 
 | Tarikh | Peristiwa |
 |---|---|
@@ -170,3 +204,4 @@ Skop Fasa A kini tetap (berdasarkan keputusan yang sudah ada, bukan rekaan CTO):
 | 2026-09-10 | MASTER CONTEXT ditulis sebagai **PR #5** (7 fail, +671) · `main` tidak disentuh |
 | 2026-09-10 | CEO jawab K1–K5 → DEC-021…DEC-026 direkod. R-02 selesai; R-05 separuh (**R-05a OPEN**); `WO-08` jadi keutamaan #1 |
 | 2026-09-10 (petang 2) | CEO jawab G1–G4 → `DEC-027`…`DEC-030`. **R-05a diselesaikan sebagai alih-tangguh bertamad**, R-06 disahkan (A→J), R-03 dijawab (2 tahap KYC) → `R-03a` OPEN. Default `Q3/Q4/Q5` ditetapkan (A / jangan petik nombor / PR kod berasingan) |
+| 2026-09-10 (malam) | CEO jawab H1–H3 → `DEC-031`…`DEC-033`. **R-01 ditutup** (venue = entiti berasingan). Tiga teguran CTO direkod: typo `INELEGIBLE_EXPIRED` → `INELIGIBLE_EXPIRED`; pertindihan nama dengan `EXPIRED` sedia ada; dan **percanggahan `DEC-033` vs `DEC-022`** (segera vs gerbang) dengan jalan keluar 3 bahagian (a/b/c) |
