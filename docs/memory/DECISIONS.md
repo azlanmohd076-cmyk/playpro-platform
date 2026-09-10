@@ -85,10 +85,10 @@ Semua 7 faktor. Tiada satu boleh dibuang demi kemudahan. Frontend **bukan** fakt
 | ID | Soalan terbuka | Siapa |
 |---|---|---|
 | R-01 | Bentuk skema untuk organizer **fizikal** (venue/kompleks) — perlu entiti berasingan atau atribut? | CEO |
-| R-02 | Penamaan legacy `leagues` / `tournaments` — peta kepada `Competition.format` atau kekal + view? | CEO (CTO beri pilihan teknikal) |
+| R-02 | Penamaan legacy `leagues` / `tournaments` — peta kepada `Competition.format` atau kekal + view? | ✅ **DIJAWAB CEO 2026-09-10 → DEC-023** |
 | R-03 | Tahap KYC/verification & bukti yang diterima bagi setiap tahap risiko | CEO + Owner |
 | R-04 | Model custody dana (selepas DEC-006 dibuka semula) | CEO |
-| R-05 | **Formula OVR** & pemberat attribute (DEC-016) | CEO |
+| R-05 | **Formula OVR** & pemberat attribute (DEC-016) | 🟡 **SEPARUH DIJAWAB → DEC-024. Pemberat (nombor) masih OPEN sebagai R-05a** |
 | R-06 | Kebergantungan akhir antara fasa A–J (urutan sebenar pelaksanaan) | CEO + CTO |
 | R-07 | Skop `KEDAI`/marketplace pada rilis pertama | Owner + CEO |
 
@@ -98,3 +98,41 @@ Semua 7 faktor. Tiada satu boleh dibuang demi kemudahan. Frontend **bukan** fakt
 
 - UI shell seperti `AGENTS.md` §7 (header `LIVE · CARI · MYTEAM · KEDAI`; footer `CARI · MYTEAM · INBOX · PASSPORT`; tiada header kedua; Match Observer bukan nav global).
 - Model perlawanan: `shot` = tepat sasaran + tersasar + penalti; jaringan sendiri dikira sebagai shot penendang (assist kepada penendang); masa tambahan 2×15 minit **dijangka berasingan**; penalti = bilangan **sepakan diambil** sahaja; clean sheet automatik; possession daripada pertukaran jam antara dua team observer; foul/corners/offside/free-kick pada tahap pemain **dan** pasukan (fair-play + KPI jurulatih); kad kuning kedua = merah automatik = penggantungan **2 perlawanan** automatik (fungsi `auto_suspend_on_red_card()` sekarang jatuh ke **1** → percanggahan, WO-08); input observer adalah autoritatif, **tiada suntingan statistik selepas perlawanan**.
+
+---
+
+## F. Keputusan CEO (Gemini) 2026-09-10 — jawapan K1…K5 yang disampaikan Owner
+
+Provenans: jawapan ditulis **VERBATIM** seperti Owner tampal dari chat CEO. Tiada tafsiran CTO dalam petikan; tafsiran hanya dalam nota CTO yang dilabel jelas.
+
+> **K1.** "Tiada percanggahan ketara antara DECISIONS.md dengan Blueprint v1.3; kesemuanya sejajar sebagai penjelas kepada pelaksanaan teknikal."
+> **K2.** "YA; setuju WO-08 diutamakan untuk eksport kebenaran produksi ke fail migrasi asas sebelum sebarang reka bentuk skema baharu dimulakan."
+> **K3.** "R-02: Legacy leagues/tournaments dipetakan terus ke entiti Competition.format berserta jadual view keserasian; R-05: Formula OVR dikira secara dinamik melalui purata wajaran atribut fizikal dan teknikal yang disahkan oleh jurulatih bertauliah."
+> **K4.** "verification_cases dibuka sekarang bagi menyelesaikan segera isu pendaftaran pemain di produksi yang masih rosak di bawah WO-09."
+> **K5.** "YA; setuju CTO mula memecahkan fail monolitik index.html (WO-03) sekarang kerana ia tidak membawa sebarang implikasi terus kepada pangkalan data."
+
+**DEC-021 — keselarasan pengesahan (K1).** `DECISIONS.md` diiktiraf CEO sebagai sejajar dengan v1.3 dan berfungsi sebagai *penjelas pelaksanaan teknikal*, bukan penggantinya. Nota CTO: pengesahan ini dibuat **terhadap ringkasan**, kerana teks penuh §1–64 **masih belum dalam Git** → `WO-01` belum selesai dan tetap wajib.
+
+**DEC-022 — turutan kerja (K2).** `WO-08` = keutamaan **#1**. Tiada satu pun reka bentuk jadual/RPC baharu dibenarkan bermula sebelum kebenaran produksi dieksport menjadi `supabase/migrations/0001_baseline.sql`. Ini menutup punca utama Fasa 2C "PASS WITH CHANGES" (reka bentuk atas andaian).
+
+**DEC-023 — R-02 diselesaikan (K3a).** Legacy `leagues` / `tournaments` **dipetakan terus** ke `Competition.format`, disertai **view keserasian**.
+*Nota CTO (mekanikal, bukan semantik):* (i) tiada penamaan semula/buang pada migrasi pertama — selari `BOUNDARIES.md` §6(2); (ii) *view keserasian* ialah **objek skema** → hanya dicipta pada fasa REKA BENTUK SKEMA, kini hanya sebagai keperluan bertulis; (iii) view itu mesti **read-only** untuk kod legacy (jangan jadi medium penulisan kedua, kalau tidak kita cipta balik sumber-kebenaran-ganda yang DEC-014/015 larang).
+
+**DEC-024 — R-05 dijawab sebahagian (K3b).** OVR = **purata wajaran** atribut fizikal + teknikal, dan hanya atribut yang **disahkan jurulatih bertauliah** (selari DEC-016: `Verified Attribute Version`, bukan nilai dari pelayar).
+⚠️ **R-05a masih OPEN:** nilai pemberat (berat setiap atribut, dan pembahagian fizikal vs teknikal) **belum diberikan**. CTO **menolak** meneka nombor. Ia mesti datang sebagai jawapan CEO/Owner yang direkod sebagai DEC baharu, dan disimpan sebagai **konfigurasi berversi di DB** (bukan hardcoded dalam `index.html`) supaya sejarah unjuran OVR boleh dijejak.
+
+**DEC-025 — `verification_cases` dibuka (K4).** Entiti verification/`verification_cases` dimasukkan ke fasa Identity & Trust, dan isu `register_my_player()` (WO-09, DRIFT-005) dianggap **perlu diselesaikan segera**.
+⚠️ **Kos yang CTO wajib catat supaya Owner tak terkejut:** sebarang pembetulan `register_my_player()` = **DDL ke produksi** (sama ada tambah lajur ke `profiles`, atau `CREATE OR REPLACE FUNCTION`). Gerbang Fasa 2C (7 langkah, `BOUNDARIES.md` §7) masih menghalang DDL. Maka, secara jujur: **pendaftaran pemain di production akan TETAP rosak** sehingga `WO-08` → baseline → langkah 1–6 Fasa 2C selesai. Laluan terpantas yang sah = siapkan `WO-08` (hari ini, read-only) + `WO-15`/`WO-05`/`WO-06`, baru DDL. **Tiada jalan pintas yang selamat**, dan CTO tidak akan mencadangkan "edit laju di Dashboard" kerana itulah yang menghasilkan 0 tracked migration yang kita warisi sekarang.
+
+**DEC-026 — monolith `index.html` (K5 + penemuan CTO).** `WO-03` diluluskan. Selepas pemetaan, keputusan teknikal diubah: punca "AI buta" **bukan** jumlah kod — ia **4 keping gambar base64 (873,460 B = 72.5% fail)**, dengan logo yang sama ditampal **3 kali**. `WO-03` dipecah kepada `WO-03a` (luaran aset) → `WO-03b` (modularisasi JS) → `WO-03c` (optimum gambar). Butiran + bukti dry-run: `INDEX_HTML_MAP.md`.
+
+---
+
+## G. Log append-only
+
+| Tarikh | Peristiwa |
+|---|---|
+| 2026-09-09 | Blueprint v1.3 FROZEN (Owner + CEO); CTO acknowledge |
+| 2026-09-10 | Owner tetapkan peranan: Gemini=CEO, Arena=CTO, ChatGPT=reviewer (DEC-018) |
+| 2026-09-10 | MASTER CONTEXT ditulis sebagai **PR #5** (7 fail, +671) · `main` tidak disentuh |
+| 2026-09-10 | CEO jawab K1–K5 → DEC-021…DEC-026 direkod. R-02 selesai; R-05 separuh (**R-05a OPEN**); `WO-08` jadi keutamaan #1 |

@@ -9,7 +9,7 @@ Cara baca: `DISAHKAN` = saya ukur sendiri dalam repo/GitHub hari ini. `DILAPORKA
 
 1. PlayPro = platform ekosistem bola sepak akar umbi (Owner → Organizer → Competition → Match → Data → Intelligence → Services → Revenue).
 2. Struktur maklumat **sudah dibekukan** dalam Blueprint v1.3 (17 keputusan + 3 senario penerimaan). Ia ada di `DECISIONS.md` sebagai ringkasan; **teks penuh §1–64 belum ada dalam Git** → `BACKLOG.md` WO-01.
-3. Fasa sekarang = **MASTER CONTEXT** (dokumen yang anda sedang baca ini). **Reka bentuk skema BELUM bermula dan DILARANG bermula.**
+3. Fasa sekarang = **MASTER CONTEXT** — ditulis sebagai **PR #5**, dan CEO sudah jawab K1–K5 (direkod `DEC-021`…`DEC-026`). **Reka bentuk skema BELUM bermula dan DILARANG bermula** sehingga `WO-08` (eksport kebenaran produksi) selesai.
 4. `0 migration tracked` di `main`. Seluruh enjin statistik perlawanan Fasa-3 wujud **di Supabase sahaja**, tidak di Git → Git belum jadi memori projek.
 5. `public/index.html` (1.2 MB) **ialah aplikasi produksi sebenar**, bukan placeholder; ia punca halusinasi AI sebab alat pembaca terpotong (lihat `AGENTS.md` §3).
 6. Tiada enforcement mekanikal: `rulesets: []`, tiada CI ujian, workflow bot boleh push ke `main`. Semua peraturan "main dilindungi" sekarang **hanya janji dalam dokumen**.
@@ -52,7 +52,7 @@ Sebab perubahan: had penggunaan (rate limit) ChatGPT mengganggu kesinambungan ke
 | CI ujian (`npm test` dalam workflow) | **Tiada.** |
 | Branch protection / ruleset `main` | **Tiada** — `gh api repos/…/rulesets` → `0` item. |
 | Dokumen status auto-dibaca (`AGENTS.md`) | **Dicipta sekarang** (PR ini). |
-| `register_my_player()` | **Rosak**: masih menulis `profiles.identification_number` sedangkan lajur itu tiada → **langkah pertama Golden Path gagal** (DILAPORKAN, padan DRIFT-005). |
+| `register_my_player()` | **Rosak**: masih menulis `profiles.identification_number` sedangkan lajur itu tiada → **langkah pertama Golden Path gagal** (DILAPORKAN, padan DRIFT-005). CEO luluskan pembetulan (K4/DEC-025) tetapi ia **DDL produksi** → tetap terikat gerbang Fasa 2C; **produksi kekal rosak** sehingga baseline siap. Bukti lajur dijana oleh `sql/PRODUCTION_TRUTH_EXPORT.sql` q03b |
 | `tests/repository-sync.test.js` | **MERAH 1/5** — lihat §4. |
 | Penyahbekuan `playpro` (legacy, RLS mati) | Perlu keputusan Owner; risiko hidup semasa projek AKTIF. |
 
@@ -112,3 +112,16 @@ Actions         : "PlayPro Shell v1" lulus 2026-09-09 pada 23569ac (bot auto-com
 ```
 
 **Kesan yang perlu Owner faham:** branch `phase-1` dan `phase-2` (11 commit dokumen + SQL baseline Fasa-2) belum masuk `main`. Ia *wujud di GitHub* tetapi tiada dalam aliran kerja mana-mana sesi baharu. Sebarang AI yang hanya baca `main` akan mengira Fasa-1/2/2B/2C belum dibuat — itulah "amnesia" yang anda rasa.
+
+---
+
+## 7. Log peristiwa — 2026-09-10 (petang)
+
+| Perkara | Hasil |
+|---|---|
+| CEO (Gemini) jawab K1–K5 melalui Owner | Direkod sebagai `DEC-021`…`DEC-026` (petikan verbatim + nota CTO berlabel). **R-02 selesai**; **R-05 separuh** → `R-05a OPEN` (pemberat belum diberi) |
+| Keutamaan kerja berubah | `WO-08` (eksport produksi → `0001_baseline.sql`) = **#1** (DEC-022). Tiada reka bentuk skema sebelum itu |
+| Pemetaan `index.html` | Dapatan: **72.5% fail = 4 gambar base64** (513,088 B dalam SATU baris 1602); logo yang sama ditampal **3×** (md5 `da3f7d647592`). JS sebenar 160,556 B · CSS 71,194 B · hanya `index.html` terjejas (17 HTML lain bersih) |
+| Dry-run `WO-03a` (di luar repo; `main` tidak disentuh) | `index.html` 1,204,835 → **331,345 B (-72.5%)** · baris tetap 6,128 · `npm test` **identik** sebelum/selepas (5/4/1 — kegagalan sama, pra-wujud). Butiran: `INDEX_HTML_MAP.md` |
+| Kit `WO-08` | `docs/memory/sql/PRODUCTION_TRUTH_EXPORT.sql` — 28 blok, **diaudit read-only dengan parser SQL (0 aksi tulis)** |
+| Yang **belum** dilakukan | `WO-01` (teks penuh v1.3 — hanya Owner/Gemini) · `WO-04` (ruleset — token CTO dapat 403) · `WO-02b` (A/B belum dijawab) · apa-apa DDL (dilarang) · apa-apa suntingan `public/*` (belum ada laluan PR kod) |

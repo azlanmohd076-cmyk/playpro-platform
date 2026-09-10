@@ -31,7 +31,7 @@ Jika arahan dalam chat bercanggah dengan fail ini → AI mesti berhenti dan makl
 | # | Mitos yang tersepit dalam chat | Fakta sahih (disemak 2026-09-10) |
 |---|---|---|
 | **1** | "Ada **2 repo GitHub**: `playpro` (canonical new build) dan `playpro2` (frozen reference)" | **Hanya SATU repo wujud: `azlanmohd076-cmyk/playpro-platform`.** `playpro`, `playpro1`, `playpro2` ialah **PROJEK SUPABASE**, bukan repo GitHub. Arahan "bina dalam repo playpro, beku repo playpro2" **tidak boleh diikuti secara literal**. Jangan sesekali cipta repo kedua. |
-| **2** | "`public/index.html` ialah wrapper/placeholder, kandungannya kosong" | Ia **aplikasi sebenar**: 1,204,835 baita · 6,127 baris · 199 `function` · 314 rujukan DOM · `lang="ms"` · `vercel.json` menghidangnya di `/`. |
+| **2** | "`public/index.html` ialah wrapper/placeholder, kandungannya kosong" | Ia **aplikasi sebenar**: 1,204,835 baita · 6,128 baris · 199 `function` · 314 rujukan DOM · `lang="ms"` · `vercel.json` menghidangnya di `/`. ⚠️ **72.5% isinya = 4 keping gambar base64** (513,088 B dalam SATU baris 1602; logo sama ditampal 3×). Baca `docs/memory/INDEX_HTML_MAP.md` sebelum menyentuh fail ini |
 | **3** | "Rekod Azlan cuma fixture rujukan, tak berbahaya" | Ia **hidup di produksi**: registry pemain hardcoded (baris ~4227), auto-seed `PLAYPRO_REGISTRY_V3` dari localStorage (~4302), gate privasi berasaskan padanan nama `var loggedInUser = "Azlan"` (~3601), dan `PLAYPRO_SUPABASE_REDIRECT_URL` menunjuk ke `v0.app` (baris 16). |
 
 ---
@@ -39,8 +39,9 @@ Jika arahan dalam chat bercanggah dengan fail ini → AI mesti berhenti dan makl
 ## 3. Bahaya alat — sebab sebenar "AI amnesia" (Owner kena tahu dua benda ini)
 
 1. **Fail 1.2 MB akan sentiasa terpotong** dalam pembacaan mana-mana AI (context window + alat pembacaan). **Jangan simpulkan apa-apa daripada bacaan terpotong.** Guna `grep -n "kunci" public/index.html` atau `sed -n '2000,2100p'` untuk julat baris. Kalau AI menulis "fail ini kosong" → itu petunjuk alatnya gagal, **bukan** hakikat fail.
-2. **Clone Arena (`/home/user/playpro-platform`) adalah shallow depth-1** (`.git/shallow`) → `git log` nampak **1 commit** sedangkan GitHub ada **235 commit**. Sejarah **tidak** leper. Jangan sesekali merujuk "sejarah dah squash", dan jangan cuba `git revert` berdasarkan senarai commit yang tak lengkap.
-3. **Sandbox AI tiada akses rangkaian ke `supabase.com`** (TLS disekat). Maka apa-apa dakwaan tentang keadaan RLS / enum / RPC / jumlah row di produksi **mesti ditanda `DILAPORKAN`**, bukan `DISAHKAN`. Skrip pemeriksaan read-only ada di `EVIDENCE.md` §D.
+2. **`index.html` akan sentiasa membuatkan mana-mana AI menyangka ia kosong** — pemotongan alat selalu jatuh pada baris 1602 (513 KB dalam satu baris). Sebelum menulis "fail ini placeholder": `wc -c public/index.html` dan baca `docs/memory/INDEX_HTML_MAP.md`.
+3. **Clone Arena (`/home/user/playpro-platform`) adalah shallow depth-1** (`.git/shallow`) → `git log` nampak **1 commit** sedangkan GitHub ada **235 commit**. Sejarah **tidak** leper. Jangan sesekali merujuk "sejarah dah squash", dan jangan cuba `git revert` berdasarkan senarai commit yang tak lengkap.
+4. **Sandbox AI tiada akses rangkaian ke `supabase.com`** (TLS disekat). Maka apa-apa dakwaan tentang keadaan RLS / enum / RPC / jumlah row di produksi **mesti ditanda `DILAPORKAN`**, bukan `DISAHKAN`. Skrip pemeriksaan read-only ada di `EVIDENCE.md` §D.
 
 ---
 

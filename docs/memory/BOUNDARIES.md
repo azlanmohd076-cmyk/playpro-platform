@@ -1,6 +1,6 @@
 # BOUNDARIES.md — Sempadan Makna, Sumber Kebenaran, dan Senarai Larangan
 
-Dokumen ini **menolak reka bentuk**. Ia hanya menetapkan (a) makna yang tidak boleh dipertikaikan, (b) di mana kebenaran tinggal, (c) apa yang dilarang.
+Dokumen ini **tidak menetapkan reka bentuk**. Ia hanya menetapkan (a) makna yang tidak boleh dipertikaikan, (b) di mana kebenaran tinggal, (c) apa yang dilarang.
 
 ---
 
@@ -111,4 +111,4 @@ Production migration remains unauthorized.
 
 ⚠️ Nota CTO: dokumen yang mengandungi 7 langkah ini **belum masuk `main`** — ia tersangkut di branch tanpa PR (`BACKLOG.md` WO-15). AI yang hanya membaca `main` tidak akan menemuinya.
 
-P1 wajib yang tercatat dalam dokumen yang sama (P1-4…P1-9), sebagai peringatan supaya tidak diulang: `unique(profile_id, capability)` **salah** untuk sejarah revoke→regrant (perlu active-row uniqueness / status) · `match_events.sequence` **dibekalkan klien** (race-prone; pengagihan mesti di pelayan) · lebih dari satu selang playing-time aktif boleh wujud untuk pemain yang sama · `MATCH_START`/`MATCH_END` tiada unik · `competition_player_registrations` perlu laluan autoriti backend + semakan kelayakan · `verification_cases` (KYC) **mesti kekal di luar** public view pemain/kelab.
+P1 wajib yang direkod dalam dokumen yang sama (P1-4…P1-9), sebagai peringatan supaya tidak diulang: `unique(profile_id, capability)` **salah** untuk sejarah revoke→regrant (perlu active-row uniqueness / status) · `match_events.sequence` **dibekalkan klien** (race-prone; agihan mesti berlaku di pelayan) · lebih dari satu selang playing-time aktif boleh wujud untuk pemain yang sama · `MATCH_START`/`MATCH_END` tiada unik · `competition_player_registrations` perlu laluan autoriti backend + semakan kelayakan · `verification_cases` (KYC) **mesti kekal di luar** public view pemain/kelab.
