@@ -176,10 +176,10 @@ Petikan **VERBATIM** seperti Owner tampal dari chat CEO. Nota CTO sentiasa dilab
 (b) **Tempoh sah laku = satu tahun kalendar.**
 (c) Status menjadi **`INELIGIBLE_EXPIRED` secara automatik** apabila tamat tempoh, **disertai notifikasi sistem**.
 (d) Rayuan melalui **jawatankuasa rayuan penganjur** = tingkat (i) dalam `DEC-007` (dalam pertandingan, oleh Organizer) → **konsisten**, tiada pertindihan dengan tingkat (ii)/(iii).
-*Nota CTO — dua perkara yang mesti diselesaikan sebelum fasa skema, bukan selepas:*
-1. **Ejaan.** CEO menulis `INELEGIBLE_EXPIRED`. Nilai kanonik yang betul ialah **`INELIGIBLE_EXPIRED`** (satu `E` selepas `IN`). `DECISIONS.md`/`BOUNDARIES.md` sedia ada memakai `INELIGIBLE_PENDING`/`INELIGIBLE_BLOCKED`. CTO **menolak** menanam typo dalam enum produksi — nilai enum yang salah eja tinggal selama-lamanya kerana setiap migrasi selepas itu perlu pertukaran data.
-2. **`DEC-031(b)` TAK TAMAT maknanya — "satu tahun kalendar" ada dua tafsir.** (i) **12 bulan dari tarikh kelulusan** (rolling), atau (ii) **tamat pada 31 Disember tahun kelulusan** (tahun kalendar sebenar, pola pentadbiran MY). Bezasnya material: tafsir (ii) membuatkan pengesahan pemain yang dilulus pada November hanya sah ~2 bulan, dan boleh menyingkirkan pemain di tengah musim. CTO **tidak** akan pilih salah satu. Perlu CEO tetapkan (soalan `J1` di `BACKLOG.md`) sebelum fasa skema mengira tarikh luput.
-3. **Nama vs senarai sedia ada.** `BOUNDARIES.md` §1 sudah menyenaraikan keadaan kelayakan sebagai `… / EXPIRED / SUSPENDED_BY_SANCTION`. Arahan CEO melahirkan nama **baharu** (`INELIGIBLE_EXPIRED`) untuk keadaan yang sudah ada nama (`EXPIRED`). Perlu **satu** nama sahaja → pilih `EXPIRED` **atau** `INELIGIBLE_EXPIRED` (keutamaan CTO: `INELIGIBLE_EXPIRED`, kerana ia jelas dalam senarai `ELIGIBILITY` dan selari pola `INELIGIBLE_*` yang sedia ada), kemudian `BOUNDARIES.md` §1 dibetulkan **sebagai pembetulan konsistensi**, bukan keputusan baharu.
+**Nota CTO — tiga perkara yang mesti diselesaikan sebelum fasa skema, bukan selepas** *(ketiga-tiganya kini selesai: lihat `DEC-034`…`DEC-036`)*:
+1. ~~**Ejaan.**~~ → **SELESAI oleh `DEC-035`.** CEO menulis `INELEGIBLE_EXPIRED`. Nilai kanonik yang betul ialah **`INELIGIBLE_EXPIRED`** (satu `E` selepas `IN`). `DECISIONS.md`/`BOUNDARIES.md` sedia ada memakai `INELIGIBLE_PENDING`/`INELIGIBLE_BLOCKED`. CTO **menolak** menanam typo dalam enum produksi — nilai enum yang salah eja tinggal selama-lamanya kerana setiap migrasi selepas itu perlu pertukaran data.
+2. ~~**`DEC-031(b)` TAK TAMAT maknanya**~~ → **SELESAI oleh `DEC-034`.** "satu tahun kalendar" ada dua tafsir. (i) **12 bulan dari tarikh kelulusan** (rolling), atau (ii) **tamat pada 31 Disember tahun kelulusan** (tahun kalendar sebenar, pola pentadbiran MY). Bezasnya material: tafsir (ii) membuatkan pengesahan pemain yang dilulus pada November hanya sah ~2 bulan, dan boleh menyingkirkan pemain di tengah musim. CTO **tidak** akan pilih salah satu. Perlu CEO tetapkan (soalan `J1` di `BACKLOG.md`) sebelum fasa skema mengira tarikh luput.
+3. ~~**Nama vs senarai sedia ada.**~~ → **SELESAI oleh `DEC-035`.** `BOUNDARIES.md` §1 sudah menyenaraikan keadaan kelayakan sebagai `… / EXPIRED / SUSPENDED_BY_SANCTION`. Arahan CEO melahirkan nama **baharu** (`INELIGIBLE_EXPIRED`) untuk keadaan yang sudah ada nama (`EXPIRED`). Perlu **satu** nama sahaja → pilih `EXPIRED` **atau** `INELIGIBLE_EXPIRED` (keutamaan CTO: `INELIGIBLE_EXPIRED`, kerana ia jelas dalam senarai `ELIGIBILITY` dan selari pola `INELIGIBLE_*` yang sedia ada), kemudian `BOUNDARIES.md` §1 dibetulkan **sebagai pembetulan konsistensi**, bukan keputusan baharu.
 
 **DEC-032 — R-01 ditutup: venue/fasiliti ialah entiti BERASINGAN.** Venue/kompleks fizikal **tidak** boleh menjadi atribut metadata sahaja, kerana ia membawa pengurusan aset, jadual fasiliti, dan logistik pelbagai perlawanan.
 *Nota CTO:* (i) keputusan ini **menambah skop Fasa C** (Organizer) — direkod sebagai `WO-19` supaya tidak hilang; (ii) "jadual fasiliti" akan bersentuhan dengan penjadualan perlawanan (Fasa F) dan dengan rumus autoriti `DEC-009` — `resource` nanti termasuk venue, jadi polisinya perlu dirancang awal; (iii) **tiada** jadual venue dicipta sekarang (fasa skema belum dibuka); (iv) legacy `database/` mungkin sudah ada `matches.venue`/sebagainya — itu akan terbukti daripada `WO-08`, bukan daripada ingatan.
@@ -195,7 +195,33 @@ Cuti: jika Owner/CEO mahu (iv) didahulukan **melepasi** `DEC-022`, itu hak merek
 
 ---
 
-## I. Log append-only
+---
+
+## I. Keputusan CEO pusingan 4 (Gemini) 2026-09-10 — jawapan J1…J3
+
+> **J1.** "12 bulan dari tarikh kelulusan (A), bagi memastikan pemain mendapat tempoh sah laku penuh tanpa terjejas oleh kalendar tahun semasa."
+> **J2.** "Ya, sahkan `INELIGIBLE_EXPIRED` sebagai ejaan kanonik yang menggantikan `EXPIRED` Sepenuhnya dalam senarai keadaan kelayakan."
+> **J3.** "Simpan dokumen dengan cap \"expired\" untuk keperluan audit sejarah dan pematuhan arkib jangka panjang."
+
+**DEC-034 — tempoh sah laku = 12 bulan ROLLING dari tarikh kelulusan (J1).** Bukan tamat 31 Disember. `DEC-031(b)` kini lengkap: `luput_pada = approved_at + interval '1 year'`.
+*Nota CTO:* (i) **pembaharuan (renewal) menetapkan semula jam** dari tarikh kelulusan baharu — ini lanjutan logik arahan CEO, bukan keputusan baharu; (ii) setiap rekod pengesahan **wajib simpan kedua-dua** `approved_at` dan `expires_at` yang telah dikira, supaya sejarah boleh dibina semula walaupun peraturan pembundaran tarikh berubah; (iii) **jam bermula pada kelulusan ASAS juga** (bukan hanya LANJUT) — kalau CEO maksudkan LANJUT sahaja, itu perlu `DEC-038`, kerana amatur dengan telefon + MyKad yang "sah selamanya" ialah polisi berbeza.
+
+**DEC-035 — nama kanonik keadaan: `INELIGIBLE_EXPIRED`.** Menggantikan `EXPIRED` **sepenuhnya** dalam senarai keadaan `ELIGIBILITY` (J2). `BOUNDARIES.md` §1 telah dibetulkan sebagai **pembetulan konsistensi** atas kebenaran bertulis ini — bukan keputusan baharu, dan tiada entri `DEC-008`/`DEC-017` yang diubah.
+
+**DEC-036 — dokumen yang luput DKEKALkan, bukan dipadam (J3).** Fail pengesahan LANJUT disimpan dengan **cap `expired`** untuk audit sejarah + pematuhan arkib jangka panjang.
+⚠️ **Nota CTO — ini menambah beban, bukan mengurangnya (dan Owner perlu tahu sebelum ia jadi kod):**
+1. **Tiada `DELETE`.** Dasar hayat bucket **mesti** melarang pemadaman automatik; sekali kita letak lifecycle "auto-expire objects", arahan CEO tercicir diam-diam.
+2. **Akses mesti mengecil, bukan membesar.** Dokumen yang sudah `expired` **kehilang tujuan** untuk Organizer → policy aksesnya patut **lebih ketat** daripada yang masih sah (contoh: hanya pemilik + platform audit + perintah rayuan), supaya "arkib jangka panjang" tidak menjadi arkib kekal yang menjadi punca pendedahan PII.
+3. **Ia bercanggah dengan minimum-retention PDPA 2010 (pindaan 2024)** melainkan ada asas undang-undang yang dinyatakan. CTO tidak memberi nasihat undang-undang; yang boleh saya rekam ialah: **`WO-22`** — Owner sahkan *asas + tempoh* arkib (contoh: 7 tahun untuk rekod kewangan/disiplin, atau "selagi akaun wujud") supaya `DEC-036` ada had bertulis. Tanpa `WO-22`, "jangka panjang" = **selamanya**, dan itu bukan sesuatu yang patut dibina tanpa tarikh.
+4. **Padam atas permintaan (hak pemain) belum ada laluan.** Perlu keputusan CEO/Owner: adakah cap `expired` + pemadaman mengikut permintaan wujud? Direkod sebagai `WO-22`.
+
+**Nota penomboran (penting, supaya nombor tidak bercanggah):** CEO menjawab tiga soalan yang **beliau** namakan J1/J2/J3 (tahun kalendar · ejaan status · retensi). Jadual soalan dalam `BACKLOG.md` ada **J3 yang berbeza** (landasan dev untuk uji DDL). Jawapan retensi CEO = **`DEC-036`**; soalan landasan dev **masih terbuka** dan kini berlabel **`J3-TIDAK-KENA` / `WO-20`** supaya tiada AI menyangka ia sudah dijawab.
+
+**`DEC-037` — DIKOSONGKAN (reserved).** Nombor ini dikosongkan untuk kes *"Owner/CEO melangkau gerbang `DEC-022`"* (lihat `DEC-033` bahagian (c)). Jangan guna `DEC-037` untuk isu lain; kalau ia dipakai, dokumen ini jadi bercanggah nombor — dan nombor yang bercanggah itulah yang menyebabkan "semalam kau cakap lain".
+
+---
+
+## J. Log append-only
 
 | Tarikh | Peristiwa |
 |---|---|

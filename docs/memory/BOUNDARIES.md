@@ -11,7 +11,7 @@ Dokumen ini **tidak menetapkan reka bentuk**. Ia hanya menetapkan (a) makna yang
 | 1 | **MEMBERSHIP** (orang ↔ Organization/Team) | `REQUESTED` / `INVITED` → `TRIAL` (pilihan) → `ACTIVE` → `SUSPENDED` → `ENDED` | `SUSPENDED` **non-terminal**, boleh dipulih. Tamat membership **tidak** memadam sejarah sumbangan. |
 | 2 | **REGISTRATION** (Team/Squad ↔ Competition+Category) | `DRAFT` → `SUBMITTED` → `APPROVED` / `REJECTED` / `WITHDRAWN` | Lulus pendaftaran ≠ layak bermain. |
 | 3 | **PAYMENT** | `NONE_DUE` / `PENDING` / `PAID` / `PARTIALLY_REFUNDED` / `REFUNDED` / `FAILED` | Tiada auto-cascade ke registration/eligibility; `CANCELLED` sahaja laluan terminal yang dibenarkan merantai. |
-| 4 | **ELIGIBILITY** (pemain ↔ perlawanan) | `ELIGIBLE` / `INELIGIBLE_PENDING` / `INELIGIBLE_BLOCKED` / `EXPIRED` / `SUSPENDED_BY_SANCTION` | Dikira semula setiap perlawanan daripada sumber, bukan disalin sekali. |
+| 4 | **ELIGIBILITY** (pemain ↔ perlawanan) | `ELIGIBLE` / `INELIGIBLE_PENDING` / `INELIGIBLE_BLOCKED` / **`INELIGIBLE_EXPIRED`** / `SUSPENDED_BY_SANCTION` | Dikira semula setiap perlawanan daripada sumber, bukan disalin sekali. *Nama ini disahkan CEO 2026-09-10 (`DEC-035`) dan menggantikan `EXPIRED` sepenuhnya* |
 | 5 | **PARTICIPATION** (penampilan dalam sesuatu perlawanan) | `SCHEDULED` → `IN_SQUAD` → `ON_PITCH` → `SUBBED_OFF`/`RECALLED`(ikut peraturan) → `COMPLETED` | ACTIVE dalam Participation **≠** ELIGIBLE (MA-02). |
 
 **Larangan langsung:** menjadikan satu kitaran sebagai proksi kitaran lain (contoh yang pernah berlaku: `profiles.role` sebagai proksi capability; `participation=ACTIVE` sebagai proksi eligibility; `organizer.status=ACTIVE` sebagai proksi kebenaran keselamatan).
