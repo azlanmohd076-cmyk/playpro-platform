@@ -52,6 +52,7 @@ Sebab perubahan: had penggunaan (rate limit) ChatGPT mengganggu kesinambungan ke
 | CI ujian (`npm test` dalam workflow) | **Tiada.** |
 | Branch protection / ruleset `main` | **Tiada** — `gh api repos/…/rulesets` → `0` item. |
 | Dokumen status auto-dibaca (`AGENTS.md`) | **Dicipta sekarang** (PR ini). |
+| Halangan semantik fasa A | **Kosong** — CEO jawab G1–G4: OVR = konfigurasi berversi (DEC-027/028), tahap KYC ASAS/LANJUT (DEC-029), urutan A→J disahkan (DEC-030). Yang tinggal menghalang = `WO-08` (eksport) + gerbang DDL, bukan soalan falsafah |
 | `register_my_player()` | **Rosak**: masih menulis `profiles.identification_number` sedangkan lajur itu tiada → **langkah pertama Golden Path gagal** (DILAPORKAN, padan DRIFT-005). CEO luluskan pembetulan (K4/DEC-025) tetapi ia **DDL produksi** → tetap terikat gerbang Fasa 2C; **produksi kekal rosak** sehingga baseline siap. Bukti lajur dijana oleh `sql/PRODUCTION_TRUTH_EXPORT.sql` q03b |
 | `tests/repository-sync.test.js` | **MERAH 1/5** — lihat §4. |
 | Penyahbekuan `playpro` (legacy, RLS mati) | Perlu keputusan Owner; risiko hidup semasa projek AKTIF. |
@@ -125,3 +126,4 @@ Actions         : "PlayPro Shell v1" lulus 2026-09-09 pada 23569ac (bot auto-com
 | Dry-run `WO-03a` (di luar repo; `main` tidak disentuh) | `index.html` 1,204,835 → **331,345 B (-72.5%)** · baris tetap 6,128 · `npm test` **identik** sebelum/selepas (5/4/1 — kegagalan sama, pra-wujud). Butiran: `INDEX_HTML_MAP.md` |
 | Kit `WO-08` | `docs/memory/sql/PRODUCTION_TRUTH_EXPORT.sql` — 28 blok, **diaudit read-only dengan parser SQL (0 aksi tulis)** |
 | Yang **belum** dilakukan | `WO-01` (teks penuh v1.3 — hanya Owner/Gemini) · `WO-04` (ruleset — token CTO dapat 403) · `WO-02b` (A/B belum dijawab) · apa-apa DDL (dilarang) · apa-apa suntingan `public/*` (belum ada laluan PR kod) |
+| 2026-09-10 (petang 2) | `DEC-027`…`DEC-030` direkod (G1–G4). Halangan semantik Fasa A **kosong**; `WO-16` (`R-03a`: proses kelulusan/retensi/rayuan) + `WO-17` (simpanan dokumen) dibuka sebagai kerja tertangguh. Default `Q3/Q4/Q5` ditetapkan supaya Owner tidak ditanya lagi |

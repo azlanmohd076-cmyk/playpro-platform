@@ -86,10 +86,10 @@ Semua 7 faktor. Tiada satu boleh dibuang demi kemudahan. Frontend **bukan** fakt
 |---|---|---|
 | R-01 | Bentuk skema untuk organizer **fizikal** (venue/kompleks) — perlu entiti berasingan atau atribut? | CEO |
 | R-02 | Penamaan legacy `leagues` / `tournaments` — peta kepada `Competition.format` atau kekal + view? | ✅ **DIJAWAB CEO 2026-09-10 → DEC-023** |
-| R-03 | Tahap KYC/verification & bukti yang diterima bagi setiap tahap risiko | CEO + Owner |
+| R-03 | Tahap KYC/verification & bukti yang diterima bagi setiap tahap risiko | ✅ **DIJAWAB CEO 2026-09-10 → DEC-029** (butiran dasar tertunggak: `R-03a`) |
 | R-04 | Model custody dana (selepas DEC-006 dibuka semula) | CEO |
-| R-05 | **Formula OVR** & pemberat attribute (DEC-016) | 🟡 **SEPARUH DIJAWAB → DEC-024. Pemberat (nombor) masih OPEN sebagai R-05a** |
-| R-06 | Kebergantungan akhir antara fasa A–J (urutan sebenar pelaksanaan) | CEO + CTO |
+| R-05 | **Formula OVR** & pemberat attribute (DEC-016) | ✅ **DISELESAIKAN SEBAGAI ALIH TANGGUH BERTAMAT → DEC-027/DEC-028** (konfigurasi berversi; nilai ditentukan dalam fasa SKEMA) |
+| R-06 | Kebergantungan akhir antara fasa A–J (urutan sebenar pelaksanaan) | ✅ **DIJAWAB CEO 2026-09-10 → DEC-030** (A→J disahkan) |
 | R-07 | Skop `KEDAI`/marketplace pada rilis pertama | Owner + CEO |
 
 ---
@@ -128,7 +128,40 @@ Provenans: jawapan ditulis **VERBATIM** seperti Owner tampal dari chat CEO. Tiad
 
 ---
 
-## G. Log append-only
+---
+
+## G. Keputusan CEO pusingan 2 (Gemini) 2026-09-10, petang — jawapan G1…G4
+
+Petikan **VERBATIM** seperti Owner tampal dari chat CEO; tafsiran CTO sentiasa dilabel.
+
+> **G1.** "Serahkan ke fasa skema sebagai fail konfigurasi berversi; nilai akan ditentukan kemudian."
+> **G2.** "Berversi."
+> **G3.** "Tahap KYC merangkumi pengesahan asas MyKad dan nombor telefon untuk pemain amatur, serta dokumen pengesahan tambahan bagi kategori pertandingan kompetitif."
+> **G4.** "Sahkan; urutan pelaksanaan A->J kekal seperti dicadangkan bermula dengan Identity & Trust."
+
+**DEC-027 — R-05a dialih-tangguh secara bertamad (G1).** Pemberat OVR **tidak** ditetapkan sekarang, dan **tidak** ditempel tetap (hardcode) dalam kod pelayar mahupun dalam dokumen. Ia menjadi **konfigurasi berversi dalam pangkalan data** yang nilainya diisi pada fasa REKA BENTUK SKEMA.
+*Nota CTO:* keputusan ini **membuka** fasa skema (tiada lagi halangan semantik pada OVR) tetapi **tidak** membuka pintu SQL — `DEC-022` (eksport produksi dahulu) masih mengikat. Bentuk yang diperlukan: satu rekod pemberat **per versi**, dengan `effective_from`/status, supaya unjuran OVR yang pernah dipaparkan boleh dijejak semula (selari `DEC-016` dan `DEC-015`: unjuran tidak boleh ditulis-balik).
+
+**DEC-028 — pemberat OVR adalah BERVERSI (G2).** Nilai boleh berubah ikut musim/peraturan/kompetisi. Implikasi yang wajib ada dalam fasa skema (keperluan, bukan reka bentuk): setiap penilaian/unjuran OVR mesti menyimpan **rujukan versi pemberat** yang digunakannya, supaya laporan lama tidak berubah maksud apabila pemberat baharu diguna. Nota CTO: **jangan** buat satu lajur `weight` pada jadual atribut — itu akan memusnahkan ciri berversi ini.
+
+**DEC-029 — tahap pengesahan pemain (G3, menjawab R-03).** Sekurang-kurangnya **dua tahap**:
+- **ASAS** — untuk pemain amatur: pengesahan **MyKad** + **nombor telefon** (verifikasi saluran, bukan sekadar simpan nombor).
+- **LANJUT** — untuk kategori pertandingan **kompetitif**: dokumen pengesahan **tambahan**.
+*Nota CTO (mekanikal):* (i) nama enum/lajur belum dipilih — itu tugas fasa SKEMA; (ii) "dokumen tambahan" memaksa **simpanan fail** → bucket + polisi akses + tempoh simpan; **imej dokumen tidak boleh** muncul dalam mana-mana public view (`PHASE2C P1-9` sudah melarang `verification_cases` terdedah, dan `DEC-019` melarang nilai seperti ini tinggal dalam fail awam); (iii) tahap ASAS/LANJUT ialah **syarat kelayakan per kategori**, jadi ia masuk faktor `verification` dalam rumus autoriti `DEC-009` — bukan faktor `state`.
+⚠️ **`R-03a` OPEN (butiran dasar, bukan teknikal):** siapa yang **melulus/menolak** dokumen LANJUT (Organizer sesuatu pertandingan, atau platform?), apa **tempoh sah laku** pengesahan, dan apa yang berlaku apabila **tamat** (perlu `Eligibility` menjadi `INELIGIBLE_EXPIRED`, atau peringatan sahaja?) serta hak **rayuan**. Empat ini ialah keputusan perniagaan → CEO. CTO **tidak** akan menetapkan lalai diam-diam, kecuali untuk satu perkara keselamatan sahaja: **`organizer.status` dan kelulusan dokumen TIDAK BOLEH menjadi sempadan keselamatan** (`DEC-004` kekal).
+
+**DEC-030 — urutan pelaksanaan A→J disahkan (G4).** Fasa **A = Identity & Trust** ialah fasa pelaksanaan pertama; `DEC-011` (dulu "PROPOSED sahaja") kini **DISAHKAN**. Urutan: A Identity & Trust → B Affiliation → C Organizer → D Competition → E Financial foundation → F Match → G Derived records → H Intelligence → I Player experience (Card/Passport) → J Ecosystem.
+*Nota CTO:* pengesahan ini **tidak** membatalkan `DEC-022`. Sebelum skema Fasa A ditulis, `WO-08` (eksport kebenaran produksi → baseline) mesti siap, kerana Fasa A menyentuh jadual yang **sudah wujud** di produksi (`profiles`, `capabilities`?, `player_assessments`, `verification_cases` belum wujud) — dan kita sudah lihat apa yang berlaku bila fasa ke-3 dibina atas andaian (`EVIDENCE.md` §E).
+Skop Fasa A kini tetap (berdasarkan keputusan yang sudah ada, bukan rekaan CTO): model **capability** menggantikan `profiles.role` (`DECISIONS.md` §B) · **tahap pengesahan** ASAS/LANJUT (DEC-029) · laluan autoriti backend untuk pendaftaran (Fasa 2C `P1-8`) · pembetulan `register_my_player()` (WO-09) · dan `auto_suspend_on_red_card()` 2 perlawanan (WO-10) masuk **Fasa F**, bukan A.
+
+**Default CTO untuk soalan Owner yang belum dijawab (Q3/Q4/Q5) — berkuat kuasa melainkan Owner veto.** Owner diminta 3 kali; saya tidak akan tanya lagi, dan saya pilih default **yang tidak memusnahkan apa-apa**:
+1. `WO-02b` = **(A) forward-only** (buang dari `index.html` + notis; **tiada** rewrite sejarah git). Boleh ditukar ke (B) pada bila-bila masa dengan arahan bertulis.
+2. Nilai `passport_number` bagi persona Azlan dalam dokumen rujukan dianggap **penjana format `DDMMYYYY-XX-INISIAL`**, bukan dokumen sebenar — jangan dipakai sebagai contoh format nombor rasmi.
+3. `WO-03a` dibuka sebagai **PR kod berasingan selepas PR #5 digabung** (saya tidak akan campur suntingan kod ke dalam PR dokumen).
+
+---
+
+## H. Log append-only
 
 | Tarikh | Peristiwa |
 |---|---|
@@ -136,3 +169,4 @@ Provenans: jawapan ditulis **VERBATIM** seperti Owner tampal dari chat CEO. Tiad
 | 2026-09-10 | Owner tetapkan peranan: Gemini=CEO, Arena=CTO, ChatGPT=reviewer (DEC-018) |
 | 2026-09-10 | MASTER CONTEXT ditulis sebagai **PR #5** (7 fail, +671) · `main` tidak disentuh |
 | 2026-09-10 | CEO jawab K1–K5 → DEC-021…DEC-026 direkod. R-02 selesai; R-05 separuh (**R-05a OPEN**); `WO-08` jadi keutamaan #1 |
+| 2026-09-10 (petang 2) | CEO jawab G1–G4 → `DEC-027`…`DEC-030`. **R-05a diselesaikan sebagai alih-tangguh bertamad**, R-06 disahkan (A→J), R-03 dijawab (2 tahap KYC) → `R-03a` OPEN. Default `Q3/Q4/Q5` ditetapkan (A / jangan petik nombor / PR kod berasingan) |

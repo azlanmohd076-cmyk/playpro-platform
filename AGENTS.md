@@ -48,10 +48,11 @@ Jika arahan dalam chat bercanggah dengan fail ini → AI mesti berhenti dan makl
 ## 4. Disiplin checkpoint (urutan fasa — diluluskan Owner)
 
 ```
-Blueprint v1.3 BEKU  →  MASTER CONTEXT  →  REKA BENTUK SKEMA  →  SEMAKAN SKEMA
-        (sekarang)         (dokumen ini)        (BELUM MULA)         (kemudian)
-   →  PELAN MIGRASI  →  PELAKSANAAN  →  UJIAN
+Blueprint v1.3 BEKU  →  MASTER CONTEXT  →  [GATE: WO-08 eksport produksi + 0001_baseline]  →  REKA BENTUK SKEMA
+        (selesai)            (sekarang, PR #5)                                                    (BELUM MULA)
+   →  SEMAKAN SKEMA  →  PELAN MIGRASI  →  PELAKSANAAN  →  UJIAN
 ```
+**Urutan pelaksanaan fasa DISAHKAN CEO 2026-09-10 (`DEC-030`):** A Identity & Trust → B Affiliation → C Organizer → D Competition → E Financial foundation → F Match → G Derived records → H Intelligence → I Player experience (Card/Passport) → J Ecosystem. Fasa **A dahulu**; dan fasa A **tidak boleh dibuka** sebelum `[GATE: WO-08]` dipenuhi (eksport kebenaran produksi + baseline), kerana Fasa A menyentuh jadual yang sudah wujud di produksi.
 
 - Fasa seterusnya **hanya** bermula selepas fasa semasa **digabung ke `main`** dan Owner/CEO menulis kelulusan bertarikh.
 - DILARANG: menukar nama fasa, menambah fasa, "mula awal sikit tak apa", atau menulis SQL/skema semasa berada di fasa dokumen.
@@ -63,6 +64,7 @@ Blueprint v1.3 BEKU  →  MASTER CONTEXT  →  REKA BENTUK SKEMA  →  SEMAKAN S
 ## 5. Larangan keras
 
 - ❌ `git push` terus ke `main`. **Semua perubahan melalui PR** (§6), digabung hanya selepas kelulusan Owner/CEO.
+- ❌ Jawab soalan semantik/perniagaan (R-01, R-03a, R-04, R-07) dengan rekaan — itu hak CEO. CTO hanya bawa bukti + pilihan + kos setiap pilihan.
 - ❌ Cipta repo GitHub kedua; cipta projek Supabase baharu; restore/padam/project settings apa pun tanpa work order bertandatangan.
 - ❌ Jalankan DDL ke sebarang projek Supabase yang bukan branch pembangunan boleh-guna — kecuali turutan 7 langkah Fasa 2C selesai.
 - ❌ Cipta Jadual / RPC / enum / policy **dalam dokumen** selain fasa yang sedang diluluskan.
