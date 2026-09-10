@@ -96,3 +96,53 @@ Kami **tidak** meminta dia mengubah apa-apa. `ENVIRONMENT.md` §5 kekal: CTO sem
 ## 8. Keputusan yang dikekalkan (tiada yang berubah pada tadbir urus)
 
 🟢 v1.3 kekal beku · 🟢 PR #5 diteruskan untuk semakan CEO/Owner · 🟡 dokumen `docs/memory/` = **konteks + daftar keputusan**, **bukan** gambaran live DB (dan memang itu tujuannya) · 🔴 **jangan ubah Supabase produksi** · 🔴 **jangan ubah `main`** · 🔴 **fasa skema belum dibuka** · 🟦 gerbang seterusnya **`WO-08`**.
+
+---
+
+## 9. Addendum CTO — apa yang `[GIT]` beritahu kami yang semakan live tak nampak
+
+Semakan Reviewer melihat **struktur** DB. Empat temuan di bawah hanya boleh dilihat dari **sisi kod**, dan ketiganya mengubah keutamaan kerja. Semua boleh dihasilkan semula dengan arahan di hujung seksyen ini.
+
+**DRIFT-013 🔴 P0 — `match_observer.html` mungkin tidak menulis apa-apa.**
+```
+public/match_observer.html:1120  async function finaliseMatch() {          ← butang "💾 Finalise & Update Stats"
+public/match_observer.html:1125    if (typeof simulateDBWrite === 'function') {
+public/match_observer.html:1126      const result = await simulateDBWrite();
+public/match_observer.html:1127      if (result && !result.ok && result.reason !== 'no_fixture') {
+public/match_observer.html:1128        toast('⚠️ Save issue — data preserved locally. Retry when online.');
+public/match_observer.html:1140  function simulateDBWrite() {
+public/match_observer.html:1141    console.log('[Observer] No fixture wired — local session only.');
+public/match_observer.html:1142    return Promise.resolve({ ok: false, reason: 'no_fixture' });
+public/match_observer.html:1133  toast('✅ Match complete — DNA & Passport updated');   ← diluar cabang ralat
+```
+Override sebenar (`ObserverDI.finalise` dalam `dashboard_integration.js`) **404 di produksi** — fail itu hanya ada di `js/`, manakala `vercel.json` menghidang `public/` sahaja. Rantainya: penulis tunggal tidak dimuat → fallback mengembalikan `reason:'no_fixture'` → cabang ralat **mengecualikan** sebab itu secara khusus → **tiada amaran**, hanya ✅. `match_observer.html` tidak mengandungi satu pun `.from(`/`.rpc(` penulisan.
+Status CTO: **disahkan pada tahap kod**, belum disahkan pada tahap pelayar (saya tidak boleh melayari laman live dari sandbox). Kalau ini betul, **statistik perlawanan padang tidak pernah masuk DB** — itu lebih besar daripada mana-mana isu grant.
+
+**DRIFT-014 🔴 — penulis yang 404 itu menunjuk ke skema yang SUDAH BERBEZA.**
+`public/js/repositories.js:1100-1119` (`MatchRepo.saveEvents`) melakukan `SB.from('match_events').insert(rows)` dengan lajur: `fixture_id, event_type, minute, added_time, period, player_id, secondary_player_id, club_id, home_score_at_event, away_score_at_event, is_cancelled`.
+Berbanding lajur `match_events` **live** yang Reviewer laporkan (`fixture_id, event_type, team_id, player_id, related_player_id, minute, second, period, sequence, metadata, recorded_by, recorded_at, voided_at, voided_by, void_reason`): **6 lajur dihantar yang tiada di live**, dan **7 lajur wajib/audit ditinggalkan** (tiada `sequence`, `recorded_by`, `voided_*`).
+⇒ Bahaya sebenar: kalau sesi seterusnya "membaiki 404" dengan menyalin `js/dashboard_integration.js` ke `public/js/`, dia **mengaktifkan laluan tulis yang pasti ralat lajur**, dan yang lebih buruk — laluan itu **melangkau RPC observer** serta semakan autoriti + agihan `sequence` (Fasa 2C `P1-5`). Jadi `P1-5` bukan sahaja relevan (seperti kata Reviewer), ia **punca reka bentuk dua buah arkitektur yang bersaing** dalam satu projek.
+
+**DRIFT-015 🟠 — DRIFT-009 Reviewer ada laluan penulisan klien, bukan sekadar penyimpanan berganda.**
+`repositories.js:1128` (`savePlayerStats`) membuat `from('player_match_stats').upsert(rows, {onConflict:'fixture_id,player_id'})` **sebelum** "mencetus pipeline" — komen pada baris 1164 menyatakan reka bentuknya: `trg_fixture_status_pipeline` pada `fixtures` → `run_post_match_pipeline()`. Jadi reka bentuk **lama** = *klien tulis jadual mentah → trigger derive*, manakala Fasa-3 **live** = *RPC observer ialah satu-satunya penulis event-driven*. Dua model ini tidak boleh hidup serentak; ini keputusan fasa skema (→ `WO-24`), bukan kerja keemasan.
+
+**DRIFT-016 🟠 — 3 skrip yang langsung tidak dimuat di produksi.**
+6 halaman memuat skrip yang 404 (`vercel.json`: `outputDirectory: "public"`; fail hanya wujud di `js/`):
+```
+/js/dashboard_integration.js        → club_command_center, coach_command_center, match_observer,
+                                      parent_command_center, player_command_center, playpro_public
+/js/playpro_audit_fixes.js          → 6 halaman di atas
+/js/shared_dashboard_components.js  → 5 command center
+```
+Maknanya: **pembaikan audit yang ditulis sebagai `playpro_audit_fixes.js` tidak pernah berjalan di produksi**, walaupun failnya ada dalam repo dan ada dalam sejarah git. Kelas ralat yang sama seperti `is_club_admin`: bukan isu pangkalan data, isu **laluan hidang** — dan sebab itu `docs/DEPLOYMENT.md` (yang menamakan migrasi palsu) bahaya.
+
+Dua berita baik yang keluar dari semakan yang sama: (i) URL Supabase **konsisten** — `muirhenvjruvfxenoaxm.supabase.co` pada 11 fail, tiada split-brain projek; (ii) tiada satu pun halaman yang menulis `match_results` dari klien, jadi `DRIFT-009` kemungkinan besar memang dijaga oleh mekanisme pelayan (itu yang saya minta bukti, bukan andaian).
+Awas satu: `connection_test.html:15` dan `p0_auth_doctor.html` dikonfigurasi lalai ke `https://xxxx.supabase.co` → **alat doktor yang sepatutnya menangkap semua ini tidak boleh jalan sebagaimana adanya**.
+
+Arahan sahkan (saya jalankan ini, bukan ingatan):
+```bash
+sed -n '1120,1143p' public/match_observer.html
+sed -n '1100,1132p' public/js/repositories.js
+for f in $(grep -rl 'src="/js/' --include=*.html public/); do for p in $(grep -o '/js/[a-z_]*\.js' $f|sort -u); do test -f public$p || echo "404 $f -> $p"; done; done
+grep -n "PLAYPRO_SUPABASE_URL=" public/*.html | head
+```

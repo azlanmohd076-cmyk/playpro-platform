@@ -90,6 +90,8 @@ Repo lain yang disemak: `node --check` lulus untuk semua `.js`/`.mjs` (0 ralat s
 
 ## 5. Risiko aktif yang perlu Owner sedar (bukan untuk dibaiki sekarang)
 
+0. 🔴 **CALON P0 — `match_observer.html` mungkin tidak menulis ke DB langsung:** `finaliseMatch()` (baris 1120) hanya panggil `simulateDBWrite()` yang mengembalikan `{ok:false,reason:'no_fixture'}` (1140-1143), override sebenar `dashboard_integration.js` **404** di produksi, dan toast `✅ Match complete — DNA & Passport updated` (1133) keluar **tanpa mengira keputusan** (cabang ralat mengecualikan `no_fixture`). Semua bukti `[GIT]`; belum disahkan di pelayar. → **`WO-28` (5 minit, ujian manual)**. Butiran: `PEER_REVIEW_2026-09-10.md` §9 (DRIFT-013…016)
+
 1. `public/index.html` **awam** (repo public + dihidang Vercel) mengandungi registry hardcoded bernombor-pasport-gaya + DOB untuk 6 orang bernama → data ujian, keputusan: buang (WO-02).
 2. Gate privasi biodata ditentukan oleh **padanan string nama** `Azlan`/`L.Rom` di pelayar → sesiapa menamakan profilnya `Azlan` lulus. Frontend bukan sempadan keselamatan.
 3. `PLAYPRO_SUPABASE_REDIRECT_URL` → `https://v0.app/...` (baris 16): aliran e-mel/login masih bergantung infrastruktur V0 yang sudah diputuskan untuk diputuskan.
