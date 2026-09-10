@@ -45,6 +45,15 @@ Disediakan oleh CTO (Arena), 2026-09-10. `DISAHKAN` = diukur dari API GitHub / f
 | `public/index.html` | Aplikasi produksi sebenar, 1,204,835 B / 6,127 baris | DISAHKAN |
 | Konfigurasi auth | `window.PLAYPRO_SUPABASE_REDIRECT_URL = 'https://v0.app/chat/api/supabase/redirect/…'` (baris 16) — redirect masih lalu infrastruktur **V0** | DISAHKAN |
 | Domain live yang dipakai Owner | `v0.app` / Vercel preview (disebut dalam audit 27 Ogos) | DILAPORKAN |
+| **Projek Vercel yang menghidang repo ini** | `vercel.com/**worldohsem-7845**/playpro-platform` — terlihat pada semakan PR #5 (`Vercel – playpro-platform`, SUCCESS 2026-09-10) | **DISAHKAN** |
+| Siapa deploy | Vercel **berjalan sebagai-satu-satunya semakan automatik** pada setiap PR (preview deployment + URL). Ia **bukan** CI ujian kita (tiada `npm test`) | DISAHKAN |
+
+⚠️ **Dua implikasi yang Owner kena faham (penemuan 2026-09-10, bukan dalam mana-mana dokumen lama):**
+
+1. **RISIKO PEMILIKAN:** deployment produksi anda berada di bawah team Vercel `worldohsem-7845` — bukan nama akaun GitHub anda (`azlanmohd076-cmyk`). Bersama branch `v0/worldohsem-7845-*` di repo ini, itu bukti **projek Vercel masih milik ruang kerja V0/AI-builder**, dan satu branch lama pun (`v0/azlanmohd076-8144-*`) milik akaun kedua. Kalau akses team itu hilang, anda **tidak boleh** menukar env var, domain, atau mematikan deploy — walaupun anda punya semua kod. Tindakan: sahkan anda boleh login ke akaun Vercel `worldohsem-7845`; jika tidak, pemindahan projek ke team milik anda = `WO-18` (bukan kerja kod, kerja akses).
+2. **PELUASAN GRÁTIS:** sebab Vercel sudah bina **preview URL untuk setiap PR**, itu alat semakan visual yang paling sesuai untuk vibe coder: selepas `WO-03a`, anda buka 1 link preview, bandingkan dengan link produksi, dan katakan "sama" atau "tak sama" — sebelum apa-apa di-merge. CTO akan sertakan pautan preview itu dalam setiap PR yang menyentuh UI.
+
+Kedua-dua fakta ini **tidak** mengubah apa-apa keputusan beku; ia menambah risiko yang belum tercatat.
 
 ---
 
@@ -85,3 +94,12 @@ AGENTS.md                   ← peraturan tetap, dibaca semua AI
 - Tiada migrasi untuk Fasa-3 · Tiada rujukan kepada `match_state`, `record_match_event`, `void_match_event`, `match_playing_time`, `match_admin_assignments` **dalam mana-mana fail repo** (saya `grep` semua `*.sql`/`*.js`/`*.html` → 0 padanan)
 - Tiada teks penuh Blueprint v1.3 dalam Git (§1–64 hanya ada dalam perbualan Owner) → **WO-01**
 - Hash yang dipetik dalam dokumen Julai (`ff7b756`, `263d816`, `2624711` dsb.) **memang ADA** di `main` — jangan percaya kata orang "sejarah dah hilang"; ia nampak hilang hanya kerana clone Arena adalah shallow (1 commit).
+
+---
+
+## 7. `WO-18` (baharu, dicadang): sahkan pemilikan akaun Vercel
+
+| Soalan | Untuk | Kenapa |
+|---|---|---|
+| Adakah anda boleh log masuk ke Vercel team `worldohsem-7845` dan nampak projek `playpro-platform`? | **Owner** | Kalau TIDAK → anda tak boleh kawal deployment/env/domain produksi walaupun GitHub anda selamat. Ini risiko perniagaan, bukan teknikal |
+| Kalau boleh: mahu pindahkan projek ke team akaun anda sendiri? | **Owner** | Pemindahan = 15 minit di UI Vercel (Project settings → Transfer), tiada perubahan kod, tiada DDL. Perlu berlaku **sebelum** kita mula menambah env var/rahsia untuk pembetulan `WO-09`/`WO-13` |
