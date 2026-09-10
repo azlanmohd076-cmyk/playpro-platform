@@ -34,6 +34,15 @@ Disediakan oleh CTO (Arena), 2026-09-10. `DISAHKAN` = diukur dari API GitHub / f
 
 *(Pembetulan daripada CTO: dalam pusingan sebelum ini saya bertanya "adakah `sirr` perlu dihidupkan semula" seolah-olah ia tanggungjawab PlayPro. Itu salah tafsir saya terhadap bahan perbualan — soalan itu bukan urusan PlayPro.)*
 
+> **Penambahan malam 8 (selepas R2 + ukuran `[GIT]`):**
+>
+> 1. **Ref `→` projek:** `muirhenvjruvfxenoaxm` disahkan R2 sebagai **`playpro2`**. Dari sisi repo, ref yang sama ada di `index.html:14`, `app.html:12` dan 11 fail lain (anon key L15 dinyahkod: `role=anon`, `iat=2026-04-30`). Tiada split-brain projek · tetapi `connection_test.html:15` + `p0_auth_doctor.html` masih lalai ke placeholder `https://xxxx.supabase.co` → `WO-31`.
+>
+> 2. **Dua lapisan kod yang TIDAK berjalan di pelayar:** (i) `public/src/` = **15 fail `.js` dengan 0 jalan masuk** (tiada `modules/`, tiada `type="module"`, tiada `import(`, tiada `src="/src/"` dalam mana-mana halaman) · (ii) `js/*.js` di akar → **404** kerana `outputDirectory: "public"`.
+>
+> 3. **`database/*.sql` ialah lapisan LEGACY yang bermakna, bukan sampah:** `database/playpro_phase6_7_pipeline.sql` (1,355 baris) mendefinisikan `run_post_match_pipeline()` (L896) + `trg_fixture_status_pipeline` (L1140) yang R2 sahkan **tiada di live**. Jangan buang fail ini sebelum `WO-35` dijawab. (Ini juga sebab `docs/ARCHITECTURE.md` "85 jadual" menyesatkan: angka itu datang daripada fail legacy, bukan live.)
+>>
+
 ---
 
 ## 3. Deployment / hosting

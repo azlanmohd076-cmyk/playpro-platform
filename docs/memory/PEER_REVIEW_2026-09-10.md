@@ -174,3 +174,83 @@ Diukur 2026-09-10, disahkan melalui GitHub API (bukan ingatan):
    `https://supabase.com/dashboard/project/<ref>` — `<ref>` yang bersamaan `muirhenvjruvfxenoaxm` itulah DB yang apl guna.
 5. `index.html:16` = `PLAYPRO_SUPABASE_REDIRECT_URL='https://v0.app/chat/api/supabase/redirect/sWOYxw7xZPa'` —
    **baris 16**, tepat; mengesahkan `WO-13` (alur login masih bergantung pada platform binaan v0).
+
+---
+
+## 10. SEMAKAN KEDUA Reviewer (R2, 2026-09-10) + balasan CTO
+
+R2 = semakan silang GitHub + Supabase `playpro2` oleh ChatGPT (Reviewer). Pengakuan dia: tidak ubah apa-apa, tiada SQL write, tiada migration, tiada repo write. Verdict: 🟢 **WORK ACCEPTED AS FORENSIC BASELINE**, 🔴 **NOT ACCEPTED AS PRODUCTION-READY** + 🟡 **"jangan coding dulu"** + **"aku tidak nampak keperluan untuk Arena repair apa-apa daripada dapatan ini sekarang"**. Verdict ini **bukan kelulusan** (reviewer → bukan approver) tetapi **diambil sebagai teguhan**: ia sepadan dengan `DEC-022` (gerbang `WO-08`) dan larangan DDL Fasa 2C yang sedia ada.
+
+### 10.1 Fakta `[DB]` baharu yang CTO terima sebagai keadaan sebenar DB
+
+Label: `DISAHKAN-BY-REVIEWER` (2026-09-10, SQL Editor + Security Advisor pada `playpro2`). **Bukan** `DISAHKAN-BY-CTO` → sandbox CTO masih tiada egress rangkaian (`ENVIRONMENT.md` §5).
+
+| # | Fakta R2 | Kesan ke atas dokumen / kerja kami |
+|---|---|---|
+| 1 | Ref `muirhenvjruvfxenoaxm` = projek **`playpro2`** (DB yang apl guna) | `WO-30` **tertutup separuh** → forensik kita pada projek yang betul. Disokong `[GIT]`: `index.html:14` **dan** `app.html:12` memakai ref yang sama; anon key L15 dinyahkod `ref=muirhenvjruvfxenoaxm` |
+| 2 | `run_post_match_pipeline()` **TIADA** di skema `public` | `DRIFT-015` **NAIK taraf**: bukan dua arkitektur bersaing → yang satu memang tidak wujud |
+| 3 | `trg_fixture_status_pipeline` **TIADA**; trigger pada `fixtures` hanya `trg_fixtures_updated_at` → `update_updated_at()` | Komen `repositories.js:1163` menerangkan DB yang **tidak wujud** → `completeFixture()` tidak akan pernah mengira apa-apa |
+| 4 | `profiles.identification_number` **TIADA** | **Punca `WO-09` disahkan dari live**, bukan lagi hipotesis `[GIT]` |
+| 5 | `verification_cases` **TIADA** | Selari `DEC-025`: ini kerja fasa skema, bukan kecacatan yang perlu "dibaiki" sekarang |
+| 6 | `match_events` = 18 lajur + `UNIQUE(fixture_id, sequence)` + index fixture/time/team/player | Mengesahkan lajur yang dilanggar oleh `saveEvents()` (`DRIFT-014`) |
+| 7 | Keistimewaan `authenticated` pada `match_events`: `SELECT=true`, `INSERT/UPDATE/DELETE=false` | Menjawab soalan (d) CTO → **tiada INSERT terus** → `DRIFT-014` **diturunkan taraf** (lih. 10.3) |
+| 8 | RPC observer `start_match / record_match_event / end_match / finalize_match / void_match_event / match_observer_scope_for` **wujud**; `SECURITY DEFINER`, `search_path=public,pg_temp`, ada semakan skop pemerhati | Migrasi Fasa-3 itu **sah sebagai asas**; masalahnya pada pautan apl (§10.4) |
+| 9 | `players.club_id` + FK `players_club_id_fkey → clubs(id) ON DELETE SET NULL` | `DRIFT-007` disahkan; arahan R2 **jangan buang** → tag `LEGACY/TRANSITIONAL` dalam rekonsiliasi |
+| 10 | `leagues`, `league_staff`, `league_clubs` + `fixtures.league_id`, `standings.league_id`, `disciplinary_records.league_id`; **tiada `competitions`** | 100% sepadan dengan skop terkunci + `DEC-023` (pandangan serasi, bukan penamaan semula) |
+| 11 | Tiada `organizers` / `organizations` / `competition_organizers` | Domain Organizer = fasa skema selepas baseline. Jangan bina secara spontan |
+| 12 | `player_assessments` = `player_id, assessor_id, passing, crossing, tackling, …` | Rantai pengesah (verifier) masih tiada → `DEC-016` / `DRIFT-011` kekal terbuka |
+| 13 | `record_match_event()` mengira `max(sequence)+1` (juga `start_match`/`end_match`) | **Pengesahan `P1-5` Fasa-2C** → risiko kekonkurenan 🟡 , bukan kecemasan |
+| 14 | Advisor: `referees` RLS ON / 0 policy · 13 fungsi `SECURITY DEFINER` · perlindungan kata laluan bocor **dimatikan** · **24 FK tanpa index · 35 index tidak digunakan · 18 penemuan auth-RLS initplan · 16 penemuan policy permissive berganda** | Angka 18 dan 16 **baharu** bagi kami; direkod di `EVIDENCE.md` §C berlabel `[DB]` |
+| 15 | Teks migrasi **disimpan** oleh Supabase dalam `supabase_migrations.schema_migrations.statements` | Mengubah kaedah `WO-23`: teks 4 migration boleh diperoleh dengan **satu SELECT read-only** → `DEC-040 (PROPOSED)` |
+
+### 10.2 Yang R2 sahkan betul (tiada apa-apa untuk diperdebatkan lagi)
+
+Satu repo kanonik → `playpro2` = projek apl → angka hidup 21/5/20/16/61 → 4 versi migrasi di `[DB]` dan 0 fail di `[GIT]` (dua-dua betul serentak) → PR #5 dokumentasi sahaja, belum digabung → Azlan sebagai persona rujukan → sempadan RPC `match_events` wujud → INSERT terus oleh `authenticated` disekat → arah siasatan drift apl↔DB betul → 404 `dashboard_integration.js` sah dari struktur repo → `players.club_id` masih bercanggah dengan model keahlian. Dan dia menolak dengan betul idea **menambah lajur semata-mata** untuk "menyelesaikan" drift.
+
+### 10.3 Pembetulan ke atas diri CTO (2) → R2 mengubah dua kesimpulan aku
+
+1. **`DRIFT-014` DITURUNKAN taraf.** Aku tulis: kalau orang "baiki 404" dengan menyalin `js/dashboard_integration.js` → `public/js/`, ia akan "mengaktifkan laluan tulis yang pasti ralat lajur". Selepas R2: `authenticated` **tiada INSERT** pada `match_events` → sisipan itu **DITOLAK (42501)**, bukan menulis data rosak. Bahaya sebenar bertukar: bukan kerosakan data, tetapi **ilusi "sudah disambungkan"** (ralat RLS yang orang biasa tidak baca). `WO-29` (larangan menyalin) **kekal**, dengan sebab yang betul.
+2. **Angka "13 RPC yang klien jangkakan" perlu dirinci, bukan dibuang.** Diukur semula dengan kaedah tepat (kira `.rpc('nama')` dalam skrip klasik) → **7 nama sahaja**: `ensure_profile_after_signup`(4) · `search_players`(3) · `run_post_match_pipeline`(2) · `register_my_player`(2) · `get_my_player_id`(2) · `refresh_all_public_views`(1) · `compute_weekly_training_score`(1). Enam nama lagi (`get_my_profile`, `get_public_coach_profile`, `process_assessment_payment`, `process_coach_mock_exam_result`, `save_club_manager_onboarding_profile`, `save_coach_onboarding_profile`) **tiada dalam skrip yang dimuat halaman** → ia hidup dalam `public/src/modules/**` yang **tidak dimuat mana-mana pelayar** (§10.4 `DRIFT-017`). Satu padanan `function_name` ialah pemboleh ubah dinamik, bukan nama RPC → dibuang.
+
+### 10.4 Temuan CTO yang R2 belum nampak (hanya boleh dilihat dari sisi `[GIT]`)
+
+🔴 **`DRIFT-017` → "otak" produk tidak dimuat langsung ke pelayar.**
+`public/src/` mengandungi **15 fail `.js`**, termasuk `modules/league-os/matchday-engine.js`, `modules/league-os/eligibility-engine.js`, `modules/verification/verification.service.js`, `modules/wallet/wallet.service.js`, `modules/passport/passport-status.js`, `modules/scout-marketplace/scout.service.js`, `modules/auth/auth-session.service.js`. Diukur dengan **empat** pemeriksaan bebas ke atas `public/*.html` + `public/js/*.js`: rujukan `modules/` = **0** · `<script type="module">` = **0** · `import(` = **0** · `src="…/src/…"` = **0**. → Enjin kelayakan, pasport, pengesahan organisasi, dompet dan modul jurulatih **tidak pernah berjalan di pelayar**. Calon penjelasan terbaik bagi rasa "PlayPro kosong walaupun DB ada": logik produk itu wujud sebagai **fail**, bukan sebagai **aplikasi**.
+
+🔴 **`DRIFT-018` → enjin RPC Fasa-3 (dimigrasi 2026-09-09) tidak mempunyai SATU pun pemanggil dalam apl.**
+`start_match`, `record_match_event`, `end_match`, `finalize_match`, `void_match_event`, `match_observer_scope_for`: **0 kemunculan di seluruh `public/`** (hanya muncul dalam `database/*.sql` legacy). → Isu Match Observer **bukan sekadar** skrip 404: walaupun 404 itu dibaiki, **tiada baris kod apl yang mengarah ke RPC yang baharu dibina**. R2 betul bahawa RPC itu baik "sebagai asas" → dan itulah sebabnya `finalize_match()` **tidak akan** menyelamatkan halaman observer. Yang tiada ialah **lapisan penyambung (wiring)**. Itu kerja reka bentuk fasa skema, bukan tampalan.
+
+🟠 **`DRIFT-019` → penulis perlawanan dalam `MatchRepo` ialah kod mati.**
+`saveEvents()`, `savePlayerStats()`, `completeFixture()` mempunyai **0 pemanggil** di luar `public/js/repositories.js`; satu-satunya "rujukan" kepada `runPipeline()` ialah **teks label** di `public/db_readiness_report.html:344` (`<td>MatchRepo.runPipeline()</td>`), bukan panggilan. Rantai penuh yang diukur: `savePlayerStats()` (L1128-1158) mengupsert 7 lajur yang R2 laporkan **tiada di live** (`passes_completed, passes_attempted, tackles_won, tackles_attempted, interceptions, match_rating, is_motm`) + `club_id`; `completeFixture()` (L1166-1172) hanya `update fixtures.status='completed'` dengan harapan trigger yang R2 sahkan **tiada**; `runPipeline()` (L1180-1186) memanggil RPC yang juga **tiada**; dan setiap ralat hanya `console.error` → tiada toast, tiada sekatan. → **Tiada satu pun laluan tulis statistik yang berfungsi hari ini.**
+
+🟠 **`DRIFT-020` → teks SQL yang "hilang" itu sebenarnya ADA di `[GIT]`, dalam lapisan LEGACY.**
+`database/playpro_phase6_7_pipeline.sql` (**1,355 baris / 56,574 B**) mendefinisikan `run_post_match_pipeline()` (L896), `PERFORM run_post_match_pipeline(NEW.id, NULL)` (L1133), `DROP/CREATE TRIGGER trg_fixture_status_pipeline ON fixtures` (L1140-1141), `GRANT EXECUTE … TO authenticated` (L1100) dan `RAISE WARNING … SQLERRM` (L1090) yang **menelan ralat**. Setiap satu daripada 7 RPC klien ada definisinya di dalam `database/*.sql`. `connection_test.html:813` malah menulis `"… not found → run phase6_7"`. → **Pipeline tidak hilang; ia tertulis dan TIDAK PERNAH DITERAPKAN ke `playpro2`.** Ini tepat guna kaedah `DEC-039`: lapisan LEGACY menyediakan teks untuk rekonsiliasi. Dan ia melahirkan **pertembungan reka bentuk yang CEO mesti putuskan** (`DECISIONS.md` §J): *arkitektur Fasa-3 (RPC observer ialah penulis tunggal)* lwn *arkitektur Fasa-6/7 (klien tulis jadual → trigger derive)*. Dua-dua ada dalam repo; satu ada di DB; **tiada satu pun bersambung ke UI**.
+
+### 10.5 Bantahan CTO kepada R2 (4) → sopan, tetapi atas rekod
+
+1. **§17 R2 mengkritik ayat yang tidak wujud dalam mana-mana fail repo.** Petikannya: "Semua halangan semantik dan falsafah produk telah diselesaikan sepenuhnya". `grep` ke atas `docs/memory/*.md` + `AGENTS.md` + `README.md` + `docs/*.md` = **0 padanan**. Ayat sebenar: `STATE.md` §1 baris "Halangan semantik fasa A | **Kosong**" → maksudnya tiada halangan *semantik* untuk membuka Fasa A, dan baris yang sama terus menyebut urutan `DEC-030`. Substansi R2 ( *arkitektur semantik diluluskan ≠ sistem semasa dilaksanakan* ) **kami terima dan memang itu yang dokumen kami tulis**; yang silap ialah metodologinya: dia menyemak **prosa chat**, bukan fail → penyakit yang dia sendiri tandai pada pusingan 1. (Dijadikan peraturan: `AGENTS.md` §3(6).)
+2. **"LIVE DB FORENSICS 🟢 BASELINE VERIFIED" adalah pramatang** ikut takrif gerbang `DEC-022`. `WO-08` bukan "Reviewer menjawab soalan"; ia **fail output yang disimpan ke repo** (`docs/memory/PRODUCTION_TRUTH_<tarikh>/`) bagi **28 blok** `PRODUCTION_TRUTH_EXPORT.sql`, dijalankan di **dua projek** (`playpro2` **dan** `playpro` legacy). Yang ada selepas R2: jawapan separuh. **Tiada** senarai nama 20 fungsi (dua pusingan, hanya kaunter); **tiada** `q10` (senarai 61 policy); **tiada** `q14` (kiraan row); **tiada** `q20` (DDL penuh setiap jadual); projek legacy `playpro` **belum disentuh** (`WO-25` kekal). **Disahkan ≠ dieksport.** `DEC-022` hanya boleh digerakkan Owner/CEO → dan **R2 sendiri ada akses untuk melaksanakannya malam ini.**
+3. **Senarai separuh tidak boleh menutup soalan.** §9 R2 menulis lajur `player_match_stats` "antara lain: `started, minutes_played, goals, assists, shots, shots_on_target, yellow_cards, red_cards, saves, clean_sheet`" → `antara lain` = bukan senarai penutup. Akibatnya: (a) saya **tidak boleh** menyimpulkan 7 lajur klien itu pasti tiada; (b) status `club_id` pada jadual itu belum diketahui; (c) `clean_sheet` pula **tidak ditulis** klien langsung. Mengikut `AGENTS.md` §3(4) yang R2 sendiri cadangkan: **nombor/himpunan tanpa ahli = belum disahkan**. Yang diperlukan = output `q20` penuh.
+4. **§8 (perlumbaan `sequence`)** → sependapat itu risiko kekonkurenan, dan terima bahawa dia **tidak** minta pembetulan sekarang. Satu fakta tambahan dari `[GIT]`: kerana RPC itu sendiri **tiada pemanggil** (`DRIFT-018`), laluan perlumbaan belum boleh dicapai dari UI → justeru `FOR UPDATE` / `nextval` ialah **keputusan reka bentuk fasa skema**, bukan kerja keemasan. "Membetulkan sequence" sekarang bermakna **mengunci arkitektur Fasa-3 sebelum CEO memilih**.
+
+### 10.6 Baki permintaan kepada R2 (5 — lebih kecil daripada pusingan 1)
+
+1. **Senaraikan 20 fungsi itu** (`proname` + `prosecdef` + siapa boleh EXECUTE). Kami ada **kaunter** 20 sejak R1 dan **tiada nama** selepas dua pusingan. Tanpa nama, `WO-08` tak boleh ditutup dan senarai klien (7 nama) tak boleh ditanda padan/tidak.
+2. **Matriks keistimewaan `q07` untuk jadual yang klien cuba tulis:** `player_match_stats`, `match_results`, `standings`, `disciplinary_records`, `suspensions`, `fixtures`, `match_participants`, `match_playing_time`, `players`, `profiles`, `clubs`, `leagues`, `coaches`, `referees` (SELECT/INSERT/UPDATE/DELETE × `anon`/`authenticated`). Sebab `match_events` selamat **tidak** bermakna `player_match_stats` selamat → kalau yang ini boleh di-INSERT terus, **itulah pintu sebenar**, dan `WO-24` berubah keutamaan.
+3. **Badan 3 fungsi** (`q21`): `register_my_player`, `record_match_event`, `finalize_match`. Untuk `register_my_player` soalan penentunya: adakah `profiles.identification_number` dirujuk **secara keras** (maka pendaftaran pemain **selalu gagal** → P0 pengguna) atau melalui SQL dinamik (maka ia gagal tertakluk cabang).
+4. **Kiraan row penentu:** `select count(*)` + `max(recorded_at)`/`max(created_at)` bagi `match_events`, `player_match_stats`, `match_results`, `standings`. **Ini mengesahkan atau membunuh `DRIFT-013` TANPA pelayar**: jika `match_events` = 0 baris, tiada seorang pun pernah menyimpan perlawanan melalui laluan mana sekali pun, dan `WO-28` turun taraf daripada "penentuan" kepada "pengesahan".
+5. **Salin teks 4 migration** dari `supabase_migrations.schema_migrations` (R2 jumpa ia disimpan di `statements`) → satu SELECT read-only → saya commit ke `supabase/migrations/` sebagai **rekod** (BUKAN untuk dijalankan) → `WO-23` tertutup dan `DEC-040` boleh diluluskan CEO.
+
+### 10.7 Papan status R2 yang saya terima (dengan SATU perubahan)
+
+```
+SEMANTIC ARCHITECTURE   🟢 APPROVED (v1.3 §1-64, Owner) - TAPI teksnya masih tiada di Git (WO-01)
+MASTER CONTEXT           🟢 READY (PR #5, belum digabung)
+LIVE DB FORENSICS        🟡 SEPARUH  <- perubahan saya: review = ya; EKSPORT ke repo = belum (DEC-022)
+SCHEMA DESIGN            🔴 NOT STARTED (dilarang sehingga WO-01 + WO-08)
+IMPLEMENTATION           🔴 LOCKED
+PRODUCTION CHANGE        🔴 LOCKED (7 langkah Fasa 2C)
+ARCHITECTURE FREEZE      🔴 BELUM  <- R2 betul, dan sebabnya ialah WO-01: tidak boleh membekukan apa yang tiada dalam git
+```
+
+Satu baris daripada R2 yang saya jadikan panduan sepanjang fasa: **"jumpa drift → terus tambah column/table/function" ialah kesilapan lama yang tidak akan kita ulang.**

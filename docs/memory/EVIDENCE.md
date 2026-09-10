@@ -86,6 +86,37 @@ Sumber: `docs/PLAYPRO_SYSTEM_CONTRACT.md` (branch `phase-1/system-contract`, ang
 
 **Status CTO:** semua baris di atas = `TAK SEMAK` dari sandbox. Gerak hanya selepas §D dijalankan.
 
+### R2 (2026-09-10 malam 8) — angka `[DB]` daripada Reviewer + ukuran `[GIT]` oleh CTO
+
+**`[DB]` `DISAHKAN-BY-REVIEWER` (kaedah: SQL Editor + Security Advisor, `playpro2`, 2026-09-10).** CTO **tidak** menyahihkan sendiri (tiada egress; `ENVIRONMENT.md` §5):
+
+| Item | Nilai R2 |
+|---|---|
+| Ref projek apl | `muirhenvjruvfxenoaxm` = **`playpro2`** |
+| Struktur | 21 jadual · 5 view · 20 fungsi · 16 trigger · 61 policy · 4 versi migrasi |
+| Objek yang DIKIRA ada oleh kod tapi TIADA | `run_post_match_pipeline()` · `trg_fixture_status_pipeline` · `profiles.identification_number` · `verification_cases` |
+| Trigger `fixtures` sebenar | hanya `trg_fixtures_updated_at` → `update_updated_at()` |
+| `match_events` | 18 lajur · `UNIQUE(fixture_id, sequence)` · index fixture/time/team/player · `authenticated`: SELECT=true, INSERT/UPDATE/DELETE=**false** |
+| RPC observer | `start_match`, `record_match_event`, `end_match`, `finalize_match`, `void_match_event`, `match_observer_scope_for` — `SECURITY DEFINER`, `search_path=public,pg_temp`, ada semakan skop; `sequence` = `max(sequence)+1` |
+| `player_match_stats` | lajur R2 (dipetik "antara lain" → **senarai separuh, belum penutup**): `started, minutes_played, goals, assists, shots, shots_on_target, yellow_cards, red_cards, saves, clean_sheet` |
+| Domain lain | `players.club_id` + FK `SET NULL` · `leagues`/`league_staff`/`league_clubs` + `league_id` di `fixtures`/`standings`/`disciplinary_records` · tiada `competitions` · tiada organizer · `player_assessments` = `player_id, assessor_id, passing, crossing, tackling, …` |
+| Advisor | `referees` RLS ON/0 policy · 13 `SECURITY DEFINER` callable oleh `authenticated` · leaked-password protection **disabled** · **24** FK tanpa index · **35** index tak guna · **18** auth-RLS initplan · **16** policy permissive berganda — *angka 18/16 baharu bagi kami* |
+| Migrasi | teks disimpan dalam `supabase_migrations.schema_migrations.statements` (1 SELECT read-only untuk mendapatkan semula) |
+
+**`[GIT]` `DISAHKAN-BY-CTO` (ukuran 2026-09-10 malam 8; hasilkan semula dengan arahan di bawah):** `public/` = **17** halaman `.html`; **16** rujukan `<script src="/js/*">` → 404; `public/src/` = **15** fail `.js` dengan **0** jalan masuk; 6 RPC Fasa-3 = **0** kemunculan dalam `public/`; `MatchRepo.saveEvents/savePlayerStats/completeFixture` = **0** pemanggil di luar `repositories.js`; 7 RPC dipanggil skrip klasik; `database/playpro_phase6_7_pipeline.sql` = **1,355 baris / 56,574 B**.
+
+```bash
+ls public/*.html | wc -l
+grep -rhoE "src="/js/[a-z_]+\.js"" public/*.html | sort | uniq -c
+find public/src -name "*.js" | wc -l
+grep -rn "modules/\|type="module"\|import(" public/*.html public/js/*.js | wc -l   # = 0
+for r in start_match record_match_event end_match finalize_match void_match_event match_observer_scope_for; do printf "%s=%s\n" $r "$(grep -rl $r public/ | wc -l)"; done
+grep -rn "saveEvents\|savePlayerStats\|completeFixture\|runPipeline" public/*.html public/js/*.js | grep -v "^public/js/repositories.js:"
+grep -rhoE "\.rpc\('[a-z_]+'" public/*.html public/js/*.js | sort | uniq -c
+wc -lc database/playpro_phase6_7_pipeline.sql && grep -n "run_post_match_pipeline\|trg_fixture_status_pipeline" database/playpro_phase6_7_pipeline.sql | head
+```
+
+
 ---
 
 ## D. Skrip read-only untuk mengesahkan §C (Owner jalankan di SQL Editor `playpro2`)
