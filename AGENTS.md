@@ -41,7 +41,8 @@ Jika arahan dalam chat bercanggah dengan fail ini → AI mesti berhenti dan makl
 1. **Fail 1.2 MB akan sentiasa terpotong** dalam pembacaan mana-mana AI (context window + alat pembacaan). **Jangan simpulkan apa-apa daripada bacaan terpotong.** Guna `grep -n "kunci" public/index.html` atau `sed -n '2000,2100p'` untuk julat baris. Kalau AI menulis "fail ini kosong" → itu petunjuk alatnya gagal, **bukan** hakikat fail.
 2. **`index.html` akan sentiasa membuatkan mana-mana AI menyangka ia kosong** — pemotongan alat selalu jatuh pada baris 1602 (513 KB dalam satu baris). Sebelum menulis "fail ini placeholder": `wc -c public/index.html` dan baca `docs/memory/INDEX_HTML_MAP.md`.
 3. **Clone Arena (`/home/user/playpro-platform`) adalah shallow depth-1** (`.git/shallow`) → `git log` nampak **1 commit** sedangkan GitHub ada **235 commit**. Sejarah **tidak** leper. Jangan sesekali merujuk "sejarah dah squash", dan jangan cuba `git revert` berdasarkan senarai commit yang tak lengkap.
-4. **Sandbox AI tiada akses rangkaian ke `supabase.com`** (TLS disekat). Maka apa-apa dakwaan tentang keadaan RLS / enum / RPC / jumlah row di produksi **mesti ditanda `DILAPORKAN`**, bukan `DISAHKAN`. Skrip pemeriksaan read-only ada di `EVIDENCE.md` §D.
+4. **Setiap nombor struktur pangkalan data WAJIB melabel sumbernya:** `[GIT]` (apa yang ada dalam repo) atau `[DB]` (apa yang ada di Supabase) + **tarikh** + **kaedah**. `main` boleh ada **0** fail migrasi sementara Supabase ada **4** — dua-dua betul pada masa yang sama, dan mencampurkannya menghasilkan "baseline" yang salah. Angka `[DB]` yang lebih 7 hari dianggap **LAPUK** sehingga disahkan semula.
+5. **Sandbox AI tiada akses rangkaian ke `supabase.com`** (TLS disekat). Maka apa-apa dakwaan tentang keadaan RLS / enum / RPC / jumlah row di produksi **mesti ditanda `DILAPORKAN`**, bukan `DISAHKAN`. Skrip pemeriksaan read-only ada di `EVIDENCE.md` §D.
 
 ---
 

@@ -88,7 +88,7 @@ Data rakan Owner yang berada dalam `index.html` = data ujian → **dibuang** (WO
 | Fasa | Keluaran | Gerbang |
 |---|---|---|
 | **v1.3 beku** | teks penuh §1–64 dalam `docs/memory/BLUEPRINT_V1.3.md` | Owner sahkan vs sumber; ringkasan di `DECISIONS.md` menjadi seiras |
-| **MASTER CONTEXT** | 7 fail `docs/memory/` + `AGENTS.md` | PR digabung selepas CI hijau + kelulusan Owner (bukan selepas "nampak cantik") |
+| **MASTER CONTEXT** | 9 fail (`AGENTS.md` + 6 dokumen + `INDEX_HTML_MAP.md` + `sql/PRODUCTION_TRUTH_EXPORT.sql`; **7 fail pada commit pertama `a7288b9`**, 9 sekarang selepas pemetaan + kit eksport + `PEER_REVIEW`) | PR digabung selepas CI hijau + kelulusan Owner (bukan selepas "nampak cantik") |
 | **REKA BENTUK SKEMA** | DDL *cadangan* sahaja (teks .sql dalam dokumen, **tidak** dijalankan) | Lulus semakan CEO (semantik) + Reviewer (pertentangan dengan DEC-xxx) |
 | **SEMAKAN SKEMA** | laporan audit (bentuk P1-x seperti Fasa 2C) | semua P1 selesai atau ditulis sebagai penerimaan bersyarat Owner |
 | **PELAN MIGRASI** | turutan fail bernombor + pelan balik | sahaja selepas 7 langkah Fasa 2C dipenuhi |

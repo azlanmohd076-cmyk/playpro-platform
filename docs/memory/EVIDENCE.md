@@ -52,7 +52,25 @@ Pemilikan nilai: data rakan = ujian → buang; `Azlan` = persona rujukan sahaja 
 
 ---
 
-## C. Keadaan produksi Supabase (DILAPORKAN — **belum** disahkan; jangan petik sebagai fakta)
+## C. Keadaan produksi Supabase
+
+### ⚠️ DIBETULKAN 2026-09-10 (malam 5) — angka di bawah ini **LAPUK**
+
+Angka lama (14 fungsi / 57 policy / 0 migration) dibawa dari `docs/PLAYPRO_SYSTEM_CONTRACT.md` (audit 27-28 Ogos) dan dibiarkan dalam jadual ini walaupun sudah ditanda `DILAPORKAN`. Semakan **live oleh Reviewer (ChatGPT)** pada 2026-09-10 memberi keadaan sebenar:
+
+```
+[DB] playpro2  ACTIVE_HEALTHY  — disahkan live oleh Reviewer (bukan CTO; sandbox tiada TLS)
+       jadual 21 · view 5 · fungsi 20 · trigger 16 · policy 61 · migration tracked 4
+       20260908175624  phase3_security_boundary_hardening
+       20260908182106  phase3_match_stat_reconciliation_contract
+       20260908184858  phase3_match_event_engine_foundation
+       20260909003126  phase3_match_observer_rpc_engine_v1
+[GIT] main     — 0 fail migrasi (404). Berbeza daripada [DB]; dua-dua betul.
+```
+
+**Kesimpulan yang wajib dibawa ke fasa skema:** Supabase **mempunyai** sejarah migrasi (4 versi), tetapi **teks SQL-nya tiada di mana-mana dalam Git**. Maka `0001_baseline.sql` mesti dijana daripada **introspeksi** (§D), **lalu** direkonsiliasi dengan 4 versi itu — bukan disalin daripadanya. Ini **mengukuh** `DEC-022`, tidak melemahkannya. Butiran penuh + 6 temuan DRIFT: `PEER_REVIEW_2026-09-10.md`.
+
+**Sumber angka lama (jejak audit sahaja — jangan kutip):**
 
 Sumber: `docs/PLAYPRO_SYSTEM_CONTRACT.md` (branch `phase-1/system-contract`, angka hasil audit 27–28 Ogos) + laporan Fasa 2/2B/2C/3 di branch `phase-2/canonical-model` + perbualan CEO 8–9 Sept.
 

@@ -229,7 +229,23 @@ Cuti: jika Owner/CEO mahu (iv) didahulukan **melepasi** `DEC-022`, itu hak merek
 
 ---
 
-## J. Log append-only
+## J. Dapatan semakan bebas 2026-09-10 (bukan keputusan beku)
+
+Sumber: `PEER_REVIEW_2026-09-10.md` (Reviewer = ChatGPT; akses live Supabase yang CTO semasa tidak punya).
+
+**DEC-039 — kaedah rekonsiliasi baseline (`PROPOSED` oleh CTO, belum diluluskan CEO).** `0001_baseline.sql` mesti dijana dengan turutan 12 lapis, **bukan** `merge` buta:
+```
+[DB] live: tables -> columns -> constraints -> indexes -> views -> functions
+     -> triggers -> policies -> grants -> enums -> extensions -> migration history
+-> [GIT] yang sedia ada -> LEGACY database/*.sql -> TARGET v1.3
+```
+Setiap lapis memulangkan **perbezaan**, bukan pengesahan; tiga lapisan terakhir ialah tempat `DRIFT-007`…`DRIFT-012` diselesaikan. Status `PROPOSED` → CEO sahkan (ya/tukar) **sebelum** `WO-08` dianggap selesai.
+
+Yang **tidak** berubah: v1.3 kekal beku; tiada `DEC-xxx` digantikan; tiada objek DB disentuh. Semakan ini menyentuh **fakta mekanikal**, bukan semantik domain.
+
+---
+
+## K. Log append-only
 
 | Tarikh | Peristiwa |
 |---|---|
@@ -239,4 +255,5 @@ Cuti: jika Owner/CEO mahu (iv) didahulukan **melepasi** `DEC-022`, itu hak merek
 | 2026-09-10 | CEO jawab K1–K5 → DEC-021…DEC-026 direkod. R-02 selesai; R-05 separuh (**R-05a OPEN**); `WO-08` jadi keutamaan #1 |
 | 2026-09-10 (petang 2) | CEO jawab G1–G4 → `DEC-027`…`DEC-030`. **R-05a diselesaikan sebagai alih-tangguh bertamad**, R-06 disahkan (A→J), R-03 dijawab (2 tahap KYC) → `R-03a` OPEN. Default `Q3/Q4/Q5` ditetapkan (A / jangan petik nombor / PR kod berasingan) |
 | 2026-09-10 (malam) | CEO jawab H1–H3 → `DEC-031`…`DEC-033`. **R-01 ditutup** (venue = entiti berasingan). Tiga teguran CTO direkod: typo `INELEGIBLE_EXPIRED` → `INELIGIBLE_EXPIRED`; pertindihan nama dengan `EXPIRED` sedia ada; dan **percanggahan `DEC-033` vs `DEC-022`** (segera vs gerbang) dengan jalan keluar 3 bahagian (a/b/c) |
+| 2026-09-10 (malam 5) | **Semakan bebas Reviewer (ChatGPT) diterima + disimpan** (`PEER_REVIEW_2026-09-10.md`). 3 angka `[DB]` kami **lapuk** (14→**20** fungsi, 57→**61** policy, 0→**4** migration) dan dibetulkan di `EVIDENCE.md`/`ENVIRONMENT.md`; `DEC-039 (PROPOSED)` ditambah. **Tiada keputusan beku diubah** |
 | 2026-09-10 (malam 4) | CEO jawab K1 → **`DEC-038`**: ASAS sah selagi akaun hidup; 12 bulan hanya LANJUT. 4 akibat direkod (`expires_at` null untuk ASAS · umur wajib dikira dari `date_of_birth` setiap perlawanan · kategori perlu simpan "tahap diwajibkan" · renewal LANJUT = rekod baharu, append). **Halangan semantik untuk fasa SKEMA = NOL.** R-04/R-07 kekal ditangguh seperti diarah |
