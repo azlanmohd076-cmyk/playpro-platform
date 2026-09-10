@@ -88,6 +88,19 @@ AGENTS.md                   ← peraturan tetap, dibaca semua AI
 
 ## 5. Batas kemampuan CTO di dalam sandbox Arena (baca ini sebelum marahkan AI)
 
+### 5.1 Rangkaian sandbox = **ALLOWLIST**, bukan sekatan setiap tapak (diukur 2026-09-11)
+
+Pembetulan penting kepada catatan lama. Dahulu kami tulis "supabase.com disekat TLS", seolah-olah Supabase disasarkan khas. **Ukuran sebenar menunjukkan sebaliknya:** sandbox hanya benarkan **dua** hos, semua yang lain gagal serupa.
+
+| Hos diuji | Hasil |
+|---|---|
+| `api.github.com` | **200** ✅ |
+| `registry.npmjs.org` | **200** ✅ |
+| `example.com` · `cloudflare.com` · `google.com` | **000** (exit 35) ❌ |
+| `supabase.com` · `eraser.io` · `rapidapi.com` | **000** (exit 35) ❌ |
+
+**Kesimpulan yang mesti dipegang setiap sesi AI:** DNS berfungsi (nama diterjemah kepada IP), tetapi sambungan TLS diputuskan untuk apa-apa selain GitHub + npm. Maka **mana-mana MCP server luar (Eraser, RapidAPI, apa jua) TIDAK boleh dipanggil dari sandbox ini** — bukan kerana tapak itu tumbang, bukan kerana konfigurasi salah. Berhenti cuba "baiki" sambungan; ia bukan pepijat, ia rekaan persekitaran. Fail konfigurasi MCP tetap berguna, tetapi hanya untuk **klien Owner** yang ada internet penuh.
+
 | Cuba | Hasil |
 |---|---|
 | `curl https://api.supabase.com` / `muirhenvjruvfxenoaxm.supabase.co` | **gagal** (HTTP 000 / TLS exit 35) → tiada cara sahkan DB/RPC/RLS dari sini |

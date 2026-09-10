@@ -9,7 +9,9 @@ Cara baca: `DISAHKAN` = saya ukur sendiri dalam sandbox hari ini. `DILAPORKAN` =
 
 1. Arahan Owner: `arenaai mcp add eraser --url https://app.eraser.io/api/mcp`.
 2. **Tiada CLI bernama `arenaai` dalam sandbox ini** (DISAHKAN) — jadi arahan itu tidak boleh dijalankan seperti ditaip. Yang saya buat: tulis **fail konfigurasi MCP** ke repo, iaitu bentuk kekal bagi perkara yang sama.
-3. **Sandbox Arena tiada egress ke `eraser.io`** (TLS disekat, `curl` exit 35 — DISAHKAN). Maka sesi AI *ini* **tidak** boleh memanggil tools Eraser. Fail ini berguna untuk **klien Owner** (Cursor / VS Code / Claude Code / Codex) yang ada internet penuh.
+3. **Sandbox Arena tiada egress ke `eraser.io`** (`curl` exit 35 — DISAHKAN). Maka sesi AI *ini* **tidak** boleh memanggil tools Eraser. Fail ini berguna untuk **klien Owner** (Cursor / VS Code / Claude Code / Codex) yang ada internet penuh.
+
+> **Pembetulan 2026-09-11:** Eraser **tidak** disekat secara khusus. Ukuran lanjut menunjukkan sandbox ialah **allowlist** — hanya `api.github.com` + `registry.npmjs.org` lulus; `example.com`, `google.com`, `cloudflare.com`, `rapidapi.com` semuanya **000/exit 35** juga. Butiran: `ENVIRONMENT.md` §5.1. Implikasi: **tiada** MCP server luar boleh dipanggil dari sandbox, jadi jangan buang masa menyahpepijat sambungan.
 
 ---
 
@@ -94,6 +96,22 @@ Kali pertama sambung, pelayar akan buka untuk log masuk akaun Eraser (OAuth). **
 2. **Ini bukan work order.** Ia tiada nombor `WO`, tidak menyentuh `public/`, `src/`, `tests/`, atau SQL, dan tidak membuka mana-mana fasa. Ia perkakas pembangun sahaja.
 3. **Eraser menyimpan hasil di akaun Eraser Owner** (DILAPORKAN, dari dokumen rasmi), bukan dalam repo ini. Kalau diagram seni bina PlayPro dijana kelak, **eksport PNG/sumbernya mesti dicommit ke repo**, kalau tidak ia jadi memori luar yang hilang — tepat masalah yang `docs/memory/` cuba selesaikan.
 4. **Jangan hantar kandungan sensitif** (anon key, ref Supabase, PII pemain) ke dalam prompt diagram. Itu menghantar data keluar ke perkhidmatan pihak ketiga.
+
+---
+
+## 4b. Peraturan am untuk **mana-mana** MCP server yang diminta selepas ini
+
+Lahir daripada permintaan sebenar 2026-09-11 (RapidAPI / 1xBet). Tiga semakan, ikut turutan, sebelum satu baris konfigurasi ditulis:
+
+**Semakan 1 — kelayakan (credential).** Kalau permintaan itu datang **bersama kunci API di dalam teks**, kunci itu dianggap **sudah terdedah** dan mesti **diputar (rotate)**, tak kira sama ada ia jadi digunakan atau tidak. Ia **tidak boleh** ditulis ke fail repo — `AGENTS.md` §5, dan repo ini **public** (`"visibility":"public"`, disahkan `gh api`). Corak selamat: OAuth; kalau wajib guna kunci, `${ENV_VAR}` atau GitHub Secret, tidak pernah teks mentah.
+
+**Semakan 2 — kena-mengena dengan blueprint.** Adakah domain server itu wujud dalam PlayPro? Cara semak: `grep -rniE "<konsep>" --include=*.md docs/`. Kalau **0 padanan**, ia bukan sambungan — ia **skop baharu**, dan skop baharu = work order + kelulusan CEO/Owner (`AGENTS.md` §4), bukan "cuba dulu".
+
+> ⚠️ **Amaran khusus data pertaruhan / odds.** PlayPro ialah platform **akar umbi** yang menyimpan `date_of_birth` dan mengira kategori umur seperti **B18** (`DECISIONS.md`:221) — bermakna **kanak-kanak bawah umur** ada dalam pangkalan data. Menyambungkan suapan odds pertaruhan kepada sistem yang sama menimbulkan tiga risiko berasingan: **(a)** perlindungan kanak-kanak dan integriti pertandingan (odds + statistik pemain bawah umur dalam satu sistem); **(b)** undang-undang Malaysia — perjudian dalam talian adalah **kesalahan** di bawah Betting Act 1953 / Common Gaming Houses Act 1953, dan MCMC menyekat laman perjudian; **(c)** reputasi — repo ini **public**, jadi sebarang commit yang menyebut integrasi pertaruhan kekal dalam sejarah awam. CTO **tidak** memberi nasihat undang-undang; yang dicatat di sini ialah **risiko yang mesti diputuskan Owner secara bertulis**, bukan diputuskan oleh AI dalam satu baris chat.
+
+**Semakan 3 — boleh dicapai?** `curl -s -o /dev/null -m 10 -w "%{http_code}" <url>`. Ingat `ENVIRONMENT.md` §5.1: sandbox ialah **allowlist** (GitHub + npm sahaja). Jawapannya hampir pasti `000`. Konfigurasi masih boleh ditulis untuk klien Owner, tetapi **jangan** dakwa ia "diuji".
+
+**Catatan bentuk konfigurasi:** corak `npx mcp-remote <url> --header ...` (pakej `mcp-remote`, versi `latest` = **0.8.6**, DISAHKAN dari npm) ialah jambatan **stdio → HTTP jauh** untuk klien yang tidak menyokong HTTP asli. Ia meletakkan kunci sebagai **argumen baris arahan**, yang bocor ke senarai proses (`ps aux`) dan sering ke log shell. Kalau kunci memang perlu, `env` lebih selamat daripada `--header`.
 
 ---
 
