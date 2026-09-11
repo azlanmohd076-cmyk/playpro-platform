@@ -1,76 +1,135 @@
 # PLAYPRO NEXT MAP — MATCH OPERATIONS CITY BLOCK
 
-**Purpose:** next map after the match-control architecture. This is a design map, not implementation.
+**Purpose:** executable city map for the next PlayPro architecture stage.
+**Status:** SCHEMA DESIGN READY · no production DDL applied.
 
-## City view
+## 1. City view
 
 ```mermaid
 flowchart LR
-    A[🏟️ COMPETITION SETUP] --> B[📋 RULE CONFIG]
+    A[🏟️ COMPETITION SETUP] --> B[📋 17 RULE AREAS]
     A --> C[👥 TEAMS / PARTICIPATION]
     A --> D[🗓️ FIXTURE SCHEDULE]
-    D --> E[📍 VENUE / PITCH SLOT]
-    E --> F[⚽ MATCH DAY]
-    F --> G[🧑‍⚖️ OFFICIAL CREW]
-    G --> H[👁️ OBSERVER A]
-    G --> I[👁️ OBSERVER B]
-    G --> J[🧑‍⚖️ REFEREE]
-    F --> K[▶️ START OPERATOR]
-    K --> L[⏱️ LIVE MATCH]
-    H --> L
-    I --> L
-    L --> M[⏹️ END]
-    M --> N[📝 MATCH REPORT]
-    N --> O{REFEREE REVIEW}
-    O -->|RETURN| P[✏️ CORRECTION]
-    P --> N
-    O -->|APPROVE| Q[🔒 OFFICIAL MATCH RECORD]
-    Q --> R[📊 STANDINGS]
-    Q --> S[👤 PLAYER HISTORY]
-    Q --> T[🏟️ TEAM / CLUB HISTORY]
-    Q --> U[🧠 COACH HISTORY / RATING]
-    Q --> V[🟥 DISCIPLINE]
-    V --> W[⛔ SUSPENSION / BAN]
-    W --> X[✅ ELIGIBILITY ENGINE]
-    X --> D
-    F --> Y{MATCH INCIDENT?}
-    Y -->|WEATHER| Z[🔄 RESCHEDULE]
-    Y -->|NO SHOW / FORFEIT| AA[🏆 WALKOVER RULE]
-    Y -->|FIGHT / MISCONDUCT| AB[⚠️ DISCIPLINARY INCIDENT]
-    Z --> D
-    AA --> N
-    AB --> N
+    D --> E[📍 VENUE]
+    E --> F[🥅 PITCH / SLOT]
+    F --> G[⚽ MATCH DAY]
+    G --> H[🧑‍⚖️ OFFICIAL CREW]
+    H --> I[👁️ OBSERVER A]
+    H --> J[👁️ OBSERVER B]
+    H --> K[🧑‍⚖️ REFEREE]
+    H --> L[▶️ START OPERATOR]
+    L --> M[⏱️ LIVE MATCH]
+    I --> M
+    J --> M
+    M --> N[⏹️ END]
+    N --> O[📝 MATCH REPORT v1..n]
+    O --> P{🧑‍⚖️ REFEREE REVIEW}
+    P -->|RETURN + REASON| Q[✏️ CORRECTION]
+    Q --> O
+    P -->|APPROVE| R[🔒 OFFICIAL MATCH RECORD]
+    R --> S[📊 STANDINGS]
+    R --> T[👤 PLAYER HISTORY]
+    R --> U[🏟️ TEAM / CLUB HISTORY]
+    R --> V[🧠 COACH HISTORY / RATING]
+    R --> W[🟥 DISCIPLINE]
+    W --> X[⛔ SUSPENSION LEDGER / BAN]
+    X --> Y[✅ ELIGIBILITY]
+    Y --> D
+    M --> Z{⚠️ INCIDENT?}
+    Z -->|WEATHER| AA[🔄 RESCHEDULE]
+    Z -->|NO SHOW / FORFEIT| AB[🏆 WALKOVER / FORFEIT RULE]
+    Z -->|FIGHT / MISCONDUCT| AC[⚠️ DISCIPLINARY INCIDENT]
+    AA --> D
+    AB --> O
+    AC --> O
 ```
 
-## Map rules
+## 2. City legend
 
-- Green path = normal match lifecycle.
-- Yellow path = review/configuration/decision points.
-- Red path = incident, sanction or blocked eligibility.
-- Black path = external/administrative boundary.
-- A match cannot become official merely because observers entered data.
-- Referee approval is the officialization gate.
-- Suspension/ban is a separate eligibility layer and feeds future fixture selection.
-- Fixture scheduling must understand venue/pitch availability so four simultaneous pitches cannot collide.
-- Competition configuration determines format-specific consequences.
+- 🟢 normal operational route;
+- 🟡 review/configuration/decision gate;
+- 🔴 incident/sanction/ineligible route;
+- ⚫ administrative/external boundary.
 
-## Next design boxes
+The map describes business flow first. Table names and RPC names are implementation details fitted to the flow.
 
-1. Competition rule configuration — 17 areas.
-2. Fixture scheduling and qualifying-fixture definition.
-3. Venue → pitch → slot availability.
-4. Official crew assignment.
-5. Match start/end operator.
-6. Observer event capture.
-7. Match report versioning.
-8. Referee review / correction loop.
-9. Official match record lock.
-10. Incident → sanction.
-11. Suspension ledger → served-match calculation.
-12. Ban status → eligibility block.
-13. Appeal → PlayPro review.
-14. Official record → player/team/coach history.
+## 3. What already exists in production
 
-## Important design principle
+`playpro2` currently contains the core match objects required to anchor the design:
 
-The map follows the real-world football operation first. Database tables, RPC names and UI screens are implementation details that must be fitted to this flow during schema design, not allowed to dictate the business process.
+| City block | Live anchor | Current role |
+|---|---|---|
+| Fixture | `fixtures` | fixture, teams, date, venue text, referee reference, state, duration, group/bracket |
+| Live observation | `match_events` | event/time/sequence, recorder, void/audit fields |
+| Player match data | `player_match_stats` | appearance/statistics foundation |
+| Playing time | `match_playing_time` | playing-time foundation |
+| Participants | `match_participants` | match participation foundation |
+| Official result | `match_results` | result + officiality/ratification gate |
+| Standings | `standings` + existing trigger | downstream competition table |
+| Suspension | `suspensions` | current suspension ledger foundation |
+| Referee identity | `referees` | referee identity/profile foundation |
+| Discipline | `disciplinary_records` | existing discipline foundation |
+
+## 4. City blocks still requiring schema work
+
+### 🟡 RULE DISTRICT
+`competition_rule_config` is a design target. The 17 Phase-A rule areas must be represented at competition scope and versioned where historical decisions depend on them.
+
+### 🟡 MATCH REPORT OFFICE
+A versioned report layer is required between observation and referee approval. It must support `DRAFT → SUBMITTED → RETURNED → APPROVED` and preserve correction history.
+
+### 🟡 OFFICIAL RECORD GATE
+Use the existing `match_results.is_official`, `ratified_by`, `ratified_at`, `entered_by`. Do not create a parallel official-results table.
+
+### 🟡 OFFICIAL CREW OFFICE
+`referee_assignments` is the intended single source of truth for fixture officials. The existing `fixtures.referee_id` remains a compatibility/derivation item until schema review.
+
+### 🔴 DISCIPLINE DISTRICT
+Extend the existing `suspensions` foundation into the canonical ledger. Suspension service is based on qualifying official team fixtures, not player re-registration.
+
+### 🔴 BAN DISTRICT
+Incident → sanction → `BANNED` / `NOT ELIGIBLE` → selection block. Three months is configurable PlayPro policy, not universal FIFA law.
+
+### 🟡 APPEAL OFFICE
+Appeal request → RM100 fee → PlayPro review → `UPHOLD / MODIFY / REVOKE` → mandatory reason → auditable eligibility/sanction update.
+
+### 🟡 VENUE DISTRICT
+Model `VENUE → PITCH → SLOT → FIXTURE` so four pitches can operate concurrently without double booking.
+
+## 5. Canonical match state machine
+
+`SCHEDULED → CREW ASSIGNED → STARTED → LIVE → ENDED → REPORT SUBMITTED → REFEREE REVIEW`
+
+From review:
+
+- `RETURNED → CORRECTED → RESUBMITTED → REFEREE REVIEW`
+- `APPROVED → OFFICIAL → LOCKED`
+
+No observer-to-observer approval exists in this state machine.
+
+## 6. Suspension city rule
+
+For each active suspension the engine must determine:
+
+`START FIXTURE → QUALIFYING TEAM FIXTURE #1 → #2 … → SERVED → COMPLETED → ELIGIBLE`
+
+The suspended player does not have to appear in the squad for a qualifying fixture. The system evaluates the team's official fixture itself.
+
+Therefore:
+
+`REGISTERED ≠ ELIGIBLE`
+
+## 7. Incident branches
+
+- Weather/postponement: fixture is not falsely finalized; scheduling creates/manages the rescheduled fixture according to configured competition rules.
+- No-show/forfeit: configured walkover/forfeit rule determines result and points.
+- Fighting/misconduct: incident is attached to the match report/referee report; PlayPro disciplinary process determines sanction, ban and any configured competition consequence.
+- If both teams are responsible, the configured competition rule determines result/replay/points and sanctions.
+
+## 8. Implementation gate
+
+The next technical sequence is fixed:
+
+`PRODUCTION TRUTH → SCHEMA DESIGN → SCHEMA REVIEW → MIGRATION PLAN → OWNER APPROVAL → IMPLEMENTATION → TEST → DEPLOY`
+
+This branch now contains the schema-design and migration-plan artifacts. Production DDL is deliberately not applied until the repository baseline and schema review gate are satisfied.
