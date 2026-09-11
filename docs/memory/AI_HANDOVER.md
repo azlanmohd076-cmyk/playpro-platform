@@ -56,4 +56,24 @@ Next concrete work:
 3. produce the next architecture map from **competition setup → fixture scheduling → match operations → post-match officialization → discipline → history**;
 4. only then implement approved schema/UI/RPC changes through the required review gates.
 
-**Owner intent:** keep moving. Minimize repeated audits. Every audit should close a specific gate or produce a concrete artifact.
+## Schema review completed — 2026-09-12
+
+The live `playpro2` schema was inspected read-only and the next match-operations map was advanced to schema design. Important findings now recorded in `SCHEMA_REVIEW_MATCH_OPERATIONS.md`:
+
+- `finalize_match()` currently equates main-observer finalization with finalization; this conflicts with the locked referee-review gate and must be changed during implementation.
+- `auto_suspend_on_red_card()` currently falls back to 1 match; the canonical rule is configurable and must be driven by competition configuration/ledger provenance rather than a blind default change.
+- `suspensions` is the existing foundation and must be extended, not duplicated.
+- `referee_assignments`, `match_reports`, appeal, incident, venue/pitch/slot and competition-rule configuration objects are not present in the current public table list and therefore are migration targets.
+- Existing match policies are currently broader than the final authority model; RLS/RPC boundaries must be tightened/extended during implementation without weakening legitimate public reads.
+
+The concrete schema design and migration plan are in:
+
+- `docs/memory/SCHEMA_DESIGN_MATCH_OPERATIONS.md`
+- `docs/memory/MIGRATION_PLAN_MATCH_OPERATIONS.md`
+- `docs/memory/architecture/NEXT_MAP_MATCH_OPERATIONS.md`
+
+**Do not repeat the same audit. Continue from these artifacts.**
+
+## Owner intent
+
+Keep moving. Minimize repeated audits. Every audit must close a specific gate or produce a concrete artifact. When a safe implementation step is authorized by the current gates, execute it and record the result in Git; do not return merely to ask a question that is already answered in the canonical documents.
