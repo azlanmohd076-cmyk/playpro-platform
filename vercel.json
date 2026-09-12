@@ -4,7 +4,7 @@
     { "source": "/", "destination": "/index.html" },
     { "source": "/app", "destination": "/app.html" },
     { "source": "/card", "destination": "/player_card.html" },
-    { "source": "/coach-profile", "destination": "/coach_profile_v2.html" },
+    { "source": "/coach-profile", "destination": "/coach_profile.html" },
     { "source": "/ops", "destination": "/dev_panel.html" }
   ]
 }
