@@ -14,7 +14,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Inject shell controller
+      - name: Inject shell controller and splash failsafe
         shell: python
         run: |
           from pathlib import Path
@@ -22,6 +22,7 @@ jobs:
           targets = [Path('public/index.html'), Path('public/playpro_public.html')]
           css = '<link rel="stylesheet" href="/css/playpro-shell-v1.css">'
           js = '<script src="/js/playpro-shell-v1.js"></script>'
+          splash = '<script src="/js/playpro-splash-failsafe.js"></script>'
 
           for path in targets:
               if not path.exists():
@@ -31,6 +32,9 @@ jobs:
               if '/css/playpro-shell-v1.css' not in text and '</head>' in text.lower():
                   pos = text.lower().rfind('</head>')
                   text = text[:pos] + css + '\n' + text[pos:]
+              if '/js/playpro-splash-failsafe.js' not in text and '</body>' in text.lower():
+                  pos = text.lower().rfind('</body>')
+                  text = text[:pos] + splash + '\n' + text[pos:]
               if '/js/playpro-shell-v1.js' not in text and '</body>' in text.lower():
                   pos = text.lower().rfind('</body>')
                   text = text[:pos] + js + '\n' + text[pos:]
@@ -47,5 +51,5 @@ jobs:
           git config user.name "playpro-shell-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public/index.html public/playpro_public.html
-          git commit -m "ui: wire PlayPro shell navigation v1"
+          git commit -m "ui: wire PlayPro shell navigation and splash failsafe"
           git push
