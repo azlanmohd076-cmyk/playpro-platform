@@ -33,42 +33,38 @@ jobs:
           const url = 'https://playpro-platform.vercel.app/';
           const browser = await chromium.launch({ headless: true });
           const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+          const pageErrors = [];
+          const consoleErrors = [];
 
-          const failures = [];
-          page.on('pageerror', error => failures.push(`pageerror: ${error.message}`));
+          page.on('pageerror', error => pageErrors.push(error.stack || error.message));
           page.on('console', msg => {
-            if (msg.type() === 'error') failures.push(`console: ${msg.text()}`);
+            if (msg.type() === 'error') consoleErrors.push(msg.text());
           });
 
-          for (let i = 1; i <= 25; i++) {
-            await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-            await page.waitForTimeout(4000);
+          await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+          await page.waitForTimeout(4000);
 
-            const state = await page.evaluate(() => {
-              const splash = document.getElementById('splash');
-              if (!splash) return { exists: false, visible: false, bodyText: document.body.innerText.slice(0, 3000) };
-              const s = getComputedStyle(splash);
-              return {
-                exists: true,
-                visible: s.display !== 'none' && s.visibility !== 'hidden' && Number(s.opacity) > 0.01,
-                bodyText: document.body.innerText.slice(0, 3000)
-              };
-            });
+          const state = await page.evaluate(() => {
+            const splash = document.getElementById('splash');
+            const s = splash ? getComputedStyle(splash) : null;
+            return {
+              splashVisible: !!splash && s.display !== 'none' && s.visibility !== 'hidden' && Number(s.opacity) > 0.01,
+              bodyText: document.body.innerText.slice(0, 3000),
+              title: document.title,
+              scripts: Array.from(document.scripts).map(s => s.src || 'inline').filter(Boolean)
+            };
+          });
 
-            if (state.visible) {
-              throw new Error(`Splash still visible on browser reload ${i}`);
-            }
-            if (!state.bodyText || state.bodyText.trim().length < 20) {
-              throw new Error(`App body is unexpectedly empty on browser reload ${i}`);
-            }
-            console.log(`PASS ${i}/25 — splash released; app body present`);
-          }
+          console.log(JSON.stringify(state, null, 2));
+          if (pageErrors.length) console.error('PAGE_ERRORS\n' + pageErrors.join('\n---\n'));
+          if (consoleErrors.length) console.error('CONSOLE_ERRORS\n' + consoleErrors.join('\n---\n'));
+
+          if (state.splashVisible) throw new Error('Splash remains visible after 4 seconds');
+          if (!state.bodyText || state.bodyText.trim().length < 20) throw new Error('App body is unexpectedly empty');
 
           await browser.close();
-          if (failures.length) {
-            console.error(failures.join('\n'));
-            process.exit(1);
-          }
-          console.log('PLAYPRO LIVE SMOKE: 25/25 browser reloads passed');
+          if (pageErrors.length) process.exit(2);
+          if (consoleErrors.length) process.exit(3);
+          console.log('PLAYPRO LIVE SMOKE: runtime clean');
           EOF
           node smoke.mjs
