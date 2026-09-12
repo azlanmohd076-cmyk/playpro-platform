@@ -23,7 +23,7 @@ jobs:
           npm install --no-save playwright@1.55.0 >/dev/null 2>&1
           npx playwright install --with-deps chromium >/dev/null 2>&1
 
-      - name: Diagnose production scripts in a real browser
+      - name: Locate production parse error
         shell: bash
         run: |
           cd /tmp/playpro-smoke
@@ -34,49 +34,50 @@ jobs:
           const browser = await chromium.launch({ headless: true });
           const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
           const pageErrors = [];
-
           page.on('pageerror', error => pageErrors.push(error.message));
+
           await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
           await page.waitForTimeout(4000);
 
           const state = await page.evaluate(async () => {
-            const scripts = Array.from(document.scripts);
+            const { Parser } = await import('https://cdn.jsdelivr.net/npm/acorn@8.18.0/+esm');
             const results = [];
-            for (let i = 0; i < scripts.length; i++) {
-              const s = scripts[i];
+            for (const s of Array.from(document.scripts)) {
               if (s.type && s.type !== 'text/javascript' && s.type !== 'application/javascript' && s.type !== '') continue;
+              const src = s.src || 'inline';
               let source = s.textContent || '';
-              let src = s.src || 'inline';
               try {
                 if (s.src) {
                   const response = await fetch(s.src, { cache: 'no-store' });
                   source = await response.text();
                   if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 }
-                new Function(source);
+                Parser.parse(source, { ecmaVersion: 'latest', sourceType: 'script', locations: true });
                 results.push({ src, ok: true });
               } catch (e) {
-                results.push({ src, ok: false, error: String(e && e.message || e), preview: source.slice(0, 180) });
+                results.push({
+                  src,
+                  ok: false,
+                  error: String(e && e.message || e),
+                  line: e && e.loc ? e.loc.line : null,
+                  column: e && e.loc ? e.loc.column : null,
+                  excerpt: e && e.loc ? source.split(/\r?\n/).slice(Math.max(0, e.loc.line - 3), e.loc.line + 2) : source.slice(0, 300)
+                });
               }
             }
-
             const splash = document.getElementById('splash');
             const cs = splash ? getComputedStyle(splash) : null;
             return {
               splashVisible: !!splash && cs.display !== 'none' && cs.visibility !== 'hidden' && Number(cs.opacity) > 0.01,
               bodyLength: document.body.innerText.trim().length,
-              scriptChecks: results
+              results
             };
           });
 
-          console.log(JSON.stringify(state, null, 2));
-          if (pageErrors.length) console.error('PAGE_ERRORS\n' + pageErrors.join('\n'));
-          const bad = state.scriptChecks.filter(x => !x.ok);
-          if (bad.length) throw new Error(`Syntax/resource check failed for ${bad.length} script(s)`);
-          if (state.splashVisible) throw new Error('Splash remains visible after 4 seconds');
-          if (state.bodyLength < 20) throw new Error('App body is unexpectedly empty');
+          console.log(JSON.stringify({ pageErrors, ...state }, null, 2));
+          const bad = state.results.filter(x => !x.ok);
+          if (bad.length) process.exit(2);
+          if (state.splashVisible || state.bodyLength < 20 || pageErrors.length) process.exit(3);
           await browser.close();
-          if (pageErrors.length) process.exit(2);
-          console.log('PLAYPRO LIVE SMOKE: shell + scripts clean');
           EOF
           node smoke.mjs
