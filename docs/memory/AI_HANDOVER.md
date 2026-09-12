@@ -26,6 +26,45 @@ Suspensions count against qualifying **official team fixtures**, not against reg
 
 PlayPro's 3-month ban is a PlayPro competition/platform rule and must not be described as a universal FIFA rule. Appeal fee is RM100 and is non-refundable.
 
+## Implemented correction — 2026-09-12
+
+The two live production defects identified by Owner are now corrected in `playpro2` and the migration is committed in Git:
+
+1. `finalize_match(uuid)` is now **referee-gated**. The appointed referee must be the authenticated user and must have `user_role = referee`. The main observer can no longer finalize the match. Referee approval writes the existing `match_results.is_official / ratified_by / ratified_at / entered_by` gate, then moves the ended fixture to `finalized`.
+2. `auto_suspend_on_red_card()` no longer has the obsolete `COALESCE(..., 1)` fallback. Suspension length is read from `competition_rule_config`; current PlayPro configuration rows are seeded as **2 matches for direct red** and **1 match for second-yellow dismissal**. These are configuration values, not universal FIFA constants.
+3. An official-result trigger advances active suspensions by qualifying official fixture for the sanctioned player's club. The suspended player does **not** need to be registered or selected in the serving match. The start fixture is excluded, and served fixture IDs are recorded to prevent double counting.
+4. The existing `suspensions` table now records the club context, rule configuration, remaining matches, served fixture IDs and completion timestamp needed for the ledger mechanism.
+
+## Product map boundary — important
+
+Do **not** call the Organiser/Event map the whole “PlayPro City”.
+
+The correct mental model is:
+
+`PLAYPRO CITY = keseluruhan platform`
+
+`ORGANISER EVENT CONSOLE = satu “kedai” di dalam bandar PlayPro`
+
+The organiser/event area is one product surface inside the wider platform. It must not be mistaken for the entire platform architecture.
+
+The next build-map work must therefore identify what is already **designed** versus what is actually **built** inside the wider PlayPro platform. Known major areas still requiring concrete implementation work include:
+
+- player KYC / verification;
+- Player DNA;
+- player attributes and Football Passport;
+- coach profile;
+- referee profile;
+- organiser profile / organiser identity and ownership model;
+- eWallet and payment system;
+- competition setup and rules;
+- team/club participation and squad/registration;
+- match operations;
+- post-match official record;
+- discipline, suspension, ban and appeal;
+- persistent player/team/coach history and indices.
+
+A box on a map is **not** evidence that the feature has been built. Future AI must verify the actual implementation before marking a box complete.
+
 ## Safe engineering rules
 
 - Preserve provenance and audit history.
@@ -41,9 +80,9 @@ PlayPro's 3-month ban is a PlayPro competition/platform rule and must not be des
 
 `playpro2` = `muirhenvjruvfxenoaxm` and is ACTIVE_HEALTHY.
 
-As of the latest inspection, the live schema includes `match_results` (37 columns), `match_events` (17), `player_match_stats` (16), `suspensions` (12), `referees` (7), `standings` (12), and `fixtures` (18). `user_role` already contains `referee` and `league_staff_role` also contains `referee`.
+As of the latest inspection, the live schema includes `match_results` (37 columns), `match_events` (17), `player_match_stats` (16), `suspensions` (now extended by the 2026-09-12 migration), `referees` (7), `standings` (12), and `fixtures` (18). `user_role` already contains `referee` and `league_staff_role` also contains `referee`.
 
-These are production facts, not permission to change them. Follow the project gates before DDL.
+These are production facts, not permission to change them. Follow the project gates before unrelated DDL.
 
 ## Next work
 
@@ -51,10 +90,10 @@ Do not loop back into already settled observer/approval/suspension questions.
 
 Next concrete work:
 
-1. reconcile the production baseline against Git migrations;
-2. complete schema mapping for official match record, report version/lock, suspension ledger, incident causes, venue/slot availability and competition rules;
-3. produce the next architecture map from **competition setup → fixture scheduling → match operations → post-match officialization → discipline → history**;
-4. only then implement approved schema/UI/RPC changes through the required review gates.
+1. verify the 2026-09-12 migration in production and its Git copy remain identical;
+2. move to the **next product build map**, beginning with the wider platform rather than treating the organiser/event console as the whole city;
+3. distinguish every major area into **BUILT / PARTIAL / DESIGNED ONLY / NOT STARTED** using actual Git/Supabase evidence;
+4. prioritise the next implementation block instead of producing another documentation-only loop.
 
 ## Schema review completed — 2026-09-12
 

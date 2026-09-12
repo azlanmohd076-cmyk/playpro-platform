@@ -1,0 +1,6 @@
+-- Applied in Supabase as 20260912_player_history_rpc + 20260912_player_history_limit_fix.
+BEGIN;
+CREATE OR REPLACE FUNCTION public.get_player_match_history(p_player_id UUID,p_limit INTEGER DEFAULT 50) RETURNS JSONB LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
+SELECT COALESCE(jsonb_agg(to_jsonb(x) ORDER BY x.match_date DESC),'[]'::jsonb) FROM (SELECT f.id fixture_id,f.match_date,f.round_name,f.home_club_id,f.away_club_id,hc.name home_club,ac.name away_club,mr.home_goals,mr.away_goals,pms.minutes_played,pms.goals,pms.assists,pms.yellow_cards,pms.red_cards,pms.started FROM public.player_match_stats pms JOIN public.fixtures f ON f.id=pms.fixture_id JOIN public.match_results mr ON mr.fixture_id=f.id AND mr.is_official=true LEFT JOIN public.clubs hc ON hc.id=f.home_club_id LEFT JOIN public.clubs ac ON ac.id=f.away_club_id JOIN public.players p ON p.id=pms.player_id WHERE pms.player_id=p_player_id AND p.is_active=true ORDER BY f.match_date DESC NULLS LAST LIMIT LEAST(GREATEST(COALESCE(p_limit,50),1),200)) x;
+$$;
+REVOKE ALL ON FUNCTION public.get_player_match_history(UUID,INTEGER) FROM PUBLIC;GRANT EXECUTE ON FUNCTION public.get_player_match_history(UUID,INTEGER) TO anon,authenticated;COMMIT;
