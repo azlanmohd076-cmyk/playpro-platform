@@ -1,0 +1,68 @@
+name: PlayPro Live Smoke
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Wait for Vercel production deployment
+        shell: bash
+        run: sleep 60
+
+      - name: Install Chromium
+        shell: bash
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+
+      - name: Check production in a real browser
+        shell: bash
+        run: |
+          cat > /tmp/playpro-smoke.mjs <<'EOF'
+          import { chromium } from 'playwright';
+
+          const url = 'https://playpro-platform.vercel.app/';
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+
+          const failures = [];
+          page.on('pageerror', error => failures.push(`pageerror: ${error.message}`));
+          page.on('console', msg => {
+            if (msg.type() === 'error') failures.push(`console: ${msg.text()}`);
+          });
+
+          for (let i = 1; i <= 25; i++) {
+            await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+            await page.waitForTimeout(4000);
+
+            const state = await page.evaluate(() => {
+              const splash = document.getElementById('splash');
+              if (!splash) return { exists: false, visible: false, bodyText: document.body.innerText.slice(0, 3000) };
+              const s = getComputedStyle(splash);
+              return {
+                exists: true,
+                visible: s.display !== 'none' && s.visibility !== 'hidden' && Number(s.opacity) > 0.01,
+                bodyText: document.body.innerText.slice(0, 3000)
+              };
+            });
+
+            if (state.visible) {
+              throw new Error(`Splash still visible on browser reload ${i}`);
+            }
+            if (!state.bodyText || state.bodyText.trim().length < 20) {
+              throw new Error(`App body is unexpectedly empty on browser reload ${i}`);
+            }
+            console.log(`PASS ${i}/25 — splash released; app body present`);
+          }
+
+          await browser.close();
+          if (failures.length) {
+            console.error(failures.join('\n'));
+            process.exit(1);
+          }
+          console.log('PLAYPRO LIVE SMOKE: 25/25 browser reloads passed');
+          EOF
+          npx --yes -p playwright@1.55.0 node /tmp/playpro-smoke.mjs
