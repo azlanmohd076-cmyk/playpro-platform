@@ -14,14 +14,20 @@ jobs:
         shell: bash
         run: sleep 60
 
-      - name: Install Chromium
+      - name: Install Playwright and Chromium
         shell: bash
-        run: npx --yes playwright@1.55.0 install --with-deps chromium
+        run: |
+          mkdir -p /tmp/playpro-smoke
+          cd /tmp/playpro-smoke
+          npm init -y >/dev/null 2>&1
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
 
       - name: Check production in a real browser
         shell: bash
         run: |
-          cat > /tmp/playpro-smoke.mjs <<'EOF'
+          cd /tmp/playpro-smoke
+          cat > smoke.mjs <<'EOF'
           import { chromium } from 'playwright';
 
           const url = 'https://playpro-platform.vercel.app/';
@@ -65,4 +71,4 @@ jobs:
           }
           console.log('PLAYPRO LIVE SMOKE: 25/25 browser reloads passed');
           EOF
-          npx --yes -p playwright@1.55.0 node /tmp/playpro-smoke.mjs
+          node smoke.mjs
