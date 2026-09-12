@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PlayPro · Coach Profile</title>
+<style>
+:root{--bg:#e7eaee;--panel:#f5f6f7;--navy:#173a63;--blue:#285b91;--line:#9da7b1;--text:#18222c;--muted:#5d6873;--green:#1e7b45;--red:#8b2020;--gold:#b38a21}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:13px Arial,Helvetica,sans-serif}.top{background:linear-gradient(#315f91,#173a63);color:#fff;padding:10px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #102c4b}.brand{font-weight:800;letter-spacing:1px}.brand small{font-weight:400;opacity:.8}.wrap{max-width:1180px;margin:18px auto;padding:0 12px}.crumb{font-size:11px;color:var(--muted);margin:0 0 7px}.window{border:1px solid #7e8994;box-shadow:0 2px 8px #0002;background:var(--panel)}.title{background:linear-gradient(#416f9f,#234d7b);color:#fff;padding:7px 10px;font-weight:700;letter-spacing:.4px}.grid{display:grid;grid-template-columns:220px 1fr;gap:12px;padding:12px}.photo{height:240px;border:1px solid var(--line);background:#d9dde1;display:grid;place-items:center;color:#68727b;font-size:12px}.photo div{text-align:center}.badge{display:inline-block;border:1px solid #6885a0;background:#e8eef5;color:#173a63;font-size:10px;font-weight:700;padding:3px 6px;margin-top:7px}.name{font-size:26px;font-weight:800;color:var(--navy);margin:2px 0}.sub{color:var(--muted);margin-bottom:10px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}.box{border:1px solid var(--line);background:#fff}.box h3{margin:0;padding:5px 7px;background:#dce3ea;color:var(--navy);font-size:12px;border-bottom:1px solid var(--line)}.box .body{padding:8px}.row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dotted #c1c7cc;padding:5px 0}.row:last-child{border:0}.row b{font-weight:600}.section{padding:0 12px 12px}.attrs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}.attr{display:grid;grid-template-columns:145px 1fr 25px;align-items:center;border:1px solid #b4bcc4;background:#fff;padding:5px}.bar{height:9px;background:#dfe3e6;border:1px solid #aab2b9}.bar i{display:block;height:100%;width:0;background:#285b91}.zero .bar i{width:0}.value{font-weight:800;text-align:right}.note{font-size:11px;color:var(--muted);margin-top:6px}.status{font-weight:800}.verified{color:var(--green)}.pending{color:var(--gold)}.bad{color:var(--red)}.steps{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}.step{padding:5px 8px;background:#d4d9de;border:1px solid #a6afb8;font-size:11px}.step.on{background:#234d7b;color:#fff}.form{display:grid;grid-template-columns:1fr 1fr;gap:8px}.form label{font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:3px}.form input,.form select,.form textarea{border:1px solid #8f9aa5;padding:7px;background:#fff;font:13px Arial}.form textarea{min-height:75px}.wide{grid-column:1/-1}.actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}button{border:1px solid #173a63;background:#285b91;color:#fff;padding:7px 12px;font-weight:700;cursor:pointer}button.secondary{background:#fff;color:#173a63}button:disabled{opacity:.45;cursor:not-allowed}.notice{padding:8px;border:1px solid #c5a74c;background:#fff8dc;margin-bottom:10px}.hidden{display:none}.footer{padding:8px 12px;color:var(--muted);font-size:10px;border-top:1px solid var(--line)}@media(max-width:800px){.grid{grid-template-columns:1fr}.cols,.form{grid-template-columns:1fr}.attrs{grid-template-columns:1fr}.attr{grid-template-columns:130px 1fr 25px}}
+</style>
+</head>
+<body>
+<div class="top"><div class="brand">PLAYPRO <small>REAL FOOTBALL DATA</small></div><div>COACH PROFILE</div></div>
+<div class="wrap">
+<div class="crumb">PlayPro / User / Coach</div>
+<div class="window">
+<div class="title">COACH ONBOARDING · PROFILE</div>
+<div class="section" style="padding-top:10px">
+ <div class="steps"><span class="step on" id="s1">1 IDENTITY</span><span class="step" id="s2">2 KYC</span><span class="step" id="s3">3 COACH DETAILS</span><span class="step" id="s4">4 PROFILE</span></div>
+ <div id="authNotice" class="notice">Log masuk diperlukan. Coach PlayPro mesti melalui KYC sebelum profil coach diaktifkan.</div>
+ <div class="form" id="authForm">
+  <label>Email<input id="email" type="email" autocomplete="email"></label>
+  <label>Password<input id="password" type="password" autocomplete="current-password"></label>
+  <div class="wide actions"><button id="login">Log masuk</button><button class="secondary" id="google">Google</button><button class="secondary" id="facebook">Facebook</button></div>
+ </div>
+</div>
+<div id="kycPanel" class="section hidden">
+ <div class="box"><h3>IDENTITY · KYC</h3><div class="body">
+  <div class="row"><b>Status</b><span id="kycStatus" class="status pending">BELUM DIHANTAR</span></div>
+  <div class="form" style="margin-top:7px">
+   <label>Jenis dokumen<select id="idType"><option value="mykad">MyKad</option><option value="mykid">MyKid</option><option value="passport">Passport</option></select></label>
+   <label>Nama sah<input id="legalName" placeholder="Seperti dokumen"></label>
+   <label>Kod negeri kelahiran<input id="stateCode" maxlength="2" placeholder="Contoh 05"></label>
+   <label>ID masked<input id="maskedId" placeholder="Contoh ••••••-05-••••"></label>
+   <label class="wide">Dokumen KYC<input id="documents" type="file" accept="image/*,.pdf" multiple></label>
+  </div>
+  <div class="actions"><button id="submitKyc">Hantar KYC</button><button class="secondary" id="processKyc" disabled>Semak Dokumen</button></div>
+  <div class="note">Dokumen masuk ke stor KYC private. Nama sah dan tarikh lahir yang disahkan tidak boleh diedit selepas KYC diluluskan.</div>
+ </div></div>
+</div>
+<div id="detailsPanel" class="section hidden">
+ <div class="box"><h3>COACH DETAILS · BOLEH DIKEMAS KINI</h3><div class="body">
+  <div class="form">
+   <label>Nama samaran / preferred name<input id="preferredName"></label>
+   <label>Nombor telefon<input id="phone" type="tel"></label>
+   <label>Tarikh lahir<input id="dob" type="date"></label>
+   <label>Peranan coaching<select id="coachingRole"><option value="head_coach">Head Coach</option><option value="assistant_coach">Assistant Coach</option><option value="youth_coach">Youth Coach</option><option value="goalkeeping_coach">Goalkeeping Coach</option><option value="fitness_coach">Fitness Coach</option><option value="analyst">Coach / Analyst</option></select></label>
+   <label>Lesen rasmi FAM / FIFA<select id="licenseType"><option value="">Pilih lesen</option><option>FAM/FIFA Grassroots</option><option>AFC C</option><option>AFC B</option><option>AFC A</option><option>AFC Pro</option><option>FIFA / National Equivalent</option></select></label>
+   <label>No. lesen<input id="licenseNo"></label>
+   <label>Badan pengeluar<input id="licenseBody" placeholder="FAM / AFC / FIFA / lain-lain"></label>
+   <label>Formasi pilihan<input id="formation" placeholder="4-3-3"></label>
+   <label>Gaya permainan<input id="style" placeholder="Possession / Counter / Direct..."></label>
+   <label class="wide">Kepakaran<input id="specialties" placeholder="Youth development, set pieces, fitness..."></label>
+   <label class="wide">Tentang saya<textarea id="bio" placeholder="Pengenalan coach. Pilihan."></textarea></label>
+  </div>
+  <div class="actions"><button id="saveDetails">Simpan Profil</button></div>
+ </div></div>
+</div>
+<div id="profilePanel" class="section hidden">
+ <div class="grid" style="padding:0">
+  <div><div class="photo"><div id="photoText">COACH<br>PHOTO</div></div><div id="verifiedBadge" class="badge">NOT VERIFIED</div></div>
+  <div>
+   <div class="name" id="coachName">Coach</div><div class="sub" id="coachSub">COA-000000 · Coach</div>
+   <div class="cols">
+    <div class="box"><h3>PERSONAL DETAILS</h3><div class="body">
+      <div class="row"><b>Verification</b><span id="pVerified" class="status">—</span></div><div class="row"><b>Full legal name</b><span id="pLegal">—</span></div><div class="row"><b>Preferred name</b><span id="pPreferred">—</span></div><div class="row"><b>Phone</b><span id="pPhone">—</span></div><div class="row"><b>DOB</b><span id="pDob">—</span></div><div class="row"><b>Nationality</b><span id="pNationality">—</span></div>
+    </div></div>
+    <div class="box"><h3>OFFICIAL LICENSE</h3><div class="body"><div class="row"><b>FAM/FIFA</b><span id="pLicense">—</span></div><div class="row"><b>License no.</b><span id="pLicenseNo">—</span></div><div class="row"><b>PlayPro level</b><span id="pPPLevel">0 / 5</span></div><div class="row"><b>Status</b><span id="pLicenseStatus">Unverified</span></div></div></div>
+   </div>
+  </div>
+ </div>
+ <div class="box" style="margin-top:12px"><h3>COACH ATTRIBUTES · 1–20</h3><div class="body"><div class="attrs" id="attrs"></div><div class="note">0 = belum dinilai. Nilai rasmi datang daripada assessment/panel PlayPro dan prestasi pertandingan yang disahkan melalui data LTO. Coach tidak boleh menetapkan nilainya sendiri.</div></div></div>
+ <div class="box" style="margin-top:12px"><h3>PLAYPRO ACCREDITATION · DUA TRACK</h3><div class="body"><div class="cols"><div><div class="row"><b>Track A</b><span>Player Assessment Authority</span></div><div class="row"><b>Course</b><span>Level 1 → 5</span></div><div class="row"><b>Authority</b><span id="assessAuthority">Belum ditauliahkan</span></div></div><div><div class="row"><b>Track B</b><span>Coach Attribute Certification</span></div><div class="row"><b>Course</b><span>Level 1 → 5</span></div><div class="row"><b>Certification</b><span id="coachCertification">Belum dinilai</span></div></div></div><div class="actions"><button class="secondary" id="requestCourse">Request Pentauliahan</button></div></div></div>
+ <div class="box" style="margin-top:12px"><h3>DISCIPLINE</h3><div class="body"><div class="row"><b>Coach Card</b><span id="cardState">ACTIVE</span></div><div class="row"><b>Disciplinary status</b><span id="discipline">CLEAR</span></div></div></div>
+</div>
+</div>
+<div class="footer">PlayPro Coach Profile · Identity → KYC → Coach Details → Profile. KYC identity is authoritative; preferred name remains editable.</div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+window.PLAYPRO_SUPABASE_URL='https://muirhenvjruvfxenoaxm.supabase.co';
+window.PLAYPRO_SUPABASE_ANON_KEY='sb_publishable_exWFL10h8zcpyFyEdq7jAw_XoBl2RwZ';
+</script>
+<script src="js/supabase.js"></script>
+<script>
+const attrs=['Adaptability','Coaching Goalkeepers','Coaching Outfield Players','Working with Youngsters','Determination','Level of Discipline','Judging Player Ability','Judging Player Potential','Man Management','Motivating','Physiotherapy','Tactical Knowledge'];
+const map={Adaptability:'adaptability','Coaching Goalkeepers':'coaching_goalkeepers','Coaching Outfield Players':'coaching_outfield','Working with Youngsters:'coaching_youth'};
+const attrBox=document.getElementById('attrs');attrs.forEach(n=>{const k=n==='Working with Youngsters'?'coaching_youth':n.toLowerCase().replaceAll(' ','_');attrBox.insertAdjacentHTML('beforeend',`<div class="attr"><span>${n}</span><div class="bar"><i id="a_${k}"></i></div><span class="value" id="v_${k}">0</span></div>`)});
+let uid=null,coach=null,kycId=null;
+function show(id){document.getElementById(id).classList.remove('hidden')}
+function status(t,c='pending'){const e=document.getElementById('kycStatus');e.textContent=t;e.className='status '+c}
+async function load(){const s=await SB.auth.getSession();uid=s.data.session?.user?.id||null;if(!uid)return;document.getElementById('authForm').classList.add('hidden');document.getElementById('authNotice').textContent='Akaun aktif. Lengkapkan KYC untuk mengaktifkan profil Coach.';show('kycPanel');const {data:c}=await SB.from('coaches').select('*').eq('profile_id',uid).maybeSingle();coach=c;if(c?.verification_status==='verified'){show('detailsPanel');show('profilePanel');render(c);document.getElementById('submitKyc').disabled=true;status('VERIFIED','verified')}else if(c){status((c.verification_status||'UNVERIFIED').toUpperCase(),'pending')}}
+function render(c){document.getElementById('coachName').textContent=c.preferred_name||c.full_name||'Coach';document.getElementById('coachSub').textContent=`${c.coach_code||'COA-000000'} · ${c.coaching_role||'Coach'}`;document.getElementById('pVerified').textContent=(c.verification_status||'unverified').toUpperCase();document.getElementById('pVerified').className='status '+(c.verification_status==='verified'?'verified':'pending');document.getElementById('verifiedBadge').textContent=c.verification_status==='verified'?'✓ VERIFIED COACH':'NOT VERIFIED';document.getElementById('pLegal').textContent=c.full_name||'—';document.getElementById('pPreferred').textContent=c.preferred_name||'—';document.getElementById('pPhone').textContent=c.phone||'—';document.getElementById('pDob').textContent=c.date_of_birth||'—';document.getElementById('pNationality').textContent=c.nationality||'—';document.getElementById('pLicense').textContent=c.license_type||'—';document.getElementById('pLicenseNo').textContent=c.license_number||'—';document.getElementById('pPPLevel').textContent=`${c.playpro_license_level||0} / 5`;document.getElementById('pLicenseStatus').textContent=c.license_status||'Unverified';document.getElementById('cardState').textContent=(c.card_state||'active').toUpperCase();document.getElementById('discipline').textContent=(c.disciplinary_status||'clear').toUpperCase();
+for(const n of attrs){const k=n==='Working with Youngsters'?'coaching_youth':n.toLowerCase().replaceAll(' ','_');const val=Number(c._attrs?.[k]||0);document.getElementById('v_'+k).textContent=val;document.getElementById('a_'+k).style.width=(val/20*100)+'%'}
+}
+async function login(){const {error}=await Auth.signIn(document.getElementById('email').value,document.getElementById('password').value);if(error)return alert(error.message);await load()}
+async function oauth(provider){const {error}=await SB.auth.signInWithOAuth({provider,options:{redirectTo:location.href}});if(error)alert(error.message)}
+async function submitKyc(){if(!uid)return alert('Log masuk dahulu.');const files=[...document.getElementById('documents').files];if(!files.length)return alert('Pilih sekurang-kurangnya satu dokumen.');const {data,error}=await SB.rpc('request_coach_kyc',{p_id_type:document.getElementById('idType').value,p_legal_name:document.getElementById('legalName').value,p_birth_state_code:document.getElementById('stateCode').value||null,p_masked_identifier:document.getElementById('maskedId').value||null});if(error)return alert(error.message);kycId=data.kyc_id;for(let i=0;i<files.length&&i<2;i++){const f=files[i],path=`${uid}/${Date.now()}-${i}-${f.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;const up=await SB.storage.from('kyc-documents').upload(path,f,{upsert:false});if(up.error)return alert(up.error.message)}await SB.from('identity_verifications').update({document_storage_paths:files.slice(0,2).map((f,i)=>`${uid}/${f.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`)}).eq('id',kycId);document.getElementById('processKyc').disabled=false;status('DOKUMEN DIMUAT · TEKAN SEMAK','pending')}
+async function processKyc(){if(!kycId)return;const r=await fetch('https://muirhenvjruvfxenoaxm.supabase.co/functions/v1/kyc-verify-coach',{method:'POST',headers:{Authorization:'Bearer '+(await SB.auth.getSession()).data.session.access_token,'Content-Type':'application/json'},body:JSON.stringify({kyc_id:kycId})});const d=await r.json();if(!r.ok||!d.ok)return alert(d.error||'KYC gagal diproses');status(`DIPROSES · ${String(d.match_status||'pending').toUpperCase()}`,'pending');alert('Dokumen sudah diproses Google Document AI. Semakan akhir dan VERIFIED dibuat melalui panel PlayPro.')}
+async function save(){if(!uid)return;const payload={full_name:coach?.full_name||document.getElementById('legalName').value,preferred_name:document.getElementById('preferredName').value,phone:document.getElementById('phone').value,date_of_birth:document.getElementById('dob').value,license_type:document.getElementById('licenseType').value,license_number:document.getElementById('licenseNo').value,license_issuing_body:document.getElementById('licenseBody').value,coaching_role:document.getElementById('coachingRole').value,preferred_formation:document.getElementById('formation').value,preferred_style:document.getElementById('style').value,coaching_specialties:document.getElementById('specialties').value.split(',').map(x=>x.trim()).filter(Boolean),bio:document.getElementById('bio').value};const {data,error}=await SB.rpc('save_coach_onboarding_profile',{p_profile_id:uid,p_payload:payload});if(error)return alert(error.message);const {data:c}=await SB.from('coaches').select('*').eq('id',data.coach_id).single();coach=c;show('profilePanel');render(c);alert('Profil Coach disimpan. KYC kekal sebagai pintu VERIFIED.')}
+document.getElementById('login').onclick=login;document.getElementById('google').onclick=()=>oauth('google');document.getElementById('facebook').onclick=()=>oauth('facebook');document.getElementById('submitKyc').onclick=submitKyc;document.getElementById('processKyc').onclick=processKyc;document.getElementById('saveDetails').onclick=save;document.getElementById('requestCourse').onclick=()=>alert('Pentauliahan mempunyai dua track: Player Assessment Authority dan Coach Attribute Certification. Modul permohonan penuh akan menggunakan coach_certification_requests.');load();
+</script>
+</body></html>
