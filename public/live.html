@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PlayPro — Live Platform</title>
+<style>
+:root{--nav:#071a35;--green:#12a957;--blue:#0759ad;--cyan:#27c7ef;--ink:#172334;--muted:#68778a;--line:#dbe4ec;--bg:#eef3f7;--card:#fff;--gold:#e8b52f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px Inter,system-ui,-apple-system,sans-serif}.wrap{max-width:1180px;margin:auto;padding:18px}.top{background:var(--nav);color:#fff;padding:14px 18px;border-radius:8px;display:flex;align-items:center;gap:16px}.logo{font-size:24px;font-weight:950;color:var(--green)}.logo span{color:var(--cyan)}.spacer{flex:1}.pill{font-size:11px;font-weight:900;padding:5px 9px;border-radius:999px;background:#e5f7ec;color:#176b3c}.hero{margin-top:12px;background:linear-gradient(120deg,#07382b,#0759ad);color:#fff;padding:24px;border-radius:8px}.hero h1{margin:0 0 6px;font-size:30px}.hero p{margin:0;color:#dcebf5;max-width:800px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px}.card h2{margin:0 0 6px;font-size:17px}.card p{color:var(--muted);line-height:1.5}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.btn{display:inline-block;text-decoration:none;border-radius:6px;padding:10px 13px;font-weight:900;background:var(--nav);color:#fff}.btn.green{background:var(--green)}.btn.blue{background:var(--blue)}.status{margin-top:14px;padding:11px;border:1px solid var(--line);background:#f7fafc;border-radius:6px}.small{font-size:11px;color:var(--muted)}ul{margin:8px 0 0;padding-left:18px;color:var(--muted);line-height:1.8}@media(max-width:700px){.grid{grid-template-columns:1fr}.hero h1{font-size:24px}.wrap{padding:10px}}
+</style>
+</head>
+<body><main class="wrap">
+<header class="top"><div class="logo">Play<span>Pro</span></div><div>Live Platform</div><div class="spacer"></div><span class="pill">CURRENT BUILD</span></header>
+<section class="hero"><h1>PlayPro — Football Operating System</h1><p>Ini ialah pintu masuk kepada modul yang sedang dibina dengan data sebenar PlayPro. Modul operasi tidak lagi disorok di belakang UI lama.</p></section>
+<div class="grid">
+<section class="card"><h2>🏢 Club Center</h2><p>Club Identity, verification state, training grounds, team/squad, dan laluan U6–U23 / Open / Veteran.</p><div class="actions"><a class="btn green" href="/club.html">Buka Club Center</a><a class="btn" href="/club_operations.html">Club Operations</a><a class="btn" href="/club_membership.html">Membership</a></div></section>
+<section class="card"><h2>⚽ Team / Squad</h2><p>Tactical XI, formation, player pool dan Team Match Room berasaskan fixture.</p><div class="actions"><a class="btn blue" href="/club_team.html">Buka Team / Squad</a></div></section>
+<section class="card"><h2>🧑‍⚖️ Referee</h2><p>Referee profile, referee ID/card, lesen rasmi, KYC, dua tahap PlayPro accreditation dan operasi verification.</p><div class="actions"><a class="btn blue" href="/referee_operations.html">Referee Operations</a><a class="btn" href="/referee_profile.html">Referee Profile</a></div></section>
+<section class="card"><h2>👥 Membership & Fee</h2><p>Lookup melalui PlayPro ID/IC, club invite atau user request. Player boleh dikenakan yuran jika club mengaktifkan kutipan. Caj platform dikira 5%.</p><div class="actions"><a class="btn green" href="/club_operations.html">Urus Membership</a></div></section>
+</div>
+<div class="status"><b>Keadaan deployment:</b> halaman ini sengaja menjadi live hub supaya hasil Club/Referee boleh diuji terus. Login dan tindakan sensitif masih dikawal oleh Supabase/RLS.</div>
+<p class="small" style="margin-top:18px">PlayPro · current implementation entry point</p>
+</main></body></html>
