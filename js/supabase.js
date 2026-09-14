@@ -231,3 +231,28 @@ window.SB        = SB;
 window.Auth      = Auth;
 window.Realtime  = Realtime;
 window._ppCache  = { invalidate: cacheInvalidate };
+
+/* ── SPLASH FAIL-SAFE ───────────────────────────────────────────
+ * The application has its own async initialisation and normally removes
+ * #splash from init().finally(). This independent guard prevents a failed,
+ * delayed, or partially-loaded dependency from leaving the whole UI blocked.
+ * It is intentionally UI-only: it does not alter auth, data, or routing.
+ */
+(function installSplashFailsafe() {
+  const release = () => {
+    const splash = document.getElementById('splash');
+    if (!splash) return;
+    splash.classList.add('fade');
+    window.setTimeout(() => {
+      splash.style.display = 'none';
+      splash.setAttribute('aria-hidden', 'true');
+    }, 450);
+  };
+
+  // Give the normal application bootstrap first chance to finish cleanly.
+  window.setTimeout(release, 3000);
+
+  // If a script throws before the normal init().finally(), never trap the UI.
+  window.addEventListener('error', () => release(), { once: true });
+  window.addEventListener('unhandledrejection', () => release(), { once: true });
+})();
