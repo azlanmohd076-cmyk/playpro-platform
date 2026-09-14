@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PlayPro — Football Intelligence Platform</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#07110d;--panel:#0d1914;--panel2:#111f19;--line:rgba(255,255,255,.09);--text:#edf7f1;--muted:#91a69b;--teal:#00d4aa;--gold:#f0c040;--red:#ef5350}*{box-sizing:border-box}html,body{margin:0;background:radial-gradient(circle at 20% 0,#123326 0,#07110d 42%,#050b08 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100%}button{font:inherit}.shell{width:min(1180px,100%);margin:auto;padding:18px 18px 42px}.top{display:flex;align-items:center;gap:14px;padding:10px 0 22px}.brand{font-weight:900;font-size:24px;letter-spacing:-.04em;background:linear-gradient(90deg,var(--teal),var(--gold));-webkit-background-clip:text;color:transparent}.pill{margin-left:auto;border:1px solid var(--line);border-radius:999px;padding:7px 11px;color:var(--muted);font-size:12px}.hero{border:1px solid var(--line);border-radius:24px;padding:28px;background:linear-gradient(135deg,rgba(0,212,170,.12),rgba(240,192,64,.05));box-shadow:0 24px 70px rgba(0,0,0,.24)}.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:800}.hero h1{font-size:clamp(30px,6vw,58px);line-height:1;margin:9px 0 12px;max-width:780px;letter-spacing:-.055em}.hero p{color:var(--muted);max-width:720px;line-height:1.6;margin:0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:10px 14px;border-radius:12px;text-decoration:none;font-weight:750}.btn.primary{background:var(--teal);color:#00130f;border-color:var(--teal)}.section{margin-top:24px}.section h2{font-size:17px;margin:0 0 10px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.card{background:rgba(13,25,20,.88);border:1px solid var(--line);border-radius:17px;padding:16px}.metric{font-size:27px;font-weight:900}.label{color:var(--muted);font-size:12px;margin-top:3px}.modules{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.module{min-height:130px}.module h3{margin:8px 0;font-size:15px}.module p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}.status{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#8ee8cc}.dot{width:7px;height:7px;border-radius:50%;background:var(--teal)}.live{border-color:rgba(239,83,80,.3)}.live .dot{background:var(--red)}.foot{margin-top:25px;color:#61766b;font-size:11px;text-align:center}@media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.modules{grid-template-columns:1fr}.shell{padding:12px}.hero{padding:22px;border-radius:20px}.top{padding-bottom:14px}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="top"><div class="brand">PlayPro</div><div class="pill"><span class="status"><span class="dot"></span> PRODUCTION SURFACE</span></div></header>
+<section class="hero"><div class="eyebrow">Football Intelligence Platform</div><h1>Bola sepak Malaysia, satu ekosistem.</h1><p>Hub utama PlayPro yang menggunakan kontrak data produksi sebenar. Tiada demo player, keputusan atau angka palsu dipaparkan pada permukaan ini.</p><div class="actions"><a class="btn primary" href="/app">Buka Platform</a><a class="btn" href="/club">Club Center</a><a class="btn" href="/referee">Referee Operations</a></div></section>
+<section class="section"><h2>Production telemetry</h2><div class="grid"><div class="card"><div class="metric" id="clubs">—</div><div class="label">Kelab</div></div><div class="card"><div class="metric" id="players">—</div><div class="label">Pemain berprofil</div></div><div class="card"><div class="metric" id="fixtures">—</div><div class="label">Fixture</div></div><div class="card live"><div class="metric" id="live">—</div><div class="label">Fixture LIVE</div></div></div></section>
+<section class="section"><h2>PlayPro modules</h2><div class="modules"><a class="card module" href="/club"><div class="status"><span class="dot"></span> LIVE</div><h3>Club Center</h3><p>Club identity, squads, membership dan operasi kelab pada permukaan khusus.</p></a><a class="card module" href="/referee"><div class="status"><span class="dot"></span> LIVE</div><h3>Match & Referee</h3><p>Operasi pengadil dan match workflow yang bersambung dengan domain pertandingan.</p></a><a class="card module" href="/app"><div class="status"><span class="dot"></span> LIVE</div><h3>Player Platform</h3><p>Platform utama untuk identiti pemain, Passport dan pengalaman bola sepak.</p></a></div></section>
+<div class="foot" id="status">Menyambung ke PlayPro production data…</div>
+</main>
+<script>
+const SB=supabase.createClient('https://muirhenvjruvfxenoaxm.supabase.co','sb_publishable_exWFL10h8zcpyFyEdq7jAw_XoBl2RwZ');
+const set=(id,v)=>document.getElementById(id).textContent=String(v);
+async function count(table){const r=await SB.from(table).select('id',{count:'exact',head:true});return r.error?null:r.count??0}
+async function boot(){
+ const [clubs,players,fixtures,live]=await Promise.all([
+  count('clubs'),count('v_player_profiles'),count('fixtures'),
+  (async()=>{const r=await SB.from('fixtures').select('id',{count:'exact',head:true}).eq('match_state','live');return r.error?null:r.count??0})()
+ ]);
+ set('clubs',clubs??'—');set('players',players??'—');set('fixtures',fixtures??'—');set('live',live??'—');
+ document.getElementById('status').textContent='Production data connected · '+new Date().toLocaleString('ms-MY');
+}
+boot().catch(()=>{document.getElementById('status').textContent='Production surface loaded · live metrics unavailable'});
+</script>
+</body>
+</html>
