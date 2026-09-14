@@ -8,6 +8,9 @@
     { "source": "/club/operations", "destination": "/club_operations.html" },
     { "source": "/club/membership", "destination": "/club_membership.html" },
     { "source": "/referee", "destination": "/referee_operations.html" },
-    { "source": "/referee/profile", "destination": "/referee_profile.html" }
+    { "source": "/referee/profile", "destination": "/referee_profile.html" },
+    { "source": "/referee/dashboard", "destination": "/referee_dashboard.html" },
+    { "source": "/referee/assignments", "destination": "/referee_assignments.html" },
+    { "source": "/referee/matches", "destination": "/referee_matches.html" }
   ]
 }
