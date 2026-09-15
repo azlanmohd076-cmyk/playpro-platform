@@ -11,6 +11,7 @@
     { "source": "/club/history", "destination": "/club_history.html" },
     { "source": "/club/team", "destination": "/club_team.html" },
     { "source": "/organizer/competitions", "destination": "/organizer_competitions.html" },
+    { "source": "/coach/certification", "destination": "/coach_certification.html" },
     { "source": "/passport", "destination": "/football_passport.html" },
     { "source": "/referee", "destination": "/referee_operations.html" },
     { "source": "/referee/profile", "destination": "/referee_profile.html" },
