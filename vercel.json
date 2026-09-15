@@ -4,7 +4,7 @@
     { "source": "/app", "destination": "/app.html" },
     { "source": "/card", "destination": "/player_card.html" },
     { "source": "/ops", "destination": "/dev_panel.html" },
-    { "source": "/club", "destination": "/club.html" },
+    { "source": "/club", "destination": "/club_center_v2.html" },
     { "source": "/club/operations", "destination": "/club_operations.html" },
     { "source": "/club/membership", "destination": "/club_membership.html" },
     { "source": "/club/training", "destination": "/club_training.html" },
