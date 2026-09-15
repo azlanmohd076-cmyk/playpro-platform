@@ -7,6 +7,7 @@
     { "source": "/club", "destination": "/club.html" },
     { "source": "/club/operations", "destination": "/club_operations.html" },
     { "source": "/club/membership", "destination": "/club_membership.html" },
+    { "source": "/club/training", "destination": "/club_training.html" },
     { "source": "/referee", "destination": "/referee_operations.html" },
     { "source": "/referee/profile", "destination": "/referee_profile.html" },
     { "source": "/referee/dashboard", "destination": "/referee_dashboard.html" },
