@@ -1,0 +1,167 @@
+name: One-shot PlayPro player flow repair
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Repair player query alignment
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('public/index.html')
+          s = p.read_text()
+          replacements = {
+            "select('id,full_name,preferred_name,nickname,position,best_position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,nationality,phone,clubs(name)')":
+            "select('id,profile_id,full_name,preferred_name,position,best_position,secondary_position,jersey_number,height_cm,weight_kg,preferred_foot,bio,football_passport_no,verification_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_goalkeeper,dna_overall,dna_band,passport_score,date_of_birth,nationality,photo_url,club_id,profile_visibility,display_name_mode,clubs(name)')",
+            "query.or('preferred_name.ilike.'+playerId+',full_name.ilike.'+playerId+',nickname.ilike.'+playerId)":
+            "query.or('preferred_name.ilike.'+playerId+',full_name.ilike.'+playerId)",
+            ".select('id,profile_id,full_name,preferred_name,nickname,pitch_nickname,position,jersey_number,preferred_jersey_no,height_cm,weight_kg,preferred_foot,dominant_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,best_position,secondary_position,nationality,phone,city,is_free_agent,clubs(name)')":
+            ".select('id,profile_id,full_name,preferred_name,position,jersey_number,height_cm,weight_kg,preferred_foot,bio,football_passport_no,verification_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_goalkeeper,dna_overall,dna_band,passport_score,date_of_birth,best_position,secondary_position,nationality,photo_url,club_id,profile_visibility,display_name_mode,clubs(name)')",
+          }
+          for old, new in replacements.items():
+            if old not in s:
+              raise SystemExit(f'Missing expected player-query pattern: {old[:80]}')
+            s = s.replace(old, new)
+          p.write_text(s)
+      - name: Add regression guard for player query alignment
+        shell: python
+        run: |
+          from pathlib import Path
+          test=Path('tests/player-query-alignment.test.js')
+          test.write_text(r'''const fs=require('fs');
+          const html=fs.readFileSync('public/index.html','utf8');
+          const forbidden=['nickname,position,best_position,jersey_number','passport_number','passport_frame','kyc_status,dna_technical','biography,passport_number','phone,clubs(name)'];
+          for(const token of forbidden){if(html.includes(token)) throw new Error('Legacy player query token remains: '+token);}
+          for(const token of ['preferred_name','football_passport_no','verification_status','dna_goalkeeper']){if(!html.includes(token)) throw new Error('Canonical player column missing: '+token);}
+          console.log('player query alignment guard: PASS');
+          ''')
+      - name: Commit query alignment
+        run: |
+          git config user.name 'PlayPro CTO'
+          git config user.email 'playpro-cto@users.noreply.github.com'
+          git add public/index.html tests/player-query-alignment.test.js
+          git commit -m "fix: complete player query alignment across all files"
+          git push origin main
+      - name: Repair onboarding and profile flow
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('public/index.html')
+          s = p.read_text()
+          start = s.index('async function saveOnboardingStep1(){')
+          end = s.index('async function saveOnboardingStep2(){', start)
+          new_step1 = r'''async function saveOnboardingStep1(){
+            if(!_u) return;
+            try{
+              await window.SB.rpc('ensure_profile_after_signup', {
+                p_full_name:_u.user_metadata?.full_name||'Pemain Baru',
+                p_phone:_u.user_metadata?.phone||null
+              });
+            }catch(e){ console.warn('step1 profile ensure:',e.message); }
+          }
+
+          '''
+          s = s[:start] + new_step1 + s[end:]
+          start = s.index('async function obComplete(){')
+          end = s.index('/* ── CLUB HISTORY ONBOARDING ── */', start)
+          new_ob = r'''async function obComplete(){
+            var btn=document.getElementById('ob-btn2');
+            btn.disabled=true;
+            btn.textContent='Menyimpan...';
+            try{
+              var onboardingClient=window.getPlayProSupabase?.()||window.SB;
+              if(!onboardingClient||typeof onboardingClient.rpc!=='function') throw new Error('Sambungan Supabase belum tersedia. Sila muat semula halaman dan cuba lagi.');
+              if(!_u) throw new Error('Sila log masuk dahulu.');
+              var positionEl=document.getElementById('ob-position');
+              var position=(positionEl?.value||window.__ppSelectedPosition||'').trim().toLowerCase();
+              if(positionEl && position) positionEl.value=position;
+              if(!_obDOB) throw new Error('Tarikh lahir yang sah diperlukan.');
+              if(!position) throw new Error('Sila pilih posisi utama.');
+              var name=_u.user_metadata?.full_name||'Pemain Baru';
+              var obPhoneCode=document.getElementById('ob-phone-code')?.value||'+60';
+              var obPhoneNum=(document.getElementById('ob-phone')?.value||'').trim();
+              var phone=obPhoneNum?(obPhoneCode+obPhoneNum):(_u.user_metadata?.phone||null);
+              var profileResult=await onboardingClient.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
+              if(profileResult.error) throw profileResult.error;
+              var payload={
+                full_name:name,date_of_birth:_obDOB,position:position,
+                preferred_foot:document.getElementById('ob-foot')?.value||null,
+                jersey_number:document.getElementById('ob-jersey')?.value||null,
+                height_cm:document.getElementById('ob-height')?.value||null,
+                weight_kg:document.getElementById('ob-weight')?.value||null,
+                preferred_name:document.getElementById('ob-nickname')?.value?.trim()||null,
+                phone:phone,nationality:'Malaysian',display_name_mode:'preferred',profile_visibility:'public'
+              };
+              var playerResult=await onboardingClient.rpc('register_my_player',{p_payload:payload});
+              var rpcData=playerResult?.data;
+              if(typeof rpcData==='string'){try{rpcData=JSON.parse(rpcData);}catch(_e){rpcData=null;}}
+              if(playerResult?.error||!rpcData?.ok) throw new Error(playerResult?.error?.message||rpcData?.error||'Pendaftaran pemain gagal. Sila cuba lagi.');
+              var newPlayerId=rpcData.player_id||rpcData.id;
+              if(!newPlayerId) throw new Error('ID pemain tidak dikembalikan. Sila cuba lagi.');
+              window.currentPlayerId=newPlayerId;
+              try{sessionStorage.setItem('currentPlayerId',newPlayerId);}catch(_e){}
+              if(typeof saveClubHistoryOnboarding==='function') await saveClubHistoryOnboarding(newPlayerId);
+              hideOnboarding();
+              toast('✅ Profil disimpan! Selamat datang ke PlayPro!');
+              window._obJustCompleted=true;
+              _pd=null;window._pd=null;
+              go('profile');
+              setTimeout(function(){loadProfile();},250);
+            }catch(e){
+              console.error('[PlayPro onboarding]',e);
+              var message=String(e?.message||'Pendaftaran pemain gagal. Sila cuba lagi.');
+              setMsg('ob-msg2','❌ '+message,'err');
+              toast('⚠️ '+message);
+            }finally{
+              btn.disabled=false;
+              btn.textContent='Simpan & Mula →';
+            }
+          }
+
+          '''
+          s = s[:start] + new_ob + s[end:]
+          listener="<script>document.addEventListener('change',function(e){if(e.target&&e.target.id==='ob-position'){window.__ppSelectedPosition=(e.target.value||'').trim().toLowerCase();}});</script>"
+          if listener not in s:
+            s=s.replace('</body>',listener+'\n</body>',1)
+          p.write_text(s)
+      - name: Commit onboarding repair
+        run: |
+          git add public/index.html
+          git commit -m "fix: player onboarding position validation and data save"
+          git push origin main
+      - name: Repair player profile data flow
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('public/index.html')
+          s=p.read_text()
+          old="    if(dbPlayer) p = dbPlayer;"
+          new="""    if(dbPlayer) p = Object.assign({}, dbPlayer, {
+              nickname: dbPlayer.preferred_name,
+              biography: dbPlayer.bio,
+              passport_number: dbPlayer.football_passport_no,
+              kyc_status: dbPlayer.verification_status,
+              phone: dbPlayer.phone || _u.user_metadata?.phone || null
+            });"""
+          if old not in s: raise SystemExit('profile assignment marker missing')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+      - name: Commit profile flow repair
+        run: |
+          git add public/index.html
+          git commit -m "fix: player profile data flow after onboarding"
+          git push origin main
+      - name: Remove one-shot workflow
+        run: |
+          rm -f .github/workflows/repair-player-flow.yml
+          git add -A
+          git commit -m "chore: remove one-shot player repair workflow"
+          git push origin main
