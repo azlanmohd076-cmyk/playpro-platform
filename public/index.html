@@ -3282,7 +3282,13 @@ async function loadProfile(){
       .select('id,profile_id,full_name,preferred_name,position,jersey_number,height_cm,weight_kg,preferred_foot,bio,football_passport_no,verification_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_goalkeeper,dna_overall,dna_band,passport_score,date_of_birth,best_position,secondary_position,nationality,photo_url,club_id,profile_visibility,display_name_mode,clubs(name)')
       .eq('profile_id',_u.id)
       .maybeSingle();
-    if(dbPlayer) p = dbPlayer;
+    if(dbPlayer) p = Object.assign({}, dbPlayer, {
+    nickname: dbPlayer.preferred_name,
+    biography: dbPlayer.bio,
+    passport_number: dbPlayer.football_passport_no,
+    kyc_status: dbPlayer.verification_status,
+    phone: dbPlayer.phone || _u.user_metadata?.phone || null
+  });
   }catch(e){
     console.warn('Supabase DB loadProfile error, using persistent Auto-Heal:', e.message);
   }
