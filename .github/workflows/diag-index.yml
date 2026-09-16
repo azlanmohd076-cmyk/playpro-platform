@@ -1,0 +1,35 @@
+name: PlayPro index diagnostic
+on:
+  push:
+    branches: [diag/index-debug-20260916]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect index
+        shell: bash
+        run: |
+          set +e
+          echo '--- LINE 1709 +/- 8 ---'
+          nl -ba public/index.html | sed -n '1701,1717p'
+          echo '--- LINE 6003 +/- 8 ---'
+          nl -ba public/index.html | sed -n '5995,6011p'
+          echo '--- mustLogin occurrences ---'
+          grep -Rni --exclude-dir=.git 'mustLogin' . || true
+          echo '--- INLINE SCRIPT SYNTAX ---'
+          python3 - <<'PY'
+          import re, pathlib, subprocess, tempfile
+          s=pathlib.Path('public/index.html').read_text(encoding='utf-8',errors='replace')
+          for i,m in enumerate(re.finditer(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.I|re.S),1):
+              body=m.group(1)
+              if not body.strip(): continue
+              start=s[:m.start(1)].count('\n')+1
+              with tempfile.NamedTemporaryFile('w',suffix='.js',delete=False,encoding='utf-8') as f:
+                  f.write(body); name=f.name
+              r=subprocess.run(['node','--check',name],text=True,capture_output=True)
+              print(f'SCRIPT {i} START_LINE {start} '+('OK' if r.returncode==0 else 'SYNTAX_ERROR'))
+              if r.returncode: print(r.stderr)
+          PY
