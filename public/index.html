@@ -3279,7 +3279,7 @@ async function loadProfile(){
   let p = null;
   try{
     var {data:dbPlayer, error} = await window.SB.from('players')
-      .select('id,profile_id,full_name,preferred_name,nickname,pitch_nickname,position,jersey_number,preferred_jersey_no,height_cm,weight_kg,preferred_foot,dominant_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,best_position,secondary_position,nationality,phone,city,is_free_agent,clubs(name)')
+      .select('id,profile_id,full_name,preferred_name,position,jersey_number,height_cm,weight_kg,preferred_foot,bio,football_passport_no,verification_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_goalkeeper,dna_overall,dna_band,passport_score,date_of_birth,best_position,secondary_position,nationality,photo_url,club_id,profile_visibility,display_name_mode,clubs(name)')
       .eq('profile_id',_u.id)
       .maybeSingle();
     if(dbPlayer) p = dbPlayer;
@@ -4342,11 +4342,11 @@ async function viewPlayerProfile(elOrId){
     let p = null;
     
     // Carian Supabase DB (menyokong UUID dan nama samaran/penuh)
-    let query = window.SB.from('players').select('id,full_name,preferred_name,nickname,position,best_position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,nationality,phone,clubs(name)');
+    let query = window.SB.from('players').select('id,profile_id,full_name,preferred_name,position,best_position,secondary_position,jersey_number,height_cm,weight_kg,preferred_foot,bio,football_passport_no,verification_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_goalkeeper,dna_overall,dna_band,passport_score,date_of_birth,nationality,photo_url,club_id,profile_visibility,display_name_mode,clubs(name)');
     if (playerId.length === 36 && playerId.split('-').length === 5) {
       query = query.eq('id', playerId);
     } else {
-      query = query.or('preferred_name.ilike.'+playerId+',full_name.ilike.'+playerId+',nickname.ilike.'+playerId);
+      query = query.or('preferred_name.ilike.'+playerId+',full_name.ilike.'+playerId);
     }
     const {data:dbPlayers, error} = await query.limit(1);
     if(dbPlayers && dbPlayers.length > 0) p = dbPlayers[0];
