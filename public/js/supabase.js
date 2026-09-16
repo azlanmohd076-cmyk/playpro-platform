@@ -167,6 +167,24 @@ const Auth = {
   },
 };
 
+/* ── Global login guard ───────────────────────────────────────── */
+/**
+ * Shared guard for legacy inline handlers in public HTML.
+ * Uses the canonical Auth.session() helper; it never invents auth state.
+ * Returns true when a session exists. Otherwise redirects to the existing
+ * player sign-up/login surface and preserves the requested destination.
+ */
+async function mustLogin(nextUrl = window.location.href) {
+  const session = await Auth.session();
+  if (session) return true;
+
+  const loginUrl = new URL('/player_signup.html', window.location.origin);
+  if (nextUrl) loginUrl.searchParams.set('next', nextUrl);
+  window.location.assign(loginUrl.href);
+  return false;
+}
+window.mustLogin = mustLogin;
+
 /* ── Error handler ────────────────────────────────────────────── */
 function _handle(label, { data, error }) {
   if (error) {
