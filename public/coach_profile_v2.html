@@ -1,1 +1,59 @@
-<!doctype html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PlayPro Coach Profile</title></head><body><p>Restored CM-style coach profile. See approved implementation in commit bb2962553bfdd9985b744dae3ed61c45611c4eaa.</p></body></html>
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PlayPro Coach Profile</title>
+<style>
+:root{--bg:#e5e8eb;--navy:#173b63;--blue:#285d93;--line:#9aa5af;--ink:#17212b;--muted:#596570;--ok:#1d7541;--warn:#9a7417}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:13px Arial;color:var(--ink)}
+header{background:linear-gradient(#416f9e,#173b63);color:#fff;padding:9px 16px;font-weight:bold;display:flex;justify-content:space-between}
+.wrap{max-width:1160px;margin:18px auto;padding:0 12px}.window{background:#f7f8f9;border:1px solid #78848f;box-shadow:0 2px 9px #0002}.bar{background:linear-gradient(#4776a5,#234d7d);color:#fff;padding:7px 10px;font-weight:bold}.pad{padding:12px}
+.steps{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}.step{padding:5px 8px;background:#d2d7dc;border:1px solid #a5adb5;font-size:11px}.step.on{background:var(--blue);color:#fff}
+.box{background:#fff;border:1px solid var(--line);margin-top:8px}.box h3{margin:0;padding:5px 8px;background:#dce3e9;color:var(--navy);font-size:12px;border-bottom:1px solid var(--line)}.body{padding:9px}
+.grid{display:grid;grid-template-columns:205px 1fr;gap:10px}.photo{height:225px;background:#d6dade;border:1px solid var(--line);display:grid;place-items:center;text-align:center;color:#68737d}.badge{display:inline-block;margin-top:6px;padding:3px 6px;background:#edf2f6;border:1px solid #718aa2;color:var(--navy);font-size:10px;font-weight:bold}.name{font-size:25px;color:var(--navy);font-weight:800}.sub{color:var(--muted);margin:3px 0 9px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}.row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dotted #c2c8cd}.row:last-child{border:0}.status{font-weight:bold}.ok{color:var(--ok)}.warn{color:var(--warn)}
+.attrs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.attr{display:grid;grid-template-columns:145px 1fr 24px;gap:6px;align-items:center;border:1px solid #b4bcc3;padding:5px}.track{height:9px;background:#e0e4e7;border:1px solid #aeb6bd}.track i{display:block;height:100%;background:var(--blue)}.value{text-align:right;font-weight:bold}.muted{color:var(--muted);font-size:11px}
+.notice{padding:8px;background:#fff7d7;border:1px solid #c5a84c;margin-bottom:8px}.footer{padding:8px 12px;border-top:1px solid var(--line);font-size:10px;color:var(--muted)}
+button{background:var(--blue);color:#fff;border:1px solid #173b63;padding:7px 12px;font-weight:bold;cursor:pointer}button.alt{background:#fff;color:var(--navy)}
+@media(max-width:760px){.grid,.cols{grid-template-columns:1fr}.attrs{grid-template-columns:1fr}.attr{grid-template-columns:130px 1fr 24px}}
+</style>
+</head>
+<body>
+<header><span>PLAYPRO · REAL FOOTBALL DATA</span><span>COACH</span></header>
+<div class="wrap"><div class="window"><div class="bar">PLAYPRO COACH PROFILE</div><div class="pad">
+<div class="steps"><span class="step">1 IDENTITY</span><span class="step">2 KYC</span><span class="step on">3 COACH DETAILS</span><span class="step on">4 PROFILE</span></div>
+<div class="notice">Satu akaun PlayPro boleh mempunyai Player + Coach + Club Owner + Organiser + Referee. Paparan ini mengekalkan gaya database/Championship Manager yang telah diluluskan — bukan dossier moden.</div>
+<div class="box"><h3>PLAYPRO COACH PROFILE</h3><div class="body"><div class="grid">
+<div><div class="photo">COACH<br>PHOTO</div><div class="badge" id="badge">✓ VERIFIED COACH</div></div>
+<div><div class="name">Coach Profile</div><div class="sub">COA-000000 · PlayPro Coach</div>
+<div class="cols">
+<div class="box"><h3>PERSONAL DETAILS</h3><div class="body">
+<div class="row"><b>Verification</b><span class="status ok">✓ VERIFIED</span></div>
+<div class="row"><b>Full legal name</b><span>—</span></div>
+<div class="row"><b>Preferred name</b><span>—</span></div>
+<div class="row"><b>Phone</b><span>—</span></div>
+<div class="row"><b>Date of birth</b><span>—</span></div>
+<div class="row"><b>Nationality</b><span>—</span></div>
+</div></div>
+<div class="box"><h3>LICENSES</h3><div class="body">
+<div class="row"><b>Official FAM / FIFA</b><span>—</span></div>
+<div class="row"><b>License no.</b><span>—</span></div>
+<div class="row"><b>PlayPro license</b><span>Level 0 / 5</span></div>
+<div class="row"><b>License status</b><span>—</span></div>
+</div></div>
+</div></div></div></div></div>
+<div class="box"><h3>COACH ATTRIBUTES · 1–20</h3><div class="body"><div class="attrs" id="attrs"></div><p class="muted">0 = belum dinilai. Nilai rasmi datang daripada assessment/panel PlayPro dan pencapaian pasukan dalam pertandingan melalui data LTO yang disahkan. Coach tidak boleh mengubah nilai sendiri.</p></div></div>
+<div class="box"><h3>PLAYPRO ACCREDITATION · TWO TRACKS</h3><div class="body"><div class="cols">
+<div><div class="row"><b>Track A</b><span>Player Assessment Authority</span></div><div class="row"><b>Levels</b><span>1–5</span></div><div class="row"><b>Authority</b><span>Belum ditauliahkan</span></div></div>
+<div><div class="row"><b>Track B</b><span>Coach Attribute Certification</span></div><div class="row"><b>Levels</b><span>1–5</span></div><div class="row"><b>Certification</b><span>Belum dinilai</span></div></div>
+</div><div style="margin-top:8px"><button class="alt">Request Pentauliahan</button></div></div></div>
+<div class="box"><h3>DISCIPLINE / COACH CARD</h3><div class="body"><div class="row"><b>Card</b><span class="status ok">ACTIVE</span></div><div class="row"><b>Discipline status</b><span>CLEAR</span></div><div class="row"><b>Notice</b><span>Card berubah automatik jika tindakan disiplin dikenakan.</span></div></div></div>
+<div class="box"><h3>COACHING PROFILE</h3><div class="body"><div class="cols"><div><div class="row"><b>Coaching role</b><span>—</span></div><div class="row"><b>Preferred formation</b><span>—</span></div><div class="row"><b>Preferred style</b><span>—</span></div></div><div><div class="row"><b>Specialties</b><span>—</span></div><div class="row"><b>Club history</b><span>Belum ada</span></div><div class="row"><b>Competition history</b><span>Belum ada</span></div></div></div></div></div>
+</div></div><div class="footer">KYC identity menjadi authoritative dan terkunci selepas VERIFIED. Nama samaran serta maklumat coaching bukan-KYC kekal boleh diedit.</div>
+</div></div>
+<script>
+const A=[['Adaptability','adaptability'],['Coaching Goalkeepers','coaching_goalkeepers'],['Coaching Outfield Players','coaching_outfield'],['Working with Youngsters','coaching_youth'],['Determination','determination'],['Level of Discipline','discipline'],['Judging Player Ability','judging_player_ability'],['Judging Player Potential','judging_player_potential'],['Man Management','man_management'],['Motivating','motivating'],['Physiotherapy','physiotherapy'],['Tactical Knowledge','tactical_knowledge']];
+const attrs=document.getElementById('attrs');A.forEach(([n,k])=>{const v=0;attrs.insertAdjacentHTML('beforeend',`<div class="attr"><span>${n}</span><div class="track"><i style="width:${v*5}%"></i></div><span class="value">${v}</span></div>`)})
+</script>
+</body></html>
