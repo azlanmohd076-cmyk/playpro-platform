@@ -4,13 +4,48 @@
 
 ## Current source of truth
 
-For the current match/discipline architecture, read:
+For current product/domain/implementation state, read in this order:
 
-1. `docs/memory/PLAYPRO_CANONICAL_ARCHITECTURE.md` — current Owner-approved operational architecture.
-2. `docs/memory/DECISIONS.md` — historical append-only decision register. Do not delete history.
-3. `docs/memory/BOUNDARIES.md` — lifecycle and authority boundaries.
-4. `docs/memory/ENVIRONMENT.md` — repository/Supabase environment.
-5. `docs/memory/BACKLOG.md` — work orders and gates.
+1. `docs/memory/AI_MASTER_PROMPT.md` — canonical working brief for the next AI/CTO session, including the locked UI preservation rule.
+2. `docs/memory/PLAYPRO_CANONICAL_ARCHITECTURE.md` — current Owner-approved operational architecture.
+3. `docs/memory/DECISIONS.md` — historical append-only decision register. Do not delete history.
+4. `docs/memory/BOUNDARIES.md` — lifecycle and authority boundaries.
+5. `docs/memory/ENVIRONMENT.md` — repository/Supabase environment.
+6. `docs/memory/BACKLOG.md` — work orders and gates.
+
+## UI CANONICAL RULE — OWNER LOCK
+
+**The existing PlayPro UI is a production asset and must be preserved.**
+
+The target is **PRESERVE → AUDIT → REPAIR → IMPROVE**, not **REPLACE → REDESIGN → HOPE**.
+
+The historical PlayPro UI baseline recovered from Git includes the original football-platform shell, search/header treatment, Transfermarkt-style navigation, bottom navigation, LIVE, CARI, MYTEAM, KEDAI, Passport and the existing football-oriented information density. The recovered source was identified at commit `36ec85739ac89fcbe3bdd0c27a73b8ca28abd963`. Do not replace that identity with a generic SaaS dashboard, landing page, card-grid “dossier”, or unrelated modern design.
+
+### Explicit prohibition: DOSSIER UI
+
+**DO NOT USE THE DOSSIER STYLE AS THE CANONICAL PLAYPRO UI.**
+
+A previous newer UI surface was experienced by the Owner as a dossier/dashboard redesign and is rejected. Do not copy its visual language merely because it is newer. Do not rebuild the application around large generic profile cards, dashboard tiles, excessive whitespace, generic SaaS panels, or a document/dossier presentation when the old PlayPro surface already provides the appropriate football UI language.
+
+### What “new UI” means for PlayPro
+
+“New UI” means **new capability implemented inside the old UI language**:
+
+- keep the old shell, navigation logic, football-data density and visual character;
+- improve layout, responsive behaviour, information hierarchy, accessibility and interaction where genuinely useful;
+- add Player, Coach, Club, Referee, Organiser, KYC, DNA, Attributes, Card, Passport, Membership, Squad, TMR, Competition, Payment and other new functions as native extensions of the existing UI;
+- do not redesign an existing screen from scratch unless the Owner explicitly authorizes a replacement;
+- when a new page is necessary, it must look and behave as a natural PlayPro sibling of the old pages, not as a separate SaaS product.
+
+### Player UI reference
+
+The Player profile should preserve the football-management-game character that the Owner prefers, especially the information density and attribute presentation associated with Championship Manager 01/02. The recovered Azlan persona is a **reference persona / UX fixture**, not production source data.
+
+The target experience is:
+
+`PLAYER → PROFILE → FOOTBALL DNA → ATTRIBUTES → PLAYER CARD → FOOTBALL PASSPORT → MATCH/CARRER HISTORY → KYC/VERIFIED`
+
+Player Card is a presentation/product layer, not the source of truth. Attributes/DNA are data-driven and must come from the approved assessment/performance architecture.
 
 ## Locked match flow
 
@@ -28,9 +63,9 @@ PlayPro's 3-month ban is a PlayPro competition/platform rule and must not be des
 
 ## Implemented correction — 2026-09-12
 
-The two live production defects identified by Owner are now corrected in `playpro2` and the migration is committed in Git:
+The two live production defects identified by Owner are corrected in `playpro2` and the migration is committed in Git:
 
-1. `finalize_match(uuid)` is now **referee-gated**. The appointed referee must be the authenticated user and must have `user_role = referee`. The main observer can no longer finalize the match. Referee approval writes the existing `match_results.is_official / ratified_by / ratified_at / entered_by` gate, then moves the ended fixture to `finalized`.
+1. `finalize_match(uuid)` is **referee-gated**. The appointed referee must be the authenticated user and must have `user_role = referee`. The main observer can no longer finalize the match. Referee approval writes the existing `match_results.is_official / ratified_by / ratified_at / entered_by` gate, then moves the ended fixture to `finalized`.
 2. `auto_suspend_on_red_card()` no longer has the obsolete `COALESCE(..., 1)` fallback. Suspension length is read from `competition_rule_config`; current PlayPro configuration rows are seeded as **2 matches for direct red** and **1 match for second-yellow dismissal**. These are configuration values, not universal FIFA constants.
 3. An official-result trigger advances active suspensions by qualifying official fixture for the sanctioned player's club. The suspended player does **not** need to be registered or selected in the serving match. The start fixture is excluded, and served fixture IDs are recorded to prevent double counting.
 4. The existing `suspensions` table now records the club context, rule configuration, remaining matches, served fixture IDs and completion timestamp needed for the ledger mechanism.
@@ -39,15 +74,13 @@ The two live production defects identified by Owner are now corrected in `playpr
 
 Do **not** call the Organiser/Event map the whole “PlayPro City”.
 
-The correct mental model is:
-
 `PLAYPRO CITY = keseluruhan platform`
 
 `ORGANISER EVENT CONSOLE = satu “kedai” di dalam bandar PlayPro`
 
 The organiser/event area is one product surface inside the wider platform. It must not be mistaken for the entire platform architecture.
 
-The next build-map work must therefore identify what is already **designed** versus what is actually **built** inside the wider PlayPro platform. Known major areas still requiring concrete implementation work include:
+The next build-map work must identify what is already **BUILT / PARTIAL / DESIGNED ONLY / NOT STARTED** inside the wider PlayPro platform. Known major areas requiring concrete implementation work include:
 
 - player KYC / verification;
 - Player DNA;
@@ -63,9 +96,9 @@ The next build-map work must therefore identify what is already **designed** ver
 - discipline, suspension, ban and appeal;
 - persistent player/team/coach history and indices.
 
-A box on a map is **not** evidence that the feature has been built. Future AI must verify the actual implementation before marking a box complete.
+A box on a map is **not** evidence that the feature has been built. Future AI must verify actual Git/Supabase implementation before marking a box complete.
 
-## Safe engineering rules
+## Engineering rules
 
 - Preserve provenance and audit history.
 - Do not silently create a second source of truth.
@@ -74,25 +107,29 @@ A box on a map is **not** evidence that the feature has been built. Future AI mu
 - If a live object already exists, inspect it before proposing a replacement.
 - If an old decision conflicts with a later Owner decision, mark it `SUPERSEDED`; do not erase it.
 - Never assume a table/column/function is absent from production because a Git migration file does not contain it.
-- Never treat a row count or a textual search as proof of a design fact without measuring the actual object.
+- Never treat a row count or textual search as proof of a design fact without measuring the actual object.
+- Do not reopen settled Owner decisions merely because a new AI session cannot remember them.
+- Minimize repeated audits: each audit must close a gate, fix a concrete defect, or produce a concrete artifact.
 
 ## Current Supabase reference
 
-`playpro2` = `muirhenvjruvfxenoaxm` and is ACTIVE_HEALTHY.
+`playpro2` = `muirhenvjruvfxenoaxm` and is the primary production reference.
 
-As of the latest inspection, the live schema includes `match_results` (37 columns), `match_events` (17), `player_match_stats` (16), `suspensions` (now extended by the 2026-09-12 migration), `referees` (7), `standings` (12), and `fixtures` (18). `user_role` already contains `referee` and `league_staff_role` also contains `referee`.
+As of the latest handover, the live schema includes `match_results`, `match_events`, `player_match_stats`, `suspensions`, `referees`, `standings`, and `fixtures`; `user_role` already contains `referee` and `league_staff_role` also contains `referee`.
 
-These are production facts, not permission to change them. Follow the project gates before unrelated DDL.
+These are production facts, not blanket permission to change unrelated objects. Follow the project gates before unrelated DDL.
 
 ## Next work
 
 Do not loop back into already settled observer/approval/suspension questions.
 
-Next concrete work:
+Next work is **product implementation**, not another documentation-only cycle:
 
-1. verify the 2026-09-12 migration in production and its Git copy remain identical;
-2. move to the **next product build map**, beginning with the wider platform rather than treating the organiser/event console as the whole city;
-3. distinguish every major area into **BUILT / PARTIAL / DESIGNED ONLY / NOT STARTED** using actual Git/Supabase evidence;
-4. prioritise the next implementation block instead of producing another documentation-only loop.
+1. Read `AI_MASTER_PROMPT.md` and the canonical architecture/decision files.
+2. Reconcile the current Git/Supabase implementation against the product map.
+3. Preserve the recovered legacy UI as the visual baseline.
+4. Implement missing functionality incrementally inside that UI language.
+5. Verify Player → KYC → Passport and the subsequent Coach → Club → Referee → Organiser paths end-to-end.
+6. Commit and deploy only after tests and production verification pass.
 
-**Owner intent:** keep moving. Minimize repeated audits. Every audit should close a specific gate or produce a concrete artifact.
+**Owner intent:** keep moving. Do not waste sessions recreating architecture that is already settled, and do not replace the UI identity again.
