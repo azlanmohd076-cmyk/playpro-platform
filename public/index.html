@@ -4919,41 +4919,12 @@ async function obSkip(){
 
 async function saveOnboardingStep1(){
   if(!_u) return;
-  var name=_u.user_metadata?.full_name||'Pemain Baru';
-  var role=_u.user_metadata?.role||'player';
-  var phone=_u.user_metadata?.phone||null;
-  var fp=_obDOB?generateFPNo(_obDOB,_obStateCode,name):null;
-
-  // Step 1: Guarantee profiles row (FK requirement)
-  // P0 REPAIR: client must not write profiles.role (42501 guard) and
-  // must not omit the NOT NULL email column. RPC handles both.
   try{
-    var{error:profErr1}=await window.SB.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
-    if(profErr1) console.error('[PlayPro] ensure_profile failed:',profErr1.message);
-  }catch(e){console.error('[PlayPro] ensure_profile threw:',e&&e.message);}
-
-  // Step 2: Insert players
-  var payload={
-    profile_id:_u.id,
-    full_name:name,
-    preferred_name:name,
-    is_active:true,
-    is_passport_public:true,
-    kyc_status:'unverified',
-    passport_frame:'unverified',
-  };
-  if(_obDocType!=='passport'&&_obDocNo) payload.ic_number=_obDocNo;
-  if(_obDOB) payload.date_of_birth=_obDOB;
-  if(fp) payload.passport_number=fp;
-
-  try{
-    var{error:insErr}=await window.SB.from('players').insert(payload);
-    if(insErr){
-      var{error:updErr}=await window.SB.from('players')
-        .update(payload).eq('profile_id',_u.id);
-      if(updErr) console.warn('players update:',updErr.message);
-    }
-  }catch(e){console.warn('players insert:',e.message);}
+    await window.SB.rpc('ensure_profile_after_signup', {
+      p_full_name:_u.user_metadata?.full_name||'Pemain Baru',
+      p_phone:_u.user_metadata?.phone||null
+    });
+  }catch(e){ console.warn('step1 profile ensure:',e.message); }
 }
 
 async function saveOnboardingStep2(){
@@ -4989,84 +4960,43 @@ async function obComplete(){
   btn.textContent='Menyimpan...';
   try{
     var onboardingClient=window.getPlayProSupabase?.()||window.SB;
-    if(!onboardingClient || typeof onboardingClient.rpc!=='function'){
-      throw new Error('Sambungan Supabase belum tersedia. Sila muat semula halaman dan cuba lagi.');
-    }
+    if(!onboardingClient||typeof onboardingClient.rpc!=='function') throw new Error('Sambungan Supabase belum tersedia. Sila muat semula halaman dan cuba lagi.');
     if(!_u) throw new Error('Sila log masuk dahulu.');
-
-    var position=document.getElementById('ob-position')?.value||'';
+    var positionEl=document.getElementById('ob-position');
+    var position=(positionEl?.value||window.__ppSelectedPosition||'').trim().toLowerCase();
+    if(positionEl && position) positionEl.value=position;
     if(!_obDOB) throw new Error('Tarikh lahir yang sah diperlukan.');
     if(!position) throw new Error('Sila pilih posisi utama.');
-
     var name=_u.user_metadata?.full_name||'Pemain Baru';
     var obPhoneCode=document.getElementById('ob-phone-code')?.value||'+60';
     var obPhoneNum=(document.getElementById('ob-phone')?.value||'').trim();
     var phone=obPhoneNum?(obPhoneCode+obPhoneNum):(_u.user_metadata?.phone||null);
-
-    // Guarantee the private profile first. Errors are fatal and visible.
-    var profileResult=await onboardingClient.rpc('ensure_profile_after_signup',{
-      p_full_name:name,p_phone:phone
-    });
+    var profileResult=await onboardingClient.rpc('ensure_profile_after_signup',{p_full_name:name,p_phone:phone});
     if(profileResult.error) throw profileResult.error;
-
-    // Atomic server-side upsert. Identity and role are derived from auth.uid();
-    // the browser cannot choose another profile or elevate its permissions.
     var payload={
-      date_of_birth:_obDOB,
-      position:position,
+      full_name:name,date_of_birth:_obDOB,position:position,
       preferred_foot:document.getElementById('ob-foot')?.value||null,
       jersey_number:document.getElementById('ob-jersey')?.value||null,
       height_cm:document.getElementById('ob-height')?.value||null,
       weight_kg:document.getElementById('ob-weight')?.value||null,
-      preferred_name:document.getElementById('ob-nickname')?.value?.trim()||name,
-      phone:phone,
-      document_type:_obDocType,
-      document_number:_obDocNo||null
+      preferred_name:document.getElementById('ob-nickname')?.value?.trim()||null,
+      phone:phone,nationality:'Malaysian',display_name_mode:'preferred',profile_visibility:'public'
     };
     var playerResult=await onboardingClient.rpc('register_my_player',{p_payload:payload});
-
     var rpcData=playerResult?.data;
-    var rpcError=playerResult?.error;
-
-    // RPC may return a JSON string or a parsed object — normalise both
-    if(typeof rpcData==='string'){
-      try{ rpcData=JSON.parse(rpcData); }catch(pe){ rpcData=null; }
-    }
-
-    // Success is signalled by rpcData.ok===true OR rpcData.success===true
-    var rpcOk=Boolean(rpcData&&(rpcData.ok===true||rpcData.success===true));
-
-    // Extract player ID from rpcData.player_id or rpcData.id
-    var newPlayerId=rpcData?(rpcData.player_id||rpcData.id||null):null;
-
-    if(rpcError||!rpcOk){
-      var errMsg=rpcError?.message||(rpcData?.error)||'Pendaftaran pemain gagal. Sila cuba lagi.';
-      console.error('[PlayPro] register_my_player failed:',errMsg,'rpcData:',rpcData);
-      throw new Error(String(errMsg));
-    }
-
-    if(!newPlayerId){
-      console.error('[PlayPro] register_my_player returned no player ID',rpcData);
-      throw new Error('ID pemain tidak dikembalikan. Sila cuba lagi.');
-    }
-
-    // Persist player ID for downstream modules
+    if(typeof rpcData==='string'){try{rpcData=JSON.parse(rpcData);}catch(_e){rpcData=null;}}
+    if(playerResult?.error||!rpcData?.ok) throw new Error(playerResult?.error?.message||rpcData?.error||'Pendaftaran pemain gagal. Sila cuba lagi.');
+    var newPlayerId=rpcData.player_id||rpcData.id;
+    if(!newPlayerId) throw new Error('ID pemain tidak dikembalikan. Sila cuba lagi.');
     window.currentPlayerId=newPlayerId;
-    try{ sessionStorage.setItem('currentPlayerId',newPlayerId); }catch(se){}
-
-    if(newPlayerId) await saveClubHistoryOnboarding(newPlayerId);
-
-    // Close onboarding modal
+    try{sessionStorage.setItem('currentPlayerId',newPlayerId);}catch(_e){}
+    if(typeof saveClubHistoryOnboarding==='function') await saveClubHistoryOnboarding(newPlayerId);
     hideOnboarding();
     toast('✅ Profil disimpan! Selamat datang ke PlayPro!');
     window._obJustCompleted=true;
-
-    // Reset cached profile data so loadProfile fetches fresh
-    _pd=null;
-    window._pd=null;
-
+    _pd=null;window._pd=null;
     go('profile');
-    setTimeout(function(){loadProfile();},800);
+    setTimeout(function(){loadProfile();},250);
   }catch(e){
     console.error('[PlayPro onboarding]',e);
     var message=String(e?.message||'Pendaftaran pemain gagal. Sila cuba lagi.');
@@ -6028,7 +5958,8 @@ function printKad(){
     +'</div>'
     +'</div>'
     +'<script>window.onload=function(){window.print();}<\/script>'
-    +'</body></html>';
+    +'<script>document.addEventListener('change',function(e){if(e.target&&e.target.id==='ob-position'){window.__ppSelectedPosition=(e.target.value||'').trim().toLowerCase();}});</script>
+</body></html>';
 
   var pw=window.open('','_blank');
   if(pw){pw.document.write(html);pw.document.close();}
