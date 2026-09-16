@@ -11,12 +11,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Patch main and verify
+      - name: Diagnose and patch main
         shell: bash
         run: |
           set -euo pipefail
           git fetch origin main
           git checkout main
+          echo '--- INDEX 3180-3205 ---'
+          nl -ba public/index.html | sed -n '3180,3205p'
           python3 - <<'PY'
           from pathlib import Path
           p = Path('public/index.html')
