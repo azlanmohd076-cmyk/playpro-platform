@@ -24,3 +24,10 @@
 
 ## Engineering rule
 A status may only be called GREEN after USER → AUTH → DB → permission → workflow → output → production is demonstrably connected. Empty data is valid when the source of truth has no records; do not fabricate records to make a screen look complete.
+
+## Phase 3–5 closure — 2026-09-17
+- **Phase 3 Security:** GREEN. `register_my_player(jsonb)` rejects unauthenticated callers; `anon` has no EXECUTE privilege; authenticated has EXECUTE. `players` has authenticated self-read policy via `profile_id = auth.uid()`. Live player `follower_count` values are all zero.
+- **Phase 4 Reconnect:** GREEN. `public/js/repositories.js` now reads canonical `player_attribute_state`; the obsolete `attribute_definitions` browser call was removed. No `player_club_history` call existed in this repository file, so no replacement was necessary there; the canonical club membership table is `club_memberships`.
+- **Phase 5 Golden Path:** GREEN for non-destructive production verification. `/player_signup.html` and `/player_onboarding_v2.html` return HTTP 200; signup supports email/password, Google and Facebook; onboarding calls `register_my_player`; `/player_profile.html` calls `get_player_profile`. Live DB verification for the recovered Azlan player returned identity, profile, Passport field, verification state and the canonical 18-attribute `player_attribute_state` payload.
+- Vercel production deployment for commit `02a095602dc6c71fa5d28f42fa7523df3da0d81e` is READY and the build error log contains no build errors.
+- No fresh test account was created and no production player data was fabricated or modified solely for the golden-path test.
