@@ -206,21 +206,39 @@ const PlayerRepo = {
   },
 
   /**
-   * All 18 attributes for a player.
+   * All 18 player attributes from the canonical Phase 2 state row.
+   * player_attribute_state stores one row per player, not one row per attribute.
    */
   async attributes(playerId) {
     const { data, error } = await SB
-      .from('player_attributes')
+      .from('player_attribute_state')
       .select(`
-        attribute_code, current_value, coach_value, officer_value, ai_value,
-        confidence_level, last_assessed_at, is_public
+        player_id, passing, dribbling, finishing, first_touch, tackling, heading,
+        pace, stamina, strength, agility, leadership, composure, teamwork,
+        work_rate, positioning, vision, decision_making, anticipation,
+        source, confidence, updated_at
       `)
-      .eq('player_id', playerId);
-    if (error) { console.error('[PlayerRepo.attributes]', error.message); return []; }
-    // Convert to a keyed object {code: {currentValue, coachValue, ...}}
+      .eq('player_id', playerId)
+      .maybeSingle();
+    if (error) { console.error('[PlayerRepo.attributes]', error.message); return {}; }
+    if (!data) return {};
+
+    const row = _norm(data);
+    const attributeCodes = [
+      'passing', 'dribbling', 'finishing', 'first_touch', 'tackling', 'heading',
+      'pace', 'stamina', 'strength', 'agility', 'leadership', 'composure',
+      'teamwork', 'work_rate', 'positioning', 'vision', 'decision_making', 'anticipation'
+    ];
     const map = {};
-    for (const row of _norm(data ?? [])) {
-      map[row.attributeCode] = row;
+    for (const code of attributeCodes) {
+      const key = _toCamel(code);
+      map[code] = {
+        attributeCode: code,
+        currentValue: row[key] ?? null,
+        source: row.source ?? null,
+        confidence: row.confidence ?? null,
+        updatedAt: row.updatedAt ?? null,
+      };
     }
     return map;
   },
@@ -257,12 +275,10 @@ const PlayerRepo = {
       .order('computed_date', { ascending: false })
       .limit(limit);
     if (error) { console.error('[PlayerRepo.passportHistory]', error.message); return []; }
-    return _norm(data ?? []).reverse();   // oldest-first for charting
+    return _norm(data ?? []).reverse();
   },
 
-  /**
-   * Season statistics from player_match_stats.
-   */
+  /** Season statistics from player_match_stats. */
   async seasonStats(playerId, seasonId = null) {
     let q = SB
       .from('player_match_stats')
@@ -288,28 +304,25 @@ const PlayerRepo = {
     const ratings = rows.map(r => r.match_rating).filter(Boolean);
 
     return {
-      apps:       rows.length,
-      goals:      sum('goals'),
-      assists:    sum('assists'),
-      shots:      sum('shots'),
+      apps: rows.length,
+      goals: sum('goals'),
+      assists: sum('assists'),
+      shots: sum('shots'),
       shotsOnTarget: sum('shots_on_target'),
-      yellows:    sum('yellow_cards'),
-      reds:       sum('red_cards'),
-      saves:      sum('saves'),
+      yellows: sum('yellow_cards'),
+      reds: sum('red_cards'),
+      saves: sum('saves'),
       minutesPlayed: sum('minutes_played'),
-      starts:     rows.filter(r => r.started).length,
-      ratingAvg:  ratings.length
+      starts: rows.filter(r => r.started).length,
+      ratingAvg: ratings.length
         ? Math.round(ratings.reduce((a,b) => a+b, 0) / ratings.length * 10) / 10
         : null,
-      passAccuracyAvg: rows.filter(r=>r.pass_accuracy).length
-        ? Math.round(rows.reduce((a,r)=>a+(r.pass_accuracy||0),0)/rows.filter(r=>r.pass_accuracy).length)
+      passAccuracyAvg: rows.filter(r => r.pass_accuracy).length
+        ? Math.round(rows.reduce((a,r) => a+(r.pass_accuracy||0),0)/rows.filter(r => r.pass_accuracy).length)
         : null,
     };
   },
 
-  /**
-   * Current development projection.
-   */
   async projection(playerId) {
     const { data, error } = await SB
       .from('player_development_projections')
@@ -322,9 +335,6 @@ const PlayerRepo = {
     return _norm(data);
   },
 
-  /**
-   * Current fitness snapshot.
-   */
   async fitness(playerId) {
     const { data, error } = await SB
       .from('player_fitness_snapshots')
@@ -333,13 +343,10 @@ const PlayerRepo = {
       .order('snapshot_date', { ascending: false })
       .limit(1)
       .single();
-    if (error) { return null; }
+    if (error) return null;
     return _norm(data);
   },
 
-  /**
-   * Current morale snapshot.
-   */
   async morale(playerId) {
     const { data, error } = await SB
       .from('player_morale_snapshots')
@@ -348,52 +355,40 @@ const PlayerRepo = {
       .order('snapshot_date', { ascending: false })
       .limit(1)
       .single();
-    if (error) { return null; }
+    if (error) return null;
     return _norm(data);
   },
 
-  /**
-   * Hidden attributes (restricted — coach/club_admin only).
-   */
   async hidden(playerId) {
     const { data, error } = await SB
       .from('player_hidden_attributes')
       .select('professionalism, ambition, loyalty, temperament, consistency, injury_proneness, pressure_handling, confidence')
       .eq('player_id', playerId)
       .single();
-    if (error) { return null; }
+    if (error) return null;
     return _norm(data);
   },
 
-  /**
-   * Position familiarity.
-   */
   async positionFamiliarity(playerId) {
     const { data, error } = await SB
       .from('player_position_familiarity')
       .select('position_code, position_label, familiarity, familiarity_pct, matches_in_pos, is_natural')
       .eq('player_id', playerId)
       .order('familiarity_pct', { ascending: false });
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 
-  /**
-   * Injury risk profile.
-   */
   async injuryRisk(playerId) {
     const { data, error } = await SB
       .from('player_injury_risk_profiles')
       .select('*')
       .eq('player_id', playerId)
       .single();
-    if (error) { return null; }
+    if (error) return null;
     return _norm(data);
   },
 
-  /**
-   * Weekly training score for a player.
-   */
   async weeklyTrainingScore(playerId) {
     const { data, error } = await SB.rpc('compute_weekly_training_score', {
       p_player_id: playerId,
@@ -403,9 +398,6 @@ const PlayerRepo = {
     return data ?? 0;
   },
 
-  /**
-   * Similar players (pre-computed).
-   */
   async similar(playerId) {
     const { data, error } = await SB
       .from('player_similarities')
@@ -419,13 +411,10 @@ const PlayerRepo = {
       .eq('player_id', playerId)
       .order('similarity_score', { ascending: false })
       .limit(5);
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 
-  /**
-   * Training attendance history for a player (last N sessions).
-   */
   async trainingAttendance(playerId, limit = 8) {
     const { data, error } = await SB
       .from('player_training_attendance')
@@ -436,7 +425,7 @@ const PlayerRepo = {
       .eq('player_id', playerId)
       .order('created_at', { ascending: false })
       .limit(limit);
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 };
@@ -445,8 +434,6 @@ const PlayerRepo = {
    REPOSITORY: Clubs
 ───────────────────────────────────────────────────────────── */
 const ClubRepo = {
-
-  /** Single club with all metadata. */
   async get(clubId) {
     const cacheKey = 'club:' + clubId;
     const hit = _cacheGet(cacheKey);
@@ -472,22 +459,16 @@ const ClubRepo = {
     return result;
   },
 
-  /**
-   * Club DNA summary from mv_club_dna materialised view.
-   */
   async dna(clubId) {
     const { data, error } = await SB
       .from('mv_club_dna')
       .select('*')
       .eq('club_id', clubId)
       .single();
-    if (error) { return null; }
+    if (error) return null;
     return _norm(data);
   },
 
-  /**
-   * Squad development report (gated view, auth required).
-   */
   async squadDevelopment(clubId) {
     const { data, error } = await SB
       .from('v_squad_development_report')
@@ -498,12 +479,7 @@ const ClubRepo = {
     return _norm(data ?? []);
   },
 
-  /**
-   * Recent notifications scoped to a club.
-   * Uses notification_recipients joined to notifications.
-   */
   async recentActivity(clubId, limit = 10) {
-    // Fetch recent match events, training sessions, assessments for this club
     const { data, error } = await SB
       .from('notifications')
       .select(`
@@ -512,13 +488,10 @@ const ClubRepo = {
       `)
       .order('created_at', { ascending: false })
       .limit(limit);
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 
-  /**
-   * Upcoming training sessions for a club.
-   */
   async upcomingSessions(clubId, limit = 5) {
     const { data, error } = await SB
       .from('training_sessions')
@@ -527,13 +500,10 @@ const ClubRepo = {
       .gte('session_date', new Date().toISOString().slice(0, 10))
       .order('session_date', { ascending: true })
       .limit(limit);
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 
-  /**
-   * Market values for all squad players.
-   */
   async marketValues(clubId) {
     const { data, error } = await SB
       .from('player_market_values')
@@ -544,17 +514,12 @@ const ClubRepo = {
       .eq('is_current', true)
       .eq('players.club_id', clubId)
       .order('value_myr', { ascending: false });
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 };
 
-/* ─────────────────────────────────────────────────────────────
-   REPOSITORY: Leagues
-───────────────────────────────────────────────────────────── */
 const LeagueRepo = {
-
-  /** All active leagues. */
   async all(statusFilter = null) {
     let q = SB
       .from('leagues')
@@ -571,7 +536,6 @@ const LeagueRepo = {
     return _norm(data ?? []);
   },
 
-  /** Single league detail. */
   async get(leagueId) {
     const { data, error } = await SB
       .from('leagues')
@@ -584,13 +548,10 @@ const LeagueRepo = {
       `)
       .eq('id', leagueId)
       .single();
-    if (error) { return null; }
+    if (error) return null;
     return _norm(data);
   },
 
-  /**
-   * Standings from mv_league_standings materialised view.
-   */
   async standings(leagueId, seasonId = null) {
     let q = SB
       .from('mv_league_standings')
@@ -600,7 +561,6 @@ const LeagueRepo = {
     if (seasonId) q = q.eq('season_id', seasonId);
     const { data, error } = await q;
     if (error) {
-      // Fallback to live standings table if matview not yet populated
       const { data: liveData, error: liveErr } = await SB
         .from('standings')
         .select(`
@@ -611,13 +571,12 @@ const LeagueRepo = {
         `)
         .eq('league_id', leagueId)
         .order('points', { ascending: false });
-      if (liveErr) { return []; }
+      if (liveErr) return [];
       return _norm(liveData ?? []);
     }
     return _norm(data ?? []);
   },
 
-  /** Top scorers from mv_top_scorers materialised view. */
   async topScorers(leagueId, limit = 10) {
     const { data, error } = await SB
       .from('mv_top_scorers')
@@ -625,17 +584,12 @@ const LeagueRepo = {
       .eq('league_id', leagueId)
       .order('goals', { ascending: false })
       .limit(limit);
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 };
 
-/* ─────────────────────────────────────────────────────────────
-   REPOSITORY: Fixtures
-───────────────────────────────────────────────────────────── */
 const FixtureRepo = {
-
-  /** Fixtures for a league, optionally filtered by status. */
   async byLeague(leagueId, statusFilter = null, limit = 20) {
     let q = SB
       .from('fixtures')
@@ -655,7 +609,6 @@ const FixtureRepo = {
     return _norm(data ?? []);
   },
 
-  /** Fixtures for a club (home or away). */
   async byClub(clubId, limit = 10) {
     const { data, error } = await SB
       .from('fixtures')
@@ -669,11 +622,10 @@ const FixtureRepo = {
       .or(`home_club_id.eq.${clubId},away_club_id.eq.${clubId}`)
       .order('match_date', { ascending: false })
       .limit(limit);
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 
-  /** Next upcoming fixture for a club. */
   async nextForClub(clubId) {
     const { data, error } = await SB
       .from('fixtures')
@@ -688,11 +640,10 @@ const FixtureRepo = {
       .order('match_date', { ascending: true })
       .limit(1)
       .single();
-    if (error) { return null; }
+    if (error) return null;
     return _norm(data);
   },
 
-  /** Last N match results for a club (for form strip). */
   async lastResults(clubId, limit = 5) {
     const { data, error } = await SB
       .from('fixtures')
@@ -705,22 +656,18 @@ const FixtureRepo = {
       .not('match_results', 'is', null)
       .order('match_date', { ascending: false })
       .limit(limit);
-    if (error) { return []; }
+    if (error) return [];
     const rows = _norm(data ?? []);
     return rows.map(f => {
       const r = f.matchResults;
       if (!r) return 'U';
       const isHome = f.homeClubId === clubId;
-      const scored   = isHome ? r.homeGoals   : r.awayGoals;
-      const conceded = isHome ? r.awayGoals   : r.homeGoals;
+      const scored = isHome ? r.homeGoals : r.awayGoals;
+      const conceded = isHome ? r.awayGoals : r.homeGoals;
       return scored > conceded ? 'W' : scored < conceded ? 'L' : 'D';
     }).reverse();
   },
 
-  /**
-   * Live fixture events for a given fixture_id.
-   * Used by the Match Observer to load existing events.
-   */
   async events(fixtureId) {
     const { data, error } = await SB
       .from('match_events')
@@ -732,11 +679,10 @@ const FixtureRepo = {
       .eq('fixture_id', fixtureId)
       .eq('is_cancelled', false)
       .order('period').order('minute').order('added_time');
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 
-  /** Full result for the League Admin ratification workflow. */
   async result(fixtureId) {
     const { data, error } = await SB
       .from('match_results')
@@ -747,7 +693,6 @@ const FixtureRepo = {
     return _norm(data);
   },
 
-  /** Save an official result and move the fixture into the official state. */
   async ratifyResult(fixtureId, result, ratifiedBy) {
     const payload = {
       fixture_id: fixtureId,
@@ -761,31 +706,18 @@ const FixtureRepo = {
       .upsert(payload, { onConflict: 'fixture_id' })
       .select()
       .single();
-    if (error) {
-      console.error('[FixtureRepo.ratifyResult]', error.message);
-      return { data: null, error };
-    }
+    if (error) return { data: null, error };
     const { error: fixtureError } = await SB
       .from('fixtures')
       .update({ status: 'official' })
       .eq('id', fixtureId);
-    if (fixtureError) {
-      console.error('[FixtureRepo.ratifyResult.fixture]', fixtureError.message);
-      return { data: null, error: fixtureError };
-    }
+    if (fixtureError) return { data: null, error: fixtureError };
     cacheInvalidate('fixture:');
     return { data: _norm(data), error: null };
   },
 };
 
-/* ─────────────────────────��───────────────────────────────────
-   REPOSITORY: Passport
-───────────────────────────────────────────────────────────── */
 const PassportRepo = {
-
-  /**
-   * Passport leaderboard — from mv_player_passport_scores.
-   */
   async leaderboard(filters = {}, limit = 50) {
     const { position, leagueId, bandFilter, potentialMin } = filters;
     let q = SB
@@ -793,69 +725,42 @@ const PassportRepo = {
       .select('*')
       .order('dna_overall', { ascending: false })
       .limit(limit);
-    if (position)    q = q.eq('position', position);
-    if (leagueId)    q = q.eq('league_id', leagueId);
-    if (bandFilter)  q = q.eq('dna_band', bandFilter);
+    if (position) q = q.eq('position', position);
+    if (leagueId) q = q.eq('league_id', leagueId);
+    if (bandFilter) q = q.eq('dna_band', bandFilter);
     if (potentialMin) q = q.gte('potential_score', potentialMin);
     const { data, error } = await q;
     if (error) { console.error('[PassportRepo.leaderboard]', error.message); return []; }
     return _norm(data ?? []);
   },
 
-  /**
-   * Wonderkid radar — players flagged as wonderkids.
-   */
   async wonderkids(limit = 10) {
     const { data, error } = await SB
       .from('v_wonderkid_radar')
       .select('*')
       .order('wonderkid_score', { ascending: false })
       .limit(limit);
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 
-  /**
-   * Development leaderboard.
-   */
   async developmentLeaderboard(limit = 20) {
     const { data, error } = await SB
       .from('v_development_leaderboard')
       .select('*')
       .order('improvement_headroom_pct', { ascending: false })
       .limit(limit);
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 };
 
 /* ─────────────────────────────────────────────────────────────
    REPOSITORY: DNA / Attributes
+   Attribute definitions are no longer queried from the browser.
+   Player attribute state is the canonical runtime source.
 ───────────────────────────────────────────────────────────── */
 const DnaRepo = {
-
-  /**
-   * All attribute definitions (reference table — cached indefinitely).
-   */
-  async definitions() {
-    const hit = _cacheGet('attr-defs');
-    if (hit) return hit;
-    const { data, error } = await SB
-      .from('attribute_definitions')
-      .select('code, label, category, display_order, description, weight_in_category, is_active')
-      .eq('is_active', true)
-      .order('category').order('display_order');
-    if (error) { return []; }
-    const result = _norm(data ?? []);
-    // Cache for session lifetime (attrs don't change)
-    _cacheSet('attr-defs', result);
-    return result;
-  },
-
-  /**
-   * Attribute progression (for SVG line charts).
-   * Returns [{attributeCode, value, recordedAt}] sorted oldest-first.
-   */
   async progression(playerId, attrCodes = [], limit = 20) {
     let q = SB
       .from('player_attribute_history')
@@ -865,29 +770,20 @@ const DnaRepo = {
       .limit(limit);
     if (attrCodes.length) q = q.in('attribute_code', attrCodes);
     const { data, error } = await q;
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 
-  /**
-   * Club DNA from mv_club_dna.
-   */
   async clubDna(clubId) {
     return ClubRepo.dna(clubId);
   },
 };
 
-/* ─────────────────────────────────────────────────────────────
-   REPOSITORY: Development
-───────────────────────────────────────────────────────────── */
 const DevRepo = {
-
-  /** Squad development report (full, for club dashboard). */
   async squadReport(clubId) {
     return ClubRepo.squadDevelopment(clubId);
   },
 
-  /** Fitness history (line chart data). */
   async fitnessHistory(playerId, days = 30) {
     const since = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10);
     const { data, error } = await SB
@@ -896,11 +792,10 @@ const DevRepo = {
       .eq('player_id', playerId)
       .gte('snapshot_date', since)
       .order('snapshot_date', { ascending: true });
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 
-  /** Training performance history for sparklines. */
   async trainingHistory(playerId, weeks = 8) {
     const since = new Date(Date.now() - weeks * 7 * 864e5).toISOString().slice(0, 10);
     const { data, error } = await SB
@@ -912,31 +807,25 @@ const DevRepo = {
       .eq('player_id', playerId)
       .gte('training_sessions.session_date', since)
       .order('created_at', { ascending: true });
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 };
 
-/* ─────────────────────────────────────────────────────────────
-   REPOSITORY: Market Value
-───────────────────────────────────────────────────────────── */
 const MarketValueRepo = {
-
-  /** Current market values for public display. */
   async public(filters = {}, limit = 50) {
     let q = SB
       .from('v_player_market_values_public')
       .select('*')
       .order('value_myr', { ascending: false })
       .limit(limit);
-    if (filters.clubId)   q = q.eq('club_id', filters.clubId);
+    if (filters.clubId) q = q.eq('club_id', filters.clubId);
     if (filters.position) q = q.eq('position', filters.position);
     const { data, error } = await q;
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 
-  /** Market value history for a player (chart). */
   async history(playerId, limit = 12) {
     const { data, error } = await SB
       .from('market_value_history')
@@ -944,17 +833,12 @@ const MarketValueRepo = {
       .eq('player_id', playerId)
       .order('recorded_date', { ascending: true })
       .limit(limit);
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 };
 
-/* ─────────────────────────────────────────────────────────────
-   REPOSITORY: Notifications
-───────────────────────────────────────────────────────────── */
 const NotifRepo = {
-
-  /** Unread notification count for current user. */
   async unreadCount() {
     const uid = await Auth.uid();
     if (!uid) return 0;
@@ -966,7 +850,6 @@ const NotifRepo = {
     return error ? 0 : (count ?? 0);
   },
 
-  /** Recent notifications for current user. */
   async recent(limit = 20) {
     const uid = await Auth.uid();
     if (!uid) return [];
@@ -981,11 +864,10 @@ const NotifRepo = {
       .eq('profile_id', uid)
       .order('received_at', { ascending: false })
       .limit(limit);
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 
-  /** Mark a notification as read. */
   async markRead(recipientId) {
     const { error } = await SB
       .from('notification_recipients')
@@ -994,7 +876,6 @@ const NotifRepo = {
     return !error;
   },
 
-  /** Mark all notifications as read for current user. */
   async markAllRead() {
     const uid = await Auth.uid();
     if (!uid) return false;
@@ -1007,15 +888,7 @@ const NotifRepo = {
   },
 };
 
-/* ─────────────────────────────────────────────────────────────
-   REPOSITORY: Scout Search
-───────────────────────────────────────────────────────────── */
 const ScoutRepo = {
-
-  /**
-   * Advanced player search using search_players() RPC.
-   * All params are optional — omit to get full passport leaderboard.
-   */
   async search(params = {}) {
     const {
       query, position, ageMin, ageMax,
@@ -1028,30 +901,30 @@ const ScoutRepo = {
     } = params;
 
     const rpcParams = {
-      p_query:           query        ?? null,
-      p_position:        position     ?? null,
-      p_age_min:         ageMin       ?? null,
-      p_age_max:         ageMax       ?? null,
-      p_dna_min:         dnaMin       ?? null,
-      p_dna_max:         dnaMax       ?? null,
-      p_potential_min:   potentialMin ?? null,
-      p_league_id:       leagueId     ?? null,
-      p_club_id:         clubId       ?? null,
-      p_league_tier:     leagueTier   ?? null,
-      p_nationality:     nationality  ?? null,
-      p_passport_min:    passportMin  ?? null,
-      p_attr_passing:    attrPassing  ?? null,
-      p_attr_pace:       attrPace     ?? null,
-      p_attr_finishing:  attrFinishing ?? null,
-      p_attr_vision:     attrVision   ?? null,
-      p_attr_tackling:   attrTackling ?? null,
-      p_attr_strength:   attrStrength ?? null,
-      p_attr_composure:  attrComposure ?? null,
-      p_attr_work_rate:  attrWorkRate ?? null,
-      p_sort_by:         sortBy,
-      p_sort_dir:        sortDir,
-      p_limit:           limit,
-      p_offset:          offset,
+      p_query: query ?? null,
+      p_position: position ?? null,
+      p_age_min: ageMin ?? null,
+      p_age_max: ageMax ?? null,
+      p_dna_min: dnaMin ?? null,
+      p_dna_max: dnaMax ?? null,
+      p_potential_min: potentialMin ?? null,
+      p_league_id: leagueId ?? null,
+      p_club_id: clubId ?? null,
+      p_league_tier: leagueTier ?? null,
+      p_nationality: nationality ?? null,
+      p_passport_min: passportMin ?? null,
+      p_attr_passing: attrPassing ?? null,
+      p_attr_pace: attrPace ?? null,
+      p_attr_finishing: attrFinishing ?? null,
+      p_attr_vision: attrVision ?? null,
+      p_attr_tackling: attrTackling ?? null,
+      p_attr_strength: attrStrength ?? null,
+      p_attr_composure: attrComposure ?? null,
+      p_attr_work_rate: attrWorkRate ?? null,
+      p_sort_by: sortBy,
+      p_sort_dir: sortDir,
+      p_limit: limit,
+      p_offset: offset,
     };
 
     const { data, error } = await SB.rpc('search_players', rpcParams);
@@ -1061,7 +934,6 @@ const ScoutRepo = {
     return { players: rows, total };
   },
 
-  /** AI Scout report for a player. */
   async report(playerId) {
     const { data, error } = await SB
       .from('v_scout_reports_public')
@@ -1070,11 +942,10 @@ const ScoutRepo = {
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
-    if (error) { return null; }
+    if (error) return null;
     return _norm(data);
   },
 
-  /** Reputation leaderboard. */
   async reputationLeaderboard(entityType = 'player', limit = 20) {
     const { data, error } = await SB
       .from('v_reputation_leaderboard')
@@ -1082,87 +953,64 @@ const ScoutRepo = {
       .eq('entity_type', entityType)
       .order('score', { ascending: false })
       .limit(limit);
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 };
 
-/* ─────────────────────────────────────────────────────────────
-   REPOSITORY: Match Observer
-───────────────────────────────────────────────────────────── */
 const MatchRepo = {
-
-  /**
-   * Save a batch of match events to the database.
-   * Called by the Match Observer "Finalise" button.
-   * events: [{type, playerId, clubId, minute, half, minute_added?}]
-   */
   async saveEvents(fixtureId, events) {
     if (!events.length) return { ok: true };
-
     const rows = events
       .filter(e => e.playerId && e.type !== 'full_time_summary')
       .map(e => ({
-        fixture_id:           fixtureId,
-        event_type:           e.type,
-        minute:               Math.max(1, e.minute || 1),
-        added_time:           e.addedTime || 0,
-        period:               e.half || 1,
-        player_id:            e.playerId || null,
-        secondary_player_id:  e.playerOffId || null,
-        club_id:              e.clubId,
-        home_score_at_event:  e.homeScore ?? 0,
-        away_score_at_event:  e.awayScore ?? 0,
-        is_cancelled:         false,
+        fixture_id: fixtureId,
+        event_type: e.type,
+        minute: Math.max(1, e.minute || 1),
+        added_time: e.addedTime || 0,
+        period: e.half || 1,
+        player_id: e.playerId || null,
+        secondary_player_id: e.playerOffId || null,
+        club_id: e.clubId,
+        home_score_at_event: e.homeScore ?? 0,
+        away_score_at_event: e.awayScore ?? 0,
+        is_cancelled: false,
       }));
-
     const { error } = await SB.from('match_events').insert(rows);
     if (error) { console.error('[MatchRepo.saveEvents]', error.message); return { ok: false, error }; }
     return { ok: true };
   },
 
-  /**
-   * Upsert player_match_stats rows after a match.
-   * Called before triggering the pipeline.
-   */
   async savePlayerStats(fixtureId, statsMap, players) {
-    // statsMap: {playerId: {goals, assists, sot, shots, pass_ok, pass_fail, ...}}
     const rows = Object.entries(statsMap).map(([pid, s]) => {
       const p = players.find(x => x.id === pid);
       return {
-        fixture_id:          fixtureId,
-        player_id:           pid,
-        club_id:             p?.clubId || null,
-        started:             s.role === 'starter',
-        minutes_played:      s.minutes ?? 90,
-        goals:               s.goals ?? 0,
-        assists:             s.assists ?? 0,
-        shots:               s.shots ?? 0,
-        shots_on_target:     s.sot ?? 0,
-        yellow_cards:        s.yellows ?? 0,
-        red_cards:           s.reds ?? 0,
-        saves:               s.saves ?? 0,
-        passes_completed:    s.passOk ?? 0,
-        passes_attempted:    (s.passOk ?? 0) + (s.passFail ?? 0),
-        tackles_won:         s.tacklesWon ?? 0,
-        tackles_attempted:   (s.tacklesWon ?? 0) + (s.tacklesLost ?? 0),
-        interceptions:       s.interceptions ?? 0,
-        match_rating:        s.rating ?? null,
-        is_motm:             s.motm ?? false,
+        fixture_id: fixtureId,
+        player_id: pid,
+        club_id: p?.clubId || null,
+        started: s.role === 'starter',
+        minutes_played: s.minutes ?? 90,
+        goals: s.goals ?? 0,
+        assists: s.assists ?? 0,
+        shots: s.shots ?? 0,
+        shots_on_target: s.sot ?? 0,
+        yellow_cards: s.yellows ?? 0,
+        red_cards: s.reds ?? 0,
+        saves: s.saves ?? 0,
+        passes_completed: s.passOk ?? 0,
+        passes_attempted: (s.passOk ?? 0) + (s.passFail ?? 0),
+        tackles_won: s.tacklesWon ?? 0,
+        tackles_attempted: (s.tacklesWon ?? 0) + (s.tacklesLost ?? 0),
+        interceptions: s.interceptions ?? 0,
+        match_rating: s.rating ?? null,
+        is_motm: s.motm ?? false,
       };
     });
-
-    const { error } = await SB
-      .from('player_match_stats')
-      .upsert(rows, { onConflict: 'fixture_id,player_id' });
+    const { error } = await SB.from('player_match_stats').upsert(rows, { onConflict: 'fixture_id,player_id' });
     if (error) { console.error('[MatchRepo.savePlayerStats]', error.message); return { ok: false, error }; }
     return { ok: true };
   },
 
-  /**
-   * Mark fixture as 'completed' — this triggers the database trigger
-   * trg_fixture_status_pipeline which calls run_post_match_pipeline().
-   */
   async completeFixture(fixtureId) {
     const { error } = await SB
       .from('fixtures')
@@ -1172,10 +1020,6 @@ const MatchRepo = {
     return { ok: true };
   },
 
-  /**
-   * Explicit pipeline call for cases where the trigger is not
-   * sufficient (e.g. fixture was already 'completed' before events were added).
-   */
   async runPipeline(fixtureId, seasonId = null) {
     const params = { p_fixture_id: fixtureId };
     if (seasonId) params.p_season_id = seasonId;
@@ -1184,9 +1028,6 @@ const MatchRepo = {
     return { ok: true, result: _norm(data) };
   },
 
-  /**
-   * Lookup fixture by ID (for Match Observer setup).
-   */
   async getFixture(fixtureId) {
     const { data, error } = await SB
       .from('fixtures')
@@ -1198,13 +1039,10 @@ const MatchRepo = {
       `)
       .eq('id', fixtureId)
       .single();
-    if (error) { return null; }
+    if (error) return null;
     return _norm(data);
   },
 
-  /**
-   * Load lineup for a fixture+club.
-   */
   async lineup(fixtureId, clubId) {
     const { data, error } = await SB
       .from('match_lineups')
@@ -1216,13 +1054,10 @@ const MatchRepo = {
       .eq('fixture_id', fixtureId)
       .eq('club_id', clubId)
       .order('lineup_order');
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 
-  /**
-   * Save a lineup entry.
-   */
   async saveLineupEntry(entry) {
     const { error } = await SB
       .from('match_lineups')
@@ -1230,28 +1065,20 @@ const MatchRepo = {
     return { ok: !error, error };
   },
 
-  /**
-   * Pipeline log — last N runs.
-   */
   async pipelineLog(limit = 10) {
     const { data, error } = await SB
       .from('v_pipeline_summary')
       .select('*')
       .limit(limit);
-    if (error) { return []; }
+    if (error) return [];
     return _norm(data ?? []);
   },
 };
 
-/* ─────────────────────────────────────────────────────────────
-   REPOSITORY: User Follows
-───────────────────────────────────────────────────────────── */
 const FollowRepo = {
-
   async toggle(entityType, entityId) {
     const uid = await Auth.uid();
     if (!uid) return { ok: false, error: 'Not authenticated' };
-
     const { data: existing } = await SB
       .from('user_follows')
       .select('id')
@@ -1259,16 +1086,14 @@ const FollowRepo = {
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
       .single();
-
     if (existing) {
       const { error } = await SB.from('user_follows').delete().eq('id', existing.id);
       return { ok: !error, following: false, error };
-    } else {
-      const { error } = await SB
-        .from('user_follows')
-        .insert({ profile_id: uid, entity_type: entityType, entity_id: entityId });
-      return { ok: !error, following: true, error };
     }
+    const { error } = await SB
+      .from('user_follows')
+      .insert({ profile_id: uid, entity_type: entityType, entity_id: entityId });
+    return { ok: !error, following: true, error };
   },
 
   async isFollowing(entityType, entityId) {
@@ -1295,9 +1120,6 @@ const FollowRepo = {
   },
 };
 
-/* ─────────────────────────────────────────────────────────────
-   REPOSITORY: Club Admin Squad Management
-───────────────────────────────────────────────────────────── */
 const SquadRepo = {
   async players(clubId) {
     const { data, error } = await SB.from('players')
@@ -1335,28 +1157,22 @@ const SquadRepo = {
   },
 };
 
-  /* ─────────────────────────────────────────────────────────────
-   REPOSITORY: Technical Assessments
-  ───────────────────────────────────────────────────────────── */
-  const AssessmentRepo = {
-    async forPlayer(playerId) {
-      const { data, error } = await SB.from('player_assessments')
-        .select('id, player_id, assessor_id, passing, crossing, tackling, finishing, dribbling, first_touch, leadership, teamwork, determination, decisions, positioning, pace, strength, agility, balance, stamina, gk_handling, gk_reflexes, gk_positioning, notes, created_at')
-        .eq('player_id', playerId).order('created_at', { ascending: false });
-      if (error) { console.error('[AssessmentRepo.forPlayer]', error.message); return []; }
-      return _norm(data ?? []);
-    },
-    async save(playerId, assessorId, attributes, notes) {
-      const payload = { player_id: playerId, assessor_id: assessorId, ...attributes, notes: notes?.trim() || null };
-      const { data, error } = await SB.from('player_assessments').insert(payload).select().single();
-      if (error) console.error('[AssessmentRepo.save]', error.message);
-      return { data: _norm(data), error };
-    },
-  };
+const AssessmentRepo = {
+  async forPlayer(playerId) {
+    const { data, error } = await SB.from('player_assessments')
+      .select('id, player_id, assessor_id, passing, crossing, tackling, finishing, dribbling, first_touch, leadership, teamwork, determination, decisions, positioning, pace, strength, agility, balance, stamina, gk_handling, gk_reflexes, gk_positioning, notes, created_at')
+      .eq('player_id', playerId).order('created_at', { ascending: false });
+    if (error) { console.error('[AssessmentRepo.forPlayer]', error.message); return []; }
+    return _norm(data ?? []);
+  },
+  async save(playerId, assessorId, attributes, notes) {
+    const payload = { player_id: playerId, assessor_id: assessorId, ...attributes, notes: notes?.trim() || null };
+    const { data, error } = await SB.from('player_assessments').insert(payload).select().single();
+    if (error) console.error('[AssessmentRepo.save]', error.message);
+    return { data: _norm(data), error };
+  },
+};
 
-  /* ─────────────────────────────────────────────────────────────
-   Utility helpers
-  ───────────────────────────────────────────────────────────── */
 function _mondayOfThisWeek() {
   const d = new Date();
   const day = d.getDay();
@@ -1365,52 +1181,48 @@ function _mondayOfThisWeek() {
   return d.toISOString().slice(0, 10);
 }
 
-  /* ─────────────────────────────────────────────────────────────
-     REPOSITORY: Public Portal
-  ───────────────────────────────────────────────────────────── */
-  const PublicRepo = {
-    async standings(leagueId = null) {
-      let q = SB.from('v_standings').select('*').order('position', { ascending: true });
-      if (leagueId) q = q.eq('league_id', leagueId);
-      const { data, error } = await q;
-      if (error) { console.error('[PublicRepo.standings]', error.message); return []; }
-      return _norm(data ?? []);
-    },
-    async fixtures(leagueId = null, limit = 30) {
-      let q = SB.from('fixtures').select('id, league_id, match_date, status, venue, home_club:clubs!fixtures_home_club_id_fkey(id,name,logo_url), away_club:clubs!fixtures_away_club_id_fkey(id,name,logo_url), match_results(home_goals,away_goals)').order('match_date', { ascending: true }).limit(limit);
-      if (leagueId) q = q.eq('league_id', leagueId);
-      const { data, error } = await q;
-      if (error) { console.error('[PublicRepo.fixtures]', error.message); return []; }
-      return _norm(data ?? []);
-    },
-    async topScorers(leagueId = null, limit = 10) {
-      let q = SB.from('v_top_scorers').select('*').order('goals', { ascending: false }).limit(limit);
-      if (leagueId) q = q.eq('league_id', leagueId);
-      const { data, error } = await q;
-      if (error) { console.error('[PublicRepo.topScorers]', error.message); return []; }
-      return _norm(data ?? []);
-    },
-    async suspensions(limit = 20) {
-      const { data, error } = await SB.from('v_active_suspensions').select('*').limit(limit);
-      if (error) { console.error('[PublicRepo.suspensions]', error.message); return []; }
-      return _norm(data ?? []);
-    }
-  };
+const PublicRepo = {
+  async standings(leagueId = null) {
+    let q = SB.from('v_standings').select('*').order('position', { ascending: true });
+    if (leagueId) q = q.eq('league_id', leagueId);
+    const { data, error } = await q;
+    if (error) { console.error('[PublicRepo.standings]', error.message); return []; }
+    return _norm(data ?? []);
+  },
+  async fixtures(leagueId = null, limit = 30) {
+    let q = SB.from('fixtures').select('id, league_id, match_date, status, venue, home_club:clubs!fixtures_home_club_id_fkey(id,name,logo_url), away_club:clubs!fixtures_away_club_id_fkey(id,name,logo_url), match_results(home_goals,away_goals)').order('match_date', { ascending: true }).limit(limit);
+    if (leagueId) q = q.eq('league_id', leagueId);
+    const { data, error } = await q;
+    if (error) { console.error('[PublicRepo.fixtures]', error.message); return []; }
+    return _norm(data ?? []);
+  },
+  async topScorers(leagueId = null, limit = 10) {
+    let q = SB.from('v_top_scorers').select('*').order('goals', { ascending: false }).limit(limit);
+    if (leagueId) q = q.eq('league_id', leagueId);
+    const { data, error } = await q;
+    if (error) { console.error('[PublicRepo.topScorers]', error.message); return []; }
+    return _norm(data ?? []);
+  },
+  async suspensions(limit = 20) {
+    const { data, error } = await SB.from('v_active_suspensions').select('*').limit(limit);
+    if (error) { console.error('[PublicRepo.suspensions]', error.message); return []; }
+    return _norm(data ?? []);
+  }
+};
 
-  /* ── Expose all repositories globally ─────────────────────── */
-  window.PublicRepo     = PublicRepo;
-  window.UserRepo       = UserRepo;
-window.ProfileRepo    = ProfileRepo;
-window.SquadRepo      = SquadRepo;
-window.PlayerRepo     = PlayerRepo;
-window.ClubRepo       = ClubRepo;
-window.LeagueRepo     = LeagueRepo;
-window.FixtureRepo    = FixtureRepo;
-window.PassportRepo   = PassportRepo;
-window.DnaRepo        = DnaRepo;
-window.DevRepo        = DevRepo;
+window.PublicRepo = PublicRepo;
+window.UserRepo = UserRepo;
+window.ProfileRepo = ProfileRepo;
+window.SquadRepo = SquadRepo;
+window.PlayerRepo = PlayerRepo;
+window.ClubRepo = ClubRepo;
+window.LeagueRepo = LeagueRepo;
+window.FixtureRepo = FixtureRepo;
+window.PassportRepo = PassportRepo;
+window.DnaRepo = DnaRepo;
+window.DevRepo = DevRepo;
 window.MarketValueRepo = MarketValueRepo;
-window.NotifRepo      = NotifRepo;
-window.ScoutRepo      = ScoutRepo;
-window.MatchRepo      = MatchRepo;
-window.FollowRepo     = FollowRepo;
+window.NotifRepo = NotifRepo;
+window.ScoutRepo = ScoutRepo;
+window.MatchRepo = MatchRepo;
+window.FollowRepo = FollowRepo;
