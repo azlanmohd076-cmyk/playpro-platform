@@ -2,6 +2,7 @@
   "outputDirectory": "public",
   "rewrites": [
     { "source": "/app", "destination": "/app.html" },
+    { "source": "/player", "destination": "/player.html" },
     { "source": "/card", "destination": "/player_card.html" },
     { "source": "/ops", "destination": "/dev_panel.html" },
     { "source": "/club", "destination": "/club_center_v3.html" },
