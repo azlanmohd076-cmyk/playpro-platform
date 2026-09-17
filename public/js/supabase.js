@@ -188,22 +188,15 @@ window.mustLogin = mustLogin;
 /* ── Player profile follow-button guard ───────────────────────── */
 /**
  * Minimal global helper used by the player-profile renderer.
- * The current renderer passes the loaded player object; the helper also
- * accepts the explicit (playerId, isOwnProfile) form for future callers.
- * It only hides the follow button for the authenticated user's own profile.
+ * Supports both the current player-object call and the explicit
+ * (playerId, isOwnProfile) form without introducing new profile logic.
  */
 function updateFollowButtonStateForProfile(playerOrId, isOwnProfile) {
   const btn = document.getElementById('follow-btn');
   if (!btn) return;
-
   const own = (typeof playerOrId === 'object' && playerOrId !== null)
-    ? Boolean(
-        playerOrId.is_own_profile ??
-        playerOrId.isOwnProfile ??
-        (_u && playerOrId.profile_id && playerOrId.profile_id === _u.id)
-      )
+    ? Boolean(playerOrId.is_own_profile ?? playerOrId.isOwnProfile ?? false)
     : Boolean(isOwnProfile);
-
   if (own) btn.style.display = 'none';
 }
 window.updateFollowButtonStateForProfile = updateFollowButtonStateForProfile;
