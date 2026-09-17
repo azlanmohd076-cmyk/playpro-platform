@@ -226,8 +226,146 @@ const Realtime = {
   },
 };
 
-/* ── Expose globals ───────────────────────────────────────────── */
-window.SB        = SB;
-window.Auth      = Auth;
-window.Realtime  = Realtime;
-window._ppCache  = { invalidate: cacheInvalidate };
+/* ── Player profile hotfixes ──────────────────────────────────── */
+/*
+ * The profile UI is currently a legacy monolith, so these bindings
+ * provide the missing live behaviour without changing unrelated modules.
+ * Counts come from the canonical player-profile RPC; follow mutations
+ * use the existing server-side follow_player/unfollow_player RPCs.
+ */
+async function _refreshPlayerFollowerCount(playerId) {
+  if (!playerId || !SB?.rpc) return null;
+  const { data, error } = await SB.rpc('get_player_profile', { p_player_id: playerId });
+  if (error) {
+    console.error('[PlayPro:followers]', error.message);
+    return null;
+  }
+  const count = Number(data?.player?.follower_count ?? 0);
+  const el = document.getElementById('count-followers-val');
+  if (el) el.textContent = count.toLocaleString('en-US');
+  return { count, profile: data };
+}
+
+async function aksiToggleFollowPlayer(playerId) {
+  const pid = playerId || window._pd?.id || window.currentPlayerId;
+  if (!pid) return;
+  const { data: { user } = {} } = await SB.auth.getUser();
+  if (!user) {
+    if (typeof window.mustLogin === 'function') window.mustLogin();
+    else if (typeof window.showLogin === 'function') window.showLogin();
+    return;
+  }
+
+  const { data: profileData, error: profileError } = await SB.rpc('get_player_profile', { p_player_id: pid });
+  if (profileError) {
+    console.error('[PlayPro:follow]', profileError.message);
+    if (typeof window.toast === 'function') window.toast('⚠️ Gagal mendapatkan status follow.');
+    return;
+  }
+
+  const currentStatus = profileData?.follow_status || 'none';
+  let result;
+  if (currentStatus === 'approved' || currentStatus === 'pending') {
+    result = await SB.rpc('unfollow_player', { p_player_id: pid });
+  } else {
+    result = await SB.rpc('follow_player', { p_player_id: pid });
+  }
+
+  if (result.error) {
+    console.error('[PlayPro:follow]', result.error.message);
+    if (typeof window.toast === 'function') window.toast('⚠️ ' + result.error.message);
+    return;
+  }
+
+  const fresh = await _refreshPlayerFollowerCount(pid);
+  const nextStatus = result.data?.status || (currentStatus === 'approved' || currentStatus === 'pending' ? 'none' : 'approved');
+  const btn = document.getElementById('btn-follow-action');
+  if (btn) {
+    btn.textContent = nextStatus === 'approved' ? '✓ FOLLOWING' : nextStatus === 'pending' ? 'REQUESTED' : '+ FOLLOW';
+  }
+  if (typeof window.toast === 'function') {
+    window.toast(nextStatus === 'approved' ? '✅ Mengikuti pemain.' : nextStatus === 'pending' ? '📨 Permintaan follow dihantar.' : '✓ Follow dibatalkan.');
+  }
+  return fresh;
+}
+
+function updateFollowButtonStateForProfile(playerOrId, isOwnProfile) {
+  const player = (playerOrId && typeof playerOrId === 'object') ? playerOrId : null;
+  const pid = player?.id || playerOrId || window._pd?.id || window.currentPlayerId;
+  const own = isOwnProfile ?? Boolean(player?.profile_id && window._u?.id && player.profile_id === window._u.id);
+  const btn = document.getElementById('btn-follow-action');
+  if (!btn) return;
+
+  if (own) {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = '';
+    const status = player?.follow_status || 'none';
+    btn.textContent = status === 'approved' ? '✓ FOLLOWING' : status === 'pending' ? 'REQUESTED' : '+ FOLLOW';
+  }
+
+  const count = Number(player?.follower_count ?? 0);
+  const countEl = document.getElementById('count-followers-val');
+  if (countEl) countEl.textContent = count.toLocaleString('en-US');
+  if (pid && !player?.follower_count && !own) _refreshPlayerFollowerCount(pid);
+}
+
+/* The legacy profile function queries old view column names. Replace only
+ * that binding after the page scripts have declared it, using the live view:
+ * profile_id, club_id, joined_at, left_at, status, club_name. */
+function _installPlayerClubHistoryFix() {
+  if (typeof window.renderClubHistory2 !== 'function') return;
+  window.renderClubHistory2 = function(p) {
+    const el = document.getElementById('club2-list');
+    if (!el) return;
+    el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--mute);font-size:.75rem">Memuatkan sejarah kelab...</div>';
+    const profileId = p?.profile_id || p?.profileId || null;
+    if (!profileId) {
+      el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--mute);font-size:.75rem">Tiada sejarah kelab.</div>';
+      return;
+    }
+    SB.from('player_club_history')
+      .select('profile_id,club_id,joined_at,left_at,status,club_name')
+      .eq('profile_id', profileId)
+      .order('joined_at', { ascending: false, nullsFirst: false })
+      .then(function({ data, error }) {
+        if (error) {
+          console.error('[PlayPro:club-history]', error.message);
+          el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--mute);font-size:.75rem">Sejarah kelab tidak dapat dimuatkan.</div>';
+          return;
+        }
+        if (!data?.length) {
+          el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--mute);font-size:.75rem">Tiada sejarah kelab.</div>';
+          return;
+        }
+        el.innerHTML = data.map(function(row) {
+          const joined = row.joined_at ? new Date(row.joined_at).getFullYear() : '—';
+          const left = row.left_at ? new Date(row.left_at).getFullYear() : 'Kini';
+          const status = row.status ? String(row.status).toUpperCase() : '';
+          return '<div class="club2-item">'
+            + '<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem">'
+            + '<div style="font-weight:800;color:var(--txt)">' + (row.club_name || 'Kelab') + '</div>'
+            + '<div style="font-size:.62rem;color:var(--mute)">' + joined + ' — ' + left + '</div>'
+            + '</div>'
+            + (status ? '<div style="font-size:.58rem;color:var(--g);font-weight:700;margin-top:.25rem">' + status + '</div>' : '')
+            + '</div>';
+        }).join('');
+      });
+  };
+}
+
+if (typeof window !== 'undefined') {
+  window.SB        = SB;
+  window.Auth      = Auth;
+  window.Realtime  = Realtime;
+  window._ppCache  = { invalidate: cacheInvalidate };
+  window.aksiToggleFollowPlayer = aksiToggleFollowPlayer;
+  window.updateFollowButtonStateForProfile = updateFollowButtonStateForProfile;
+  window._refreshPlayerFollowerCount = _refreshPlayerFollowerCount;
+
+  /* index.html declares renderClubHistory2 later in the same document. */
+  window.addEventListener('DOMContentLoaded', function() {
+    _installPlayerClubHistoryFix();
+    if (window._pd?.id) _refreshPlayerFollowerCount(window._pd.id);
+  });
+}
