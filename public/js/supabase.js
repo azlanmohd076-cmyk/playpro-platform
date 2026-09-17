@@ -108,7 +108,7 @@ const Auth = {
     return session;
   },
 
-  /** Returns the current user profile row from `profiles` table, or null. */
+  /** Returns the current user's profile row from `profiles` table, or null. */
   async profile() {
     const session = await Auth.session();
     if (!session) return null;
@@ -184,6 +184,29 @@ async function mustLogin(nextUrl = window.location.href) {
   return false;
 }
 window.mustLogin = mustLogin;
+
+/* ── Player profile follow-button guard ───────────────────────── */
+/**
+ * Minimal global helper used by the player-profile renderer.
+ * The current renderer passes the loaded player object; the helper also
+ * accepts the explicit (playerId, isOwnProfile) form for future callers.
+ * It only hides the follow button for the authenticated user's own profile.
+ */
+function updateFollowButtonStateForProfile(playerOrId, isOwnProfile) {
+  const btn = document.getElementById('follow-btn');
+  if (!btn) return;
+
+  const own = (typeof playerOrId === 'object' && playerOrId !== null)
+    ? Boolean(
+        playerOrId.is_own_profile ??
+        playerOrId.isOwnProfile ??
+        (_u && playerOrId.profile_id && playerOrId.profile_id === _u.id)
+      )
+    : Boolean(isOwnProfile);
+
+  if (own) btn.style.display = 'none';
+}
+window.updateFollowButtonStateForProfile = updateFollowButtonStateForProfile;
 
 /* ── Error handler ────────────────────────────────────────────── */
 function _handle(label, { data, error }) {
