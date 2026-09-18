@@ -14,13 +14,13 @@ function detectIdType(ocr:string,fallback:string){const t=normalize(ocr);if(/MYK
 function extractText(doc:any){return String(doc?.text||'')}
 async function processDocument(token:string,project:string,location:string,processor:string,bytes:Uint8Array,mime:string){
  const processorId=processor.includes('/processors/')?processor.split('/processors/').pop()!:processor;
- const endpoint=\`https://\${location}-documentai.googleapis.com/v1/projects/\${encodeURIComponent(project)}/locations/\${encodeURIComponent(location)}/processors/\${encodeURIComponent(processorId)}:process\`;
+ const endpoint='https://'+location+'-documentai.googleapis.com/v1/projects/'+encodeURIComponent(project)+'/locations/'+encodeURIComponent(location)+'/processors/'+encodeURIComponent(processorId)+':process';
  const r=await fetch(endpoint,{method:'POST',headers:{Authorization:\`Bearer \${token}\`,'Content-Type':'application/json'},body:JSON.stringify({rawDocument:{mimeType:mime,content:b64std(bytes)},imagelessMode:true,fieldMask:'text,entities,pages.pageNumber'})});
  const raw=await r.text();
  if(!r.ok){
    let detail=raw;
    try{const j=JSON.parse(raw);detail=j?.error?.message||j?.error?.status||raw}catch{}
-   throw new Error(\`Document AI process error \${r.status}: \${detail}\`);
+   throw new Error('Document AI process error '+r.status+': '+detail);
  }
  try{return JSON.parse(raw)}catch{throw new Error('Document AI returned invalid JSON')}
 }
