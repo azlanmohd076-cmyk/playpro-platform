@@ -17,7 +17,7 @@ const PLAYPRO_CONFIG = {
      In production, inject via a build-time env or a small
      /config endpoint served by Supabase Edge Functions.      */
   supabaseUrl:     window.PLAYPRO_SUPABASE_URL     || 'https://YOUR_PROJECT.supabase.co',
-  supabaseAnonKey: window.PLAYPRO_SUPABASE_ANON_KEY || 'YOUR_ANON_KEY',
+  supabaseAnonKey: window.PLAYPRO_SUPABASE_ANON_KEY || 'sb_publishable_exWFL10h8zcpyFyEdq7jAw_XoBl2RwZ',
 
   /* App settings */
   authRedirectUrl: window.PLAYPRO_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`,
