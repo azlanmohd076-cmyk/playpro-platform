@@ -2222,6 +2222,8 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
             <span class="pp2-contract-val" id="pp2-contract">Tiada Kontrak</span>
             <span id="pp2-edit-btn-wrap" style="margin-left:auto;display:none;gap:.5rem;align-items:center">
               <button onclick="openEditModal()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;padding:.2rem .55rem;border-radius:6px;cursor:pointer;font-size:.65rem;font-weight:600;font-family:inherit">✏️ Edit</button>
+              <a id="pp2-kyc-btn" href="/player_kyc.html" style="display:none;background:rgba(245,158,11,.16);border:1px solid rgba(245,158,11,.5);color:#f59e0b;padding:.2rem .55rem;border-radius:6px;cursor:pointer;font-size:.65rem;font-weight:700;font-family:inherit;text-decoration:none">✓ Verify KYC</a>
+              <span id="pp2-kyc-verified" style="display:none;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.45);color:#22c55e;padding:.2rem .55rem;border-radius:6px;font-size:.65rem;font-weight:800;font-family:inherit">✓ VERIFIED</span>
               <span style="cursor:pointer;font-size:.8rem;color:rgba(255,255,255,.3)" onclick="sharePassport()">↗️</span>
             </span>
           </div>
@@ -3325,8 +3327,15 @@ function renderPP2Header(p){
   /* Privacy: edit is available only for the authenticated user's own player record. */
   var isOwnProfile = Boolean(_u && ((p.profile_id && p.profile_id === _u.id) || p.id === window._pd?.id));
   var editWrap = document.getElementById('pp2-edit-btn-wrap');
+  var kycBtn = document.getElementById('pp2-kyc-btn');
+  var kycVerified = document.getElementById('pp2-kyc-verified');
   if(editWrap){
     editWrap.style.display = isOwnProfile ? 'flex' : 'none';
+  }
+  if(kycBtn && kycVerified){
+    var kycIsVerified = String(p.kyc_status || '').toLowerCase() === 'verified';
+    kycBtn.style.display = isOwnProfile && !kycIsVerified ? 'inline-flex' : 'none';
+    kycVerified.style.display = isOwnProfile && kycIsVerified ? 'inline-flex' : 'none';
   }
   
   safeSet('pp2-name', dn);
