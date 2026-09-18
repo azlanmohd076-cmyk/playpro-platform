@@ -27,11 +27,12 @@ async function processDocument(token:string,project:string,location:string,proce
 
 Deno.serve(async(req)=>{
  if(req.method==='OPTIONS')return new Response('ok',{headers:corsHeaders});
+ let requestKycId='';
  try{
   const authHeader=req.headers.get('Authorization')||'';const token=authHeader.replace(/^Bearer\s+/i,'');if(!token)throw new Error('Authentication required');
   const supabaseUrl=Deno.env.get('SUPABASE_URL')!;const secretMap=Deno.env.get('SUPABASE_SECRET_KEYS');const serviceRole=secretMap?JSON.parse(secretMap).default:Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');if(!serviceRole)throw new Error('Supabase server secret is not configured');
   const admin=createClient(supabaseUrl,serviceRole);const {data:auth,error:authError}=await admin.auth.getUser(token);if(authError||!auth.user)throw new Error('Invalid session');
-  const body=await req.json();const kycId=String(body?.kyc_id||'');if(!kycId)throw new Error('kyc_id diperlukan');
+  const body=await req.json();const kycId=String(body?.kyc_id||'');requestKycId=kycId;if(!kycId)throw new Error('kyc_id diperlukan');
   const {data:kyc,error:ke}=await admin.from('identity_verifications').select('id,profile_id,subject_type,id_type,legal_name_claimed,birth_state_code,document_storage_paths,status').eq('id',kycId).eq('profile_id',auth.user.id).eq('subject_type','player').maybeSingle();if(ke)throw ke;if(!kyc)throw new Error('Permohonan KYC tidak ditemui');if(kyc.status!=='pending')return new Response(JSON.stringify({ok:true,status:kyc.status,kyc_id:kyc.id}),{headers:{...corsHeaders,'Content-Type':'application/json'}});
   const paths=Array.isArray(kyc.document_storage_paths)?kyc.document_storage_paths:[];if(!paths.length||paths.length>2||paths.some((p:unknown)=>typeof p!=='string'||!p.startsWith(`${auth.user.id}/`)))throw new Error('Dokumen KYC tidak sah');
   const serviceJson=Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON');const projectId=Deno.env.get('GOOGLE_DOCUMENT_AI_PROJECT_ID');const location=Deno.env.get('GOOGLE_DOCUMENT_AI_LOCATION')||'asia-southeast1';const processorId=Deno.env.get('GOOGLE_DOCUMENT_AI_PROCESSOR_ID');if(!serviceJson||!projectId||!processorId)throw new Error('Google Document AI belum dikonfigurasi sepenuhnya');const sa=JSON.parse(serviceJson);if(!sa.client_email||!sa.private_key)throw new Error('Google service account JSON tidak lengkap');
@@ -46,14 +47,23 @@ Deno.serve(async(req)=>{
    const message=e instanceof Error?e.message:'KYC processing failed';
    console.error('PlayPro KYC provider error',message);
    try{
-     const kycId=String((await req.clone().json())?.kyc_id||'');
-     if(kycId){
+     if(requestKycId){
        const serviceMap=Deno.env.get('SUPABASE_SECRET_KEYS');
        const serviceRole=serviceMap?JSON.parse(serviceMap).default:Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
        const url=Deno.env.get('SUPABASE_URL');
-       if(serviceRole&&url) await createClient(url,serviceRole).from('identity_verifications').update({provider:'google_document_ai',provider_status:'error',match_status:'not_processed',updated_at:new Date().toISOString()}).eq('id',kycId);
+       if(serviceRole&&url){
+         await createClient(url,serviceRole).from('identity_verifications').update({
+           provider:'google_document_ai',
+           provider_status:'error',
+           match_status:'not_processed',
+           updated_at:new Date().toISOString()
+         }).eq('id',requestKycId);
+       }
      }
    }catch(updateError){console.error('PlayPro KYC error-state update failed',updateError)}
-   return new Response(JSON.stringify({ok:false,error:message}),{status:400,headers:{...corsHeaders,'Content-Type':'application/json'}})
- }}
-})
+   return new Response(JSON.stringify({ok:false,error:message}),{
+     status:400,
+     headers:{...corsHeaders,'Content-Type':'application/json'}
+   });
+ }
+});
