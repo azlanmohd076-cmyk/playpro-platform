@@ -12,7 +12,18 @@ function extractDob(ocr:string){const m=ocr.match(/\b(\d{1,2})[\/-](\d{1,2})[\/-
 function extractMyKad(ocr:string){const m=ocr.match(/\b\d{6}[- ]?\d{2}[- ]?\d{4}\b/);return m?`••••••-${m[0].replace(/\D/g,'').slice(6,8)}-••••`:null}
 function detectIdType(ocr:string,fallback:string){const t=normalize(ocr);if(/MYKID/.test(t))return'mykid';if(/MYKAD|MALAYSIA/.test(t))return'mykad';if(/PASSPORT/.test(t))return'passport';return fallback}
 function extractText(doc:any){return String(doc?.text||'')}
-async function processDocument(token:string,project:string,location:string,processor:string,bytes:Uint8Array,mime:string){const endpoint=`https://${location}-documentai.googleapis.com/v1/projects/${encodeURIComponent(project)}/locations/${encodeURIComponent(location)}/processors/${encodeURIComponent(processor)}:process`;const r=await fetch(endpoint,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({rawDocument:{mimeType:mime,content:b64std(bytes)},imagelessMode:true,fieldMask:'text,entities,pages.pageNumber'})});if(!r.ok)throw new Error(`Document AI process error ${r.status}`);return await r.json()}
+async function processDocument(token:string,project:string,location:string,processor:string,bytes:Uint8Array,mime:string){
+ const processorId=processor.includes('/processors/')?processor.split('/processors/').pop()!:processor;
+ const endpoint=\`https://\${location}-documentai.googleapis.com/v1/projects/\${encodeURIComponent(project)}/locations/\${encodeURIComponent(location)}/processors/\${encodeURIComponent(processorId)}:process\`;
+ const r=await fetch(endpoint,{method:'POST',headers:{Authorization:\`Bearer \${token}\`,'Content-Type':'application/json'},body:JSON.stringify({rawDocument:{mimeType:mime,content:b64std(bytes)},imagelessMode:true,fieldMask:'text,entities,pages.pageNumber'})});
+ const raw=await r.text();
+ if(!r.ok){
+   let detail=raw;
+   try{const j=JSON.parse(raw);detail=j?.error?.message||j?.error?.status||raw}catch{}
+   throw new Error(\`Document AI process error \${r.status}: \${detail}\`);
+ }
+ try{return JSON.parse(raw)}catch{throw new Error('Document AI returned invalid JSON')}
+}
 
 Deno.serve(async(req)=>{
  if(req.method==='OPTIONS')return new Response('ok',{headers:corsHeaders});
@@ -31,5 +42,18 @@ Deno.serve(async(req)=>{
   const score=nameScore(player.full_name,ocr);const dobMatches=detectedDob?detectedDob===player.date_of_birth:true;const matchStatus=score>=90&&dobMatches?'match':score>=50||!detectedDob?'inconclusive':'mismatch';
   await admin.from('identity_verifications').update({provider:'google_document_ai',provider_status:'processed',extracted_legal_name:null,extracted_birth_date:detectedDob,extracted_id_type:detectedType,extracted_identifier_masked:maskedId,match_status:matchStatus,match_score:score,processed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',kyc.id);
   return new Response(JSON.stringify({ok:true,status:'pending',kyc_id:kyc.id,provider:'google_document_ai',provider_status:'processed',match_status:matchStatus,match_score:score,extracted_id_type:detectedType}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
- }catch(e){console.error('PlayPro KYC provider error',e);return new Response(JSON.stringify({ok:false,error:e instanceof Error?e.message:'KYC processing failed'}),{status:400,headers:{...corsHeaders,'Content-Type':'application/json'}})}
+ }catch(e){
+   const message=e instanceof Error?e.message:'KYC processing failed';
+   console.error('PlayPro KYC provider error',message);
+   try{
+     const kycId=String((await req.clone().json())?.kyc_id||'');
+     if(kycId){
+       const serviceMap=Deno.env.get('SUPABASE_SECRET_KEYS');
+       const serviceRole=serviceMap?JSON.parse(serviceMap).default:Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+       const url=Deno.env.get('SUPABASE_URL');
+       if(serviceRole&&url) await createClient(url,serviceRole).from('identity_verifications').update({provider:'google_document_ai',provider_status:'error',match_status:'not_processed',updated_at:new Date().toISOString()}).eq('id',kycId);
+     }
+   }catch(updateError){console.error('PlayPro KYC error-state update failed',updateError)}
+   return new Response(JSON.stringify({ok:false,error:message}),{status:400,headers:{...corsHeaders,'Content-Type':'application/json'}})
+ }}
 })
