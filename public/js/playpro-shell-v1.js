@@ -218,26 +218,32 @@
   function buildNavigationV2() {
     const top = document.getElementById('hdr-nav');
     if (top) {
-      const currentTop = norm(top.textContent || '');
-      const expectedTop = '🏠 HOME 🔍 CARI 🏆 PERTANDINGAN 🛍️ KEDAI';
-      if (currentTop !== norm(expectedTop)) {
+      const ready = top.querySelector('[data-pp-nav="home"]') &&
+        top.querySelector('[data-pp-nav="explore"]') &&
+        top.querySelector('[data-pp-nav="competition"]') &&
+        top.querySelector('[data-pp-nav="shop"]');
+      if (!ready) {
         top.innerHTML =
           '<div class="hn-item on" id="hn-home" data-pp-nav="home">🏠 Home</div>' +
           '<div class="hn-item" id="hn-explore" data-pp-nav="explore">🔍 Cari</div>' +
           '<div class="hn-item" id="hn-competition" data-pp-nav="competition">🏆 Pertandingan</div>' +
           '<div class="hn-item" id="hn-shop" data-pp-nav="shop">🛍️ Kedai</div>';
-        top.querySelector('[data-pp-nav="home"]').onclick = () => navigateTab('home');
-        top.querySelector('[data-pp-nav="explore"]').onclick = () => navigateTab('explore');
-        top.querySelector('[data-pp-nav="competition"]').onclick = () => { window.location.assign('/organizer/competitions'); };
-        top.querySelector('[data-pp-nav="shop"]').onclick = openKedai;
       }
+      const home=top.querySelector('[data-pp-nav="home"]');
+      const explore=top.querySelector('[data-pp-nav="explore"]');
+      const competition=top.querySelector('[data-pp-nav="competition"]');
+      const shop=top.querySelector('[data-pp-nav="shop"]');
+      if(home) home.onclick=()=>navigateTab('home');
+      if(explore) explore.onclick=()=>navigateTab('explore');
+      if(competition) competition.onclick=()=>window.location.assign('/organizer/competitions');
+      if(shop) shop.onclick=openKedai;
     }
 
     const sub = document.getElementById('hdr-bread');
     if (sub) {
-      const currentSub = norm(sub.textContent || '');
-      const expectedSub = '✓ PENGESAHAN KYC › 📊 ASESMEN PLAYER/COACH';
-      if (currentSub !== norm(expectedSub)) {
+      const ready = sub.querySelector('a[href="/player_kyc.html"]') &&
+        sub.querySelector('a[href="/technical_assessor.html"]');
+      if (!ready) {
         sub.innerHTML =
           '<a class="hb-item" href="/player_kyc.html"><span class="hb-ic">✓</span> Pengesahan KYC</a>' +
           '<span class="hb-arrow">›</span>' +
@@ -247,20 +253,26 @@
 
     const bottom = document.getElementById('bnav');
     if (bottom) {
-      const currentBottom = norm(bottom.textContent || '');
-      const expectedBottom = '➕ CREATE 👥 MY TEAM 📬 INBOX 📋 PASSPORT';
-      if (currentBottom !== norm(expectedBottom)) {
-        bottom.style.gridTemplateColumns = 'repeat(4,1fr)';
+      const ready = bottom.querySelector('#bn-create') &&
+        bottom.querySelector('#bn-team') &&
+        bottom.querySelector('#bn-inbox') &&
+        bottom.querySelector('#bn-profile');
+      bottom.style.gridTemplateColumns='repeat(4,1fr)';
+      if (!ready) {
         bottom.innerHTML =
           '<div class="bn" id="bn-create"><div class="bn-ic">➕</div><div class="bn-lb">Create</div></div>' +
           '<div class="bn" id="bn-team"><div class="bn-ic">👥</div><div class="bn-lb">My Team</div></div>' +
           '<div class="bn" id="bn-inbox"><div class="bn-ic">📬</div><div class="bn-lb">Inbox</div></div>' +
           '<div class="bn" id="bn-profile"><div class="bn-ic">📋</div><div class="bn-lb">Passport</div></div>';
-        document.getElementById('bn-create').onclick = openCreateMenu;
-        document.getElementById('bn-team').onclick = () => navigateTab('team');
-        document.getElementById('bn-inbox').onclick = () => navigateTab('inbox');
-        document.getElementById('bn-profile').onclick = () => navigateTab('profile');
       }
+      const create=document.getElementById('bn-create');
+      const team=document.getElementById('bn-team');
+      const inbox=document.getElementById('bn-inbox');
+      const profile=document.getElementById('bn-profile');
+      if(create) create.onclick=openCreateMenu;
+      if(team) team.onclick=()=>navigateTab('team');
+      if(inbox) inbox.onclick=()=>navigateTab('inbox');
+      if(profile) profile.onclick=()=>navigateTab('profile');
     }
 
     hideLegacyHomeBanners();
