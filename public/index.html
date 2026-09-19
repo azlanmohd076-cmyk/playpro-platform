@@ -1634,7 +1634,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
     <div class="dr-row" id="dr-team" onclick="go('team');closeDr()"><span class="dr-ic">⚽</span><span class="dr-tx">Pasukan Saya</span></div>
     <div class="dr-row" id="dr-profile" onclick="go('profile');closeDr()"><span class="dr-ic">🪪</span><span class="dr-tx">Football Passport</span></div>
     <div class="dr-grp">CIPTA</div>
-    <div class="dr-row" onclick="mustLogin()"><span class="dr-ic">🛡️</span><span class="dr-tx">Tubuh Kelab</span></div>
+    <div class="dr-row" onclick="openClubCenter();closeDr()"><span class="dr-ic">🏢</span><span class="dr-tx">Kelab / Buat Kelab</span></div>
     <div class="dr-row" onclick="mustLogin()"><span class="dr-ic">🏆</span><span class="dr-tx">Anjur Liga</span></div>
     <div class="dr-row" onclick="mustLogin()"><span class="dr-ic">🟨</span><span class="dr-tx">Cari Pengadil</span></div>
     <div class="dr-grp">LAIN-LAIN</div>
@@ -1691,6 +1691,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
   <div class="hn-item" id="hn-myhub" onclick="go('myhub')" style="color:#fbbf24; font-weight:900;">MYHUB</div>
   <div class="hn-item" id="hn-team" onclick="go('team')"><span class="nav-myteam-3d">MyTeam</span></div>
   <div class="hn-item" id="hn-profile" onclick="go('profile')">PASSPORT</div>
+  <div class="hn-item" id="hn-club" onclick="openClubCenter()">KELAB</div>
   <div class="hn-item" onclick="mustLogin()">LIGA</div>
   <div class="hn-item" onclick="mustLogin()">KEDAI</div>
   <div class="hn-right">
@@ -2972,6 +2973,25 @@ function updateBread(t){
 
 /* ── DRAWER ── */
 function toggleDr(){document.getElementById('drawer').classList.toggle('on');document.getElementById('dr-mask').classList.toggle('on')}
+async function openClubCenter(){
+  try{
+    const sessionResult=await window.SB?.auth?.getSession?.();
+    const session=sessionResult?.data?.session;
+    if(!session){showLogin();return}
+    const check=await window.SB.rpc('playpro_profile_kyc_verified',{p_profile_id:session.user.id});
+    if(check.error) throw check.error;
+    if(check.data!==true){
+      toast('🔐 KYC diperlukan sebelum anda boleh membuat atau mengurus kelab.');
+      window.setTimeout(()=>window.location.assign('/player_kyc.html?next='+encodeURIComponent('/club.html')),650);
+      return;
+    }
+    window.location.assign('/club.html');
+  }catch(error){
+    console.error('[PlayPro:club-entry]',error);
+    toast('⚠️ Status KYC tidak dapat disahkan. Cuba lagi.');
+  }
+}
+window.openClubCenter=openClubCenter;
 function closeDr(){document.getElementById('drawer').classList.remove('on');document.getElementById('dr-mask').classList.remove('on')}
 
 /* ── LOGIN ── */
