@@ -218,37 +218,49 @@
   function buildNavigationV2() {
     const top = document.getElementById('hdr-nav');
     if (top) {
-      top.innerHTML =
-        '<div class="hn-item on" id="hn-home" data-pp-nav="home">🏠 Home</div>' +
-        '<div class="hn-item" id="hn-explore" data-pp-nav="explore">🔍 Cari</div>' +
-        '<div class="hn-item" id="hn-competition" data-pp-nav="competition">🏆 Pertandingan</div>' +
-        '<div class="hn-item" id="hn-shop" data-pp-nav="shop">🛍️ Kedai</div>';
-      top.querySelector('[data-pp-nav="home"]').onclick = () => navigateTab('home');
-      top.querySelector('[data-pp-nav="explore"]').onclick = () => navigateTab('explore');
-      top.querySelector('[data-pp-nav="competition"]').onclick = () => { window.location.assign('/organizer/competitions'); };
-      top.querySelector('[data-pp-nav="shop"]').onclick = openKedai;
+      const currentTop = norm(top.textContent || '');
+      const expectedTop = '🏠 HOME 🔍 CARI 🏆 PERTANDINGAN 🛍️ KEDAI';
+      if (currentTop !== norm(expectedTop)) {
+        top.innerHTML =
+          '<div class="hn-item on" id="hn-home" data-pp-nav="home">🏠 Home</div>' +
+          '<div class="hn-item" id="hn-explore" data-pp-nav="explore">🔍 Cari</div>' +
+          '<div class="hn-item" id="hn-competition" data-pp-nav="competition">🏆 Pertandingan</div>' +
+          '<div class="hn-item" id="hn-shop" data-pp-nav="shop">🛍️ Kedai</div>';
+        top.querySelector('[data-pp-nav="home"]').onclick = () => navigateTab('home');
+        top.querySelector('[data-pp-nav="explore"]').onclick = () => navigateTab('explore');
+        top.querySelector('[data-pp-nav="competition"]').onclick = () => { window.location.assign('/organizer/competitions'); };
+        top.querySelector('[data-pp-nav="shop"]').onclick = openKedai;
+      }
     }
 
     const sub = document.getElementById('hdr-bread');
     if (sub) {
-      sub.innerHTML =
-        '<a class="hb-item" href="/player_kyc.html"><span class="hb-ic">✓</span> Pengesahan KYC</a>' +
-        '<span class="hb-arrow">›</span>' +
-        '<a class="hb-item" href="/technical_assessor.html"><span class="hb-ic">📊</span> Asesmen Player/Coach</a>';
+      const currentSub = norm(sub.textContent || '');
+      const expectedSub = '✓ PENGESAHAN KYC › 📊 ASESMEN PLAYER/COACH';
+      if (currentSub !== norm(expectedSub)) {
+        sub.innerHTML =
+          '<a class="hb-item" href="/player_kyc.html"><span class="hb-ic">✓</span> Pengesahan KYC</a>' +
+          '<span class="hb-arrow">›</span>' +
+          '<a class="hb-item" href="/technical_assessor.html"><span class="hb-ic">📊</span> Asesmen Player/Coach</a>';
+      }
     }
 
     const bottom = document.getElementById('bnav');
     if (bottom) {
-      bottom.style.gridTemplateColumns = 'repeat(4,1fr)';
-      bottom.innerHTML =
-        '<div class="bn" id="bn-create"><div class="bn-ic">➕</div><div class="bn-lb">Create</div></div>' +
-        '<div class="bn" id="bn-team"><div class="bn-ic">👥</div><div class="bn-lb">My Team</div></div>' +
-        '<div class="bn" id="bn-inbox"><div class="bn-ic">📬</div><div class="bn-lb">Inbox</div></div>' +
-        '<div class="bn" id="bn-profile"><div class="bn-ic">📋</div><div class="bn-lb">Passport</div></div>';
-      document.getElementById('bn-create').onclick = openCreateMenu;
-      document.getElementById('bn-team').onclick = () => navigateTab('team');
-      document.getElementById('bn-inbox').onclick = () => navigateTab('inbox');
-      document.getElementById('bn-profile').onclick = () => navigateTab('profile');
+      const currentBottom = norm(bottom.textContent || '');
+      const expectedBottom = '➕ CREATE 👥 MY TEAM 📬 INBOX 📋 PASSPORT';
+      if (currentBottom !== norm(expectedBottom)) {
+        bottom.style.gridTemplateColumns = 'repeat(4,1fr)';
+        bottom.innerHTML =
+          '<div class="bn" id="bn-create"><div class="bn-ic">➕</div><div class="bn-lb">Create</div></div>' +
+          '<div class="bn" id="bn-team"><div class="bn-ic">👥</div><div class="bn-lb">My Team</div></div>' +
+          '<div class="bn" id="bn-inbox"><div class="bn-ic">📬</div><div class="bn-lb">Inbox</div></div>' +
+          '<div class="bn" id="bn-profile"><div class="bn-ic">📋</div><div class="bn-lb">Passport</div></div>';
+        document.getElementById('bn-create').onclick = openCreateMenu;
+        document.getElementById('bn-team').onclick = () => navigateTab('team');
+        document.getElementById('bn-inbox').onclick = () => navigateTab('inbox');
+        document.getElementById('bn-profile').onclick = () => navigateTab('profile');
+      }
     }
 
     hideLegacyHomeBanners();
