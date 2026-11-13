@@ -963,30 +963,31 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 #kad-modal-overlay.open { display:flex; }
 
 .kad-modal-scene {
-  perspective: 1400px;
-  width: min(260px, 72vw);
+  perspective: 1800px;
+  width: min(340px, 88vw, calc(58vh * .7142857));
+  flex: 0 0 auto;
 }
 .kad-modal-card {
   width: 100%;
   aspect-ratio: 2.5/3.5;
-  border-radius: 20px;
+  border-radius: 22px;
   position: relative;
   transform-style: preserve-3d;
-  animation: modalFadeIn .5s cubic-bezier(.22,1,.36,1) forwards;
+  transform: rotateX(0deg) rotateY(0deg) scale(1);
+  transition: transform .48s cubic-bezier(.2,.78,.2,1);
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-user-drag:none;
+  touch-action:none;
+  -webkit-tap-highlight-color:transparent;
   will-change: transform;
+  filter: drop-shadow(0 24px 32px rgba(0,0,0,.48));
 }
 .kad-modal-card:active { cursor: grabbing; }
-
-/* Mouse tilt via JS */
-.kad-modal-card.tilting {
-  transition: transform .06s ease-out;
-}
-.kad-modal-card.resetting {
-  transition: transform .45s cubic-bezier(.34,1.56,.64,1);
-}
+.kad-modal-card.is-dragging{transition:none!important}
+.kad-modal-card.is-zoomed{filter:drop-shadow(0 32px 42px rgba(0,0,0,.62))}
+.kad-modal-card img{-webkit-user-drag:none;user-select:none;pointer-events:none}
 
 /* Floating animation �� swing kiri kanan + sedikit naik turun */
 .kad-modal-card.floating {
@@ -1011,13 +1012,7 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 
 
 /* PlayPro Player Card: stable front/back flip */
-.kad-modal-card{
-  transition:transform .72s cubic-bezier(.2,.75,.25,1);
-  transform:rotateY(0deg);
-  touch-action:pan-y;
-  -webkit-tap-highlight-color:transparent;
-  position:relative;
-}
+.kad-modal-card{position:relative}
 /* Holographic flare sweeps across the card during every flip */
 .kad-modal-card::after{
   content:"";position:absolute;inset:-2%;z-index:8;pointer-events:none;border-radius:20px;
@@ -1031,19 +1026,17 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   100%{opacity:0;transform:translateX(115%) skewX(-18deg)}
 }
 @media(prefers-reduced-motion:reduce){.kad-modal-card{transition-duration:.25s}.kad-modal-card.is-flipping::after{animation-duration:.3s}}
-.kad-modal-card.is-flipped{
-  transform:rotateY(180deg) !important;
-}
-.kad-full-back{padding:1rem .8rem;justify-content:flex-start;gap:.42rem;}
-.kad-back-heading{font-size:.72rem;font-weight:900;letter-spacing:.13em;color:#fff;text-align:center;margin-top:.15rem}
-.kad-back-level{font-size:.52rem;letter-spacing:.12em;color:#67e8f9;text-align:center;font-weight:800}
-.kad-back-status{font-size:.48rem;text-align:center;color:#fbbf24;line-height:1.35;padding:0 .25rem}
-.kad-back-attributes{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:.32rem;flex:1;min-height:0}
-.kad-back-group{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:.32rem .38rem;min-width:0}
-.kad-back-group-title{font-size:.43rem;letter-spacing:.1em;color:#67e8f9;font-weight:900;margin-bottom:.18rem}
-.kad-back-attr{display:flex;justify-content:space-between;gap:.2rem;font-size:.43rem;line-height:1.5;color:#e2e8f0}
-.kad-back-attr strong{color:#fff;font-size:.46rem}
-.kad-back-footer{font-size:.43rem;color:rgba(255,255,255,.55);text-align:center;letter-spacing:.06em}
+.kad-modal-card.is-flipped{transform:rotateX(0deg) rotateY(180deg) scale(var(--kad-zoom,1))}
+.kad-full-back{padding:.9rem .78rem;justify-content:flex-start;gap:.42rem;background:radial-gradient(ellipse at 50% 0%,rgba(34,211,238,.22),transparent 58%),linear-gradient(145deg,#06142e,#082b55 55%,#031326);border:2px solid rgba(103,232,249,.58);box-shadow:inset 0 0 28px rgba(34,211,238,.12)}
+.kad-back-heading{font-size:.92rem;font-weight:950;letter-spacing:.12em;color:#fff;text-align:center;margin-top:.12rem;text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.kad-back-level{font-size:.68rem;letter-spacing:.1em;color:#67e8f9;text-align:center;font-weight:900}
+.kad-back-status{font-size:.62rem;text-align:center;color:#fde68a;line-height:1.35;padding:0 .25rem;font-weight:750}
+.kad-back-attributes{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:.42rem;flex:1;min-height:0}
+.kad-back-group{background:linear-gradient(145deg,rgba(10,34,61,.94),rgba(3,16,34,.92));border:1px solid rgba(103,232,249,.28);border-radius:10px;padding:.42rem .48rem;min-width:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.kad-back-group-title{font-size:.62rem;letter-spacing:.08em;color:#67e8f9;font-weight:950;margin-bottom:.22rem;text-transform:uppercase}
+.kad-back-attr{display:flex;justify-content:space-between;gap:.24rem;font-size:.61rem;line-height:1.55;color:#e2e8f0}
+.kad-back-attr strong{color:#fff;font-size:.68rem;font-weight:950;font-variant-numeric:tabular-nums}
+.kad-back-footer{font-size:.58rem;color:rgba(255,255,255,.7);text-align:center;letter-spacing:.05em}
 .kad-flip-btn{border:1px solid rgba(103,232,249,.5);background:rgba(3,105,161,.2);color:#cffafe;border-radius:999px;padding:.55rem 1.05rem;font:800 .68rem inherit;letter-spacing:.04em;cursor:pointer;box-shadow:0 0 18px rgba(34,211,238,.12)}
 .kad-flip-btn:active{transform:scale(.97)}
 
@@ -5757,8 +5750,13 @@ function setMsg(id,txt,type){const e=document.getElementById(id);e.textContent=t
 var _kadFlipped=false;
 var _kadData={};
 var _kadRafId=null;
-var _kadSwipeStart=null;
+var _kadPointers={};
+var _kadDrag=null;
+var _kadPinch=null;
 var _kadSwipeHandled=false;
+var _kadRotationY=0;
+var _kadRotationX=0;
+var _kadZoom=1;
 
 /* Map tier → CSS class */
 function tierClass(dna){
@@ -5826,8 +5824,9 @@ function openKadModal(){
   var ov=document.getElementById('kad-modal-overlay');
   if(!ov) return;
   _kadFlipped=false;
+  _kadRotationY=0;_kadRotationX=0;_kadZoom=1;_kadPointers={};_kadDrag=null;_kadPinch=null;
   var flipCard=document.getElementById('kad-modal-card');
-  if(flipCard){flipCard.classList.remove('is-flipped');flipCard.style.removeProperty('transform');}
+  if(flipCard){flipCard.classList.remove('is-flipped','is-dragging','is-zoomed','is-flipping');flipCard.style.setProperty('--kad-zoom','1');flipCard.style.transform='rotateX(0deg) rotateY(0deg) scale(1)';}
   var flipBtnReset=document.getElementById('kad-flip-btn');
   if(flipBtnReset) flipBtnReset.textContent='↻ PUSING KAD · LIHAT BELAKANG';
 
@@ -5946,19 +5945,8 @@ function openKadModal(){
   ov.classList.add('open');
   document.body.style.overflow='hidden';
 
-  /* Delay sikit bagi animasi masuk selesai dulu baru float */
-  setTimeout(function(){
-    /* Jangan hidupkan semula floating jika pengguna sudah memusing kad. */
-    if(_kadFlipped) return;
-    /* Hanya 3 Tier Teratas sahaja yang interaktif bergerak / floating */
-    var levelBergerak = ['tier-elite', 'tier-advanced', 'tier-developed'];
-    if (levelBergerak.includes(_kadData.tc)) {
-      card.classList.add('floating');
-      if(_kadData.tc==='tier-elite') card.classList.add('is-elite');
-      else if(_kadData.tc==='tier-advanced') card.classList.add('is-advanced');
-      else if(_kadData.tc==='tier-developed') card.classList.add('is-developed');
-    }
-  }, 560);
+  /* Kad modal kekal stabil; pergerakan datang terus daripada sentuhan pengguna. */
+  card.classList.remove('floating','is-elite','is-advanced','is-developed');
 
   /* Animasi masuk kad */
   front.style.animation='none';
@@ -5980,88 +5968,111 @@ function handleKadOverlayClick(e){
   if(e.target.id==='kad-modal-overlay') closeKadModal();
 }
 
-/* Swipe mendatar untuk pusing kad pada telefon dan tablet. */
+/* Interaksi kad fizikal: drag 3D, flip, pinch zoom dan roda tetikus. */
+function kadApplyTransform(smooth){
+  var card=document.getElementById('kad-modal-card');if(!card)return;
+  card.style.transition=smooth?'transform .48s cubic-bezier(.2,.78,.2,1)':'none';
+  card.style.setProperty('--kad-zoom',String(_kadZoom));
+  card.style.transform='rotateX('+_kadRotationX+'deg) rotateY('+_kadRotationY+'deg) scale('+_kadZoom+')';
+  card.classList.toggle('is-zoomed',_kadZoom>1.04);
+}
+function kadDistance(a,b){var x=a.x-b.x,y=a.y-b.y;return Math.sqrt(x*x+y*y);}
 function startKadSwipe(e){
-  if(!e||e.pointerType==='mouse'&&e.button!==0) return;
-  _kadSwipeStart={id:e.pointerId,x:e.clientX,y:e.clientY,time:Date.now()};
-  try{e.currentTarget.setPointerCapture(e.pointerId);}catch(err){}
+  if(!e||e.pointerType==='mouse'&&e.button!==0)return;
+  var card=e.currentTarget;
+  _kadPointers[e.pointerId]={x:e.clientX,y:e.clientY};
+  try{card.setPointerCapture(e.pointerId);}catch(err){}
+  if(Object.keys(_kadPointers).length===1){
+    _kadDrag={id:e.pointerId,x:e.clientX,y:e.clientY,baseY:_kadRotationY,baseX:_kadRotationX,moved:false};
+    card.classList.add('is-dragging');
+  }else if(Object.keys(_kadPointers).length===2){
+    var pts=Object.values(_kadPointers);
+    _kadPinch={distance:kadDistance(pts[0],pts[1]),zoom:_kadZoom};
+    _kadDrag=null;
+    card.classList.remove('is-dragging');
+  }
+}
+function moveKadSwipe(e){
+  if(!_kadPointers[e.pointerId])return;
+  _kadPointers[e.pointerId]={x:e.clientX,y:e.clientY};
+  var card=e.currentTarget,ids=Object.keys(_kadPointers);
+  if(ids.length>=2){
+    var pts=Object.values(_kadPointers),dist=kadDistance(pts[0],pts[1]);
+    if(!_kadPinch)_kadPinch={distance:dist,zoom:_kadZoom};
+    if(_kadPinch.distance>0)_kadZoom=Math.max(.82,Math.min(1.55,_kadPinch.zoom*(dist/_kadPinch.distance)));
+    kadApplyTransform(false);return;
+  }
+  if(!_kadDrag||_kadDrag.id!==e.pointerId)return;
+  var dx=e.clientX-_kadDrag.x,dy=e.clientY-_kadDrag.y;
+  if(Math.abs(dx)+Math.abs(dy)>7)_kadDrag.moved=true;
+  _kadRotationY=_kadDrag.baseY+dx*.72;
+  _kadRotationX=Math.max(-24,Math.min(24,_kadDrag.baseX-dy*.35));
+  kadApplyTransform(false);
+  var front=document.getElementById('kad-full-front');
+  if(front){front.style.setProperty('--mx',Math.round(Math.max(0,Math.min(100,50+dx*.35)))+'%');front.style.setProperty('--my',Math.round(Math.max(0,Math.min(100,50+dy*.35)))+'%');}
 }
 function endKadSwipe(e){
-  if(!_kadSwipeStart||!e||e.pointerId!==_kadSwipeStart.id) return;
-  var dx=e.clientX-_kadSwipeStart.x,dy=e.clientY-_kadSwipeStart.y;
-  _kadSwipeStart=null;
-  if(Math.abs(dx)<48||Math.abs(dx)<Math.abs(dy)*1.15) return;
-  _kadSwipeHandled=true;
-  flipKad();
-  setTimeout(function(){_kadSwipeHandled=false;},700);
+  if(!_kadPointers[e.pointerId])return;
+  var drag=_kadDrag;
+  delete _kadPointers[e.pointerId];
+  var remaining=Object.keys(_kadPointers).length;
+  if(remaining<2)_kadPinch=null;
+  if(drag&&drag.id===e.pointerId){
+    var dx=e.clientX-drag.x;
+    var didMove=drag.moved;
+    if(didMove){
+      _kadSwipeHandled=true;
+      setTimeout(function(){_kadSwipeHandled=false;},500);
+      if(Math.abs(dx)>42){
+        _kadFlipped=!_kadFlipped;
+        _kadRotationY=_kadFlipped?(dx<0?180:-180):(dx<0?360:0);
+        _kadRotationX=0;
+        kadUpdateFlipLabel();
+      }else{
+        _kadRotationY=drag.baseY;_kadRotationX=0;
+      }
+    }else{
+      _kadRotationY=drag.baseY;_kadRotationX=drag.baseX;
+    }
+    _kadDrag=null;
+  }
+  if(remaining===0){
+    var card=document.getElementById('kad-modal-card');
+    if(card)card.classList.remove('is-dragging');
+    kadApplyTransform(true);
+  }
 }
-function cancelKadSwipe(){_kadSwipeStart=null;}
+function cancelKadSwipe(e){
+  if(e&&_kadPointers[e.pointerId])delete _kadPointers[e.pointerId];
+  _kadDrag=null;_kadPinch=null;
+  var card=document.getElementById('kad-modal-card');
+  if(card)card.classList.remove('is-dragging');
+  kadApplyTransform(true);
+}
+function zoomKadWheel(e){
+  if(!e)return;e.preventDefault();
+  _kadZoom=Math.max(.82,Math.min(1.55,_kadZoom+(e.deltaY<0?.08:-.08)));
+  kadApplyTransform(true);
+}
 function handleKadCardClick(e){
   if(_kadSwipeHandled){_kadSwipeHandled=false;if(e)e.preventDefault();return;}
   flipKad();
 }
-
-/* Flip kad (depan/belakang) */
-function flipKad(){
-  var card=document.getElementById('kad-modal-card');
-  if(!card) return;
-  _kadFlipped=!_kadFlipped;
-  /* Animasi floating mengatasi transform biasa; hentikan semasa flip. */
-  card.classList.remove('floating','is-elite','is-advanced','is-developed');
-  card.classList.toggle('is-flipped',_kadFlipped);
-  card.style.transition='transform .72s cubic-bezier(.2,.75,.25,1)';
-  card.style.setProperty('transform',_kadFlipped?'rotateY(180deg)':'rotateY(0deg)','important');
-  card.classList.remove('is-flipping');
-  void card.offsetWidth;
-  card.classList.add('is-flipping');
-  setTimeout(function(){card.classList.remove('is-flipping');},900);
+function kadUpdateFlipLabel(){
   var flipBtn=document.getElementById('kad-flip-btn');
-  if(flipBtn) flipBtn.textContent=_kadFlipped?'↻ KEMBALI KE DEPAN':'↻ PUSING KAD · LIHAT BELAKANG';
+  if(flipBtn)flipBtn.textContent=_kadFlipped?'↻ KEMBALI KE DEPAN':'↻ PUSING KAD · LIHAT BELAKANG';
   var tip=document.querySelector('#kad-modal-overlay > div[style*="font-size:.58rem"]');
-  if(tip) tip.textContent=_kadFlipped?'Bahagian belakang · Maklumat DNA pemain':'Gerakkan jari untuk kesan 3D · Ketik kad atau butang untuk pusing';
+  if(tip)tip.textContent='Seret kad untuk pusing · Cubit dua jari untuk zoom';
 }
-
-/* Tilt interaktif mouse/touch */
-function tiltKad(e){
-  var card=document.getElementById('kad-modal-card');
-  if(!card||_kadFlipped) return;
-  /* Pause floating bila tilt */
-  card.classList.remove('floating');
-  var rect=card.getBoundingClientRect();
-  var cx=rect.left+rect.width/2;
-  var cy=rect.top+rect.height/2;
-  var mx=e.touches?e.touches[0].clientX:e.clientX;
-  var my=e.touches?e.touches[0].clientY:e.clientY;
-  var dx=(mx-cx)/(rect.width/2);
-  var dy=(my-cy)/(rect.height/2);
-  /* Clamp supaya tak terlalu extreme */
-  dx=Math.max(-1,Math.min(1,dx));
-  dy=Math.max(-1,Math.min(1,dy));
-  var rx=dy*-16;
-  var ry=dx*16;
-  card.style.transition='transform .06s ease-out';
-  card.style.transform='rotateX('+rx+'deg) rotateY('+ry+'deg) scale(1.03)';
-  /* Holo shine effect ikut posisi */
-  var front=document.getElementById('kad-full-front');
-  if(front){
-    var px=Math.round((dx+1)/2*100);
-    var py=Math.round((dy+1)/2*100);
-    front.style.setProperty('--mx',px+'%');
-    front.style.setProperty('--my',py+'%');
-  }
-}
-
-function resetKadTilt(){
-  var card=document.getElementById('kad-modal-card');
-  if(!card||_kadFlipped) return;
-  card.style.transition='transform .45s cubic-bezier(.22,1,.36,1)';
-  card.style.transform='rotateX(0deg) rotateY(0deg) scale(1)';
-  /* Sambung semula float lepas reset */
-  setTimeout(function(){
-    if(!_kadFlipped){
-      card.classList.add('floating');
-    }
-  }, 460);
+/* Flip melalui butang atau ketik kad; arah putaran konsisten. */
+function flipKad(){
+  var card=document.getElementById('kad-modal-card');if(!card)return;
+  _kadFlipped=!_kadFlipped;
+  _kadRotationY+=180;_kadRotationX=0;
+  card.classList.toggle('is-flipped',_kadFlipped);
+  card.classList.remove('is-flipping');void card.offsetWidth;card.classList.add('is-flipping');
+  setTimeout(function(){card.classList.remove('is-flipping');},650);
+  kadApplyTransform(true);kadUpdateFlipLabel();
 }
 
 /* Floating animation utk kad dalam modal */
@@ -6235,7 +6246,7 @@ init();
 ═══════════════════════════════════ -->
 <div id="kad-modal-overlay" onclick="handleKadOverlayClick(event)">
   <div class="kad-modal-scene">
-    <div class="kad-modal-card tilting" id="kad-modal-card" onmousemove="tiltKad(event)" onmouseleave="resetKadTilt()" ontouchmove="tiltKad(event)" ontouchend="resetKadTilt()" onpointerdown="startKadSwipe(event)" onpointerup="endKadSwipe(event)" onpointercancel="cancelKadSwipe()" onclick="handleKadCardClick(event)">
+    <div class="kad-modal-card" id="kad-modal-card" onpointerdown="startKadSwipe(event)" onpointermove="moveKadSwipe(event)" onpointerup="endKadSwipe(event)" onpointercancel="cancelKadSwipe(event)" onwheel="zoomKadWheel(event)" onclick="handleKadCardClick(event)">
       <!-- Front face Two-Layer FUT Structure -->
       <div class="kad-full-front tier-starter" id="kad-full-front">
         <!-- Lapisan Grafik Sunburst -->
@@ -6295,8 +6306,8 @@ init();
     </div>
   </div>
   <button type="button" class="kad-flip-btn" id="kad-flip-btn" onclick="flipKad()">↻ PUSING KAD · LIHAT BELAKANG</button>
-  <!-- Tip tilt -->
-  <div style="font-size:.58rem;color:rgba(255,255,255,.38);text-align:center;letter-spacing:.04em">👆 Gerakkan jari untuk kesan 3D · Ketik kad atau butang untuk pusing</div>
+  <!-- Petunjuk interaksi fizikal -->
+  <div style="font-size:.68rem;color:rgba(255,255,255,.7);text-align:center;letter-spacing:.025em">☝️ Seret untuk pusing · Cubit dua jari untuk zoom</div>
   <!-- Action buttons -->
   <div class="kad-modal-actions">
     <button class="kad-btn kad-btn-share" onclick="shareKadWA()">📤 Kongsi ke WhatsApp</button>
