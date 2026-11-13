@@ -6078,6 +6078,7 @@ if (!authClient?.auth?.onAuthStateChange) {
 // Always initialise the public shell, even when Supabase/CDN is unavailable.
 // Authentication is optional for the public portal and must not trap the splash screen.
 init();
+if (window.location.hash === '#login') showLogin();
 </script>
 
 <!-- ═══════════════════════════════════
