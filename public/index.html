@@ -1009,6 +1009,28 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   animation: kadSwing 5s ease-in-out infinite, developedAura 3.5s ease-in-out infinite;
 }
 
+
+/* PlayPro Player Card: stable front/back flip */
+.kad-modal-card{
+  transition:transform .72s cubic-bezier(.2,.75,.25,1);
+  transform:rotateY(0deg);
+}
+.kad-modal-card.is-flipped{
+  transform:rotateY(180deg) !important;
+}
+.kad-full-back{padding:1rem .8rem;justify-content:flex-start;gap:.42rem;}
+.kad-back-heading{font-size:.72rem;font-weight:900;letter-spacing:.13em;color:#fff;text-align:center;margin-top:.15rem}
+.kad-back-level{font-size:.52rem;letter-spacing:.12em;color:#67e8f9;text-align:center;font-weight:800}
+.kad-back-status{font-size:.48rem;text-align:center;color:#fbbf24;line-height:1.35;padding:0 .25rem}
+.kad-back-attributes{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:.32rem;flex:1;min-height:0}
+.kad-back-group{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:.32rem .38rem;min-width:0}
+.kad-back-group-title{font-size:.43rem;letter-spacing:.1em;color:#67e8f9;font-weight:900;margin-bottom:.18rem}
+.kad-back-attr{display:flex;justify-content:space-between;gap:.2rem;font-size:.43rem;line-height:1.5;color:#e2e8f0}
+.kad-back-attr strong{color:#fff;font-size:.46rem}
+.kad-back-footer{font-size:.43rem;color:rgba(255,255,255,.55);text-align:center;letter-spacing:.06em}
+.kad-flip-btn{border:1px solid rgba(103,232,249,.5);background:rgba(3,105,161,.2);color:#cffafe;border-radius:999px;padding:.55rem 1.05rem;font:800 .68rem inherit;letter-spacing:.04em;cursor:pointer;box-shadow:0 0 18px rgba(34,211,238,.12)}
+.kad-flip-btn:active{transform:scale(.97)}
+
 /* Kad belakang */
 .kad-full-back {
   position: absolute; inset: 0;
@@ -5754,7 +5776,7 @@ function renderMiniKad(p, attrs){
   const pac=(attrMap.pace||0)*5,sho=(attrMap.finishing||0)*5,pas=(attrMap.passing||0)*5;
   const dri=(attrMap.dribbling||0)*5,def=(attrMap.tackling||0)*5,phy=(attrMap.strength||0)*5;
   const customImgUrl=p.photo_url||p.avatarCustomUrl||_tempCustomPhotoBase64;
-  _kadData={dna:dna,realDna:realDna,isVerified:isVerified&&complete&&realDna>0,isDemo:isDemo,demoLevel:p.demo_level||null,lv:lv,tc:tc,name:name,init:init,pos:pos,posFull:posFullStr,jersey:jersey,fpno:p.passport_number||'PP-000-XX',pac:pac,sho:sho,pas:pas,dri:dri,def:def,phy:phy,club:clubStr,photo_url:customImgUrl,avatarCustomUrl:customImgUrl};
+  _kadData={dna:dna,realDna:realDna,isVerified:isVerified&&complete&&realDna>0,isDemo:isDemo,demoLevel:p.demo_level||null,attributes:attrMap,lv:lv,tc:tc,name:name,init:init,pos:pos,posFull:posFullStr,jersey:jersey,fpno:p.passport_number||'PP-000-XX',pac:pac,sho:sho,pas:pas,dri:dri,def:def,phy:phy,club:clubStr,photo_url:customImgUrl,avatarCustomUrl:customImgUrl};
 
   const mk=document.getElementById('mini-kad');
   if(!mk) return;
@@ -5786,6 +5808,10 @@ function openKadModal(){
   var ov=document.getElementById('kad-modal-overlay');
   if(!ov) return;
   _kadFlipped=false;
+  var flipCard=document.getElementById('kad-modal-card');
+  if(flipCard){flipCard.classList.remove('is-flipped');flipCard.style.removeProperty('transform');}
+  var flipBtnReset=document.getElementById('kad-flip-btn');
+  if(flipBtnReset) flipBtnReset.textContent='↻ PUSING KAD · LIHAT BELAKANG';
 
   /* Tetapkan tier pada kad depan */
   var front=document.getElementById('kad-full-front');
@@ -5863,9 +5889,31 @@ function openKadModal(){
     sv.style.textShadow='0 0 10px '+col+'88';
   });
 
-  /* Kad belakang FP number */
+  /* Isi bahagian belakang dengan 18 atribut sebenar daripada rekod kad */
   var bfp=document.getElementById('kad-back-fpno');
   if(bfp) bfp.textContent=_kadData.fpno||'\u2014';
+  var backLevel=document.getElementById('kad-back-level');
+  if(backLevel) backLevel.textContent=(_kadData.lv.title||'PLAYER').toUpperCase();
+  var backStatus=document.getElementById('kad-back-status');
+  if(backStatus) backStatus.textContent=_kadData.isDemo
+    ? 'DEMO FIXTURE · DATA REKAAN UNTUK UJIAN, BUKAN PENILAIAN RASMI'
+    : (_kadData.isVerified ? 'DNA DISAHKAN · COACH BERTAULIAH PLAYPRO' : 'BELUM DINILAI · MENUNGGU COACH BERTAULIAH');
+  var backGrid=document.getElementById('kad-back-attributes');
+  if(backGrid){
+    var groups=[
+      {key:'technical',title:'TECHNICAL',attrs:['passing','dribbling','finishing','first_touch','tackling','heading']},
+      {key:'physical',title:'PHYSICAL',attrs:['pace','stamina','strength','agility']},
+      {key:'mental',title:'MENTAL',attrs:['leadership','composure','teamwork','work_rate']},
+      {key:'tactical',title:'TACTICAL',attrs:['positioning','vision','decision_making','anticipation']}
+    ];
+    var labels={passing:'Passing',dribbling:'Dribbling',finishing:'Finishing',first_touch:'First Touch',tackling:'Tackling',heading:'Heading',pace:'Pace',stamina:'Stamina',strength:'Strength',agility:'Agility',leadership:'Leadership',composure:'Composure',teamwork:'Teamwork',work_rate:'Work Rate',positioning:'Positioning',vision:'Vision',decision_making:'Decision',anticipation:'Anticipation'};
+    var vals=_kadData.attributes||{};
+    backGrid.innerHTML=groups.map(function(g){
+      return '<div class="kad-back-group"><div class="kad-back-group-title">'+g.title+'</div>'+
+        g.attrs.map(function(code){var value=vals[code];return '<div class="kad-back-attr"><span>'+labels[code]+'</span><strong>'+(Number.isFinite(Number(value))&&value!==null&&value!==undefined?value+'/20':'—')+'</strong></div>';}).join('')+
+        '</div>';
+    }).join('');
+  }
 
   /* Reset kad ke depan */
   var card=document.getElementById('kad-modal-card');
@@ -5882,6 +5930,8 @@ function openKadModal(){
 
   /* Delay sikit bagi animasi masuk selesai dulu baru float */
   setTimeout(function(){
+    /* Jangan hidupkan semula floating jika pengguna sudah memusing kad. */
+    if(_kadFlipped) return;
     /* Hanya 3 Tier Teratas sahaja yang interaktif bergerak / floating */
     var levelBergerak = ['tier-elite', 'tier-advanced', 'tier-developed'];
     if (levelBergerak.includes(_kadData.tc)) {
@@ -5917,8 +5967,15 @@ function flipKad(){
   var card=document.getElementById('kad-modal-card');
   if(!card) return;
   _kadFlipped=!_kadFlipped;
-  card.style.transition='transform .6s cubic-bezier(.4,0,.2,1)';
-  card.style.transform=_kadFlipped?'rotateY(180deg)':'rotateY(0deg)';
+  /* Animasi floating mengatasi transform biasa; hentikan semasa flip. */
+  card.classList.remove('floating','is-elite','is-advanced','is-developed');
+  card.classList.toggle('is-flipped',_kadFlipped);
+  card.style.transition='transform .72s cubic-bezier(.2,.75,.25,1)';
+  card.style.setProperty('transform',_kadFlipped?'rotateY(180deg)':'rotateY(0deg)','important');
+  var flipBtn=document.getElementById('kad-flip-btn');
+  if(flipBtn) flipBtn.textContent=_kadFlipped?'↻ KEMBALI KE DEPAN':'↻ PUSING KAD · LIHAT BELAKANG';
+  var tip=document.querySelector('#kad-modal-overlay > div[style*="font-size:.58rem"]');
+  if(tip) tip.textContent=_kadFlipped?'Bahagian belakang · Maklumat DNA pemain':'Gerakkan jari untuk kesan 3D · Ketik kad atau butang untuk pusing';
 }
 
 /* Tilt interaktif mouse/touch */
@@ -6182,17 +6239,21 @@ init();
       </div>
       <!-- Belakang kad -->
       <div class="kad-full-back" id="kad-full-back">
-        <div class="kad-back-logo">⚽</div>
-        <div class="kad-back-brand">PlayPro Football Passport</div>
+        <div class="kad-back-brand">PLAYPRO FOOTBALL PASSPORT</div>
+        <div class="kad-back-heading">PLAYER DNA PROFILE</div>
+        <div class="kad-back-level" id="kad-back-level">—</div>
+        <div class="kad-back-status" id="kad-back-status">STATUS PENILAIAN</div>
+        <div class="kad-back-line"></div>
+        <div class="kad-back-attributes" id="kad-back-attributes"></div>
         <div class="kad-back-line"></div>
         <div class="kad-back-fp" id="kad-back-fpno">—</div>
-        <div class="kad-back-line"></div>
-        <div class="kad-back-tip">Klik untuk balik ke depan</div>
+        <div class="kad-back-footer">TAP KAD UNTUK KEMBALI KE DEPAN</div>
       </div>
     </div>
   </div>
+  <button type="button" class="kad-flip-btn" id="kad-flip-btn" onclick="flipKad()">↻ PUSING KAD · LIHAT BELAKANG</button>
   <!-- Tip tilt -->
-  <div style="font-size:.58rem;color:rgba(255,255,255,.28);text-align:center;letter-spacing:.04em">👆 Gerak jari untuk tilt &nbsp;·&nbsp; Ketik kad untuk flip</div>
+  <div style="font-size:.58rem;color:rgba(255,255,255,.38);text-align:center;letter-spacing:.04em">👆 Gerakkan jari untuk kesan 3D · Ketik kad atau butang untuk pusing</div>
   <!-- Action buttons -->
   <div class="kad-modal-actions">
     <button class="kad-btn kad-btn-share" onclick="shareKadWA()">📤 Kongsi ke WhatsApp</button>
