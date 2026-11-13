@@ -4628,11 +4628,15 @@ async function loadViewerAttributes(playerId){
   const grid = document.getElementById('vp-attr-grid');
   if(!grid) return;
   try{
-    const{data}=await window.SB.from('player_attributes')
-      .select('attribute_code,current_value,attribute_definitions(label,category,display_order)')
-      .eq('player_id',playerId)
-      .eq('is_public',true);
-    if(!data||!data.length){
+    const {data:profileResult,error}=await window.SB.rpc('get_player_profile',{p_player_id:playerId});
+    if(error) throw error;
+    const profile=Array.isArray(profileResult)?profileResult[0]:profileResult;
+    if(!profile||profile.ok!==true||profile.restricted){
+      grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--mute);font-size:.75rem">🔒 Atribut tidak tersedia untuk profil ini</div>';
+      return;
+    }
+    const data=canonicalAttributeRows2(profile.attributes||{});
+    if(!data.length){
       grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--mute);font-size:.75rem">🧬 Belum ada penilaian atribut</div>';
       return;
     }
