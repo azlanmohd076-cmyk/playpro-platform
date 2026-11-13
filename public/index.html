@@ -3324,7 +3324,27 @@ function attrRating2(v){
 }
 
 const GK_CODES2 = new Set(['gk_handling','gk_contribution','gk_throwing','gk_dirtiness']);
-const RADAR_ATTRS2 = ['passing','finishing','first_touch','tackling','pace','stamina','leadership','composure','vision','positioning'];
+const RADAR_ATTRS2 = ['passing','dribbling','finishing','first_touch','tackling','heading','pace','stamina','strength','agility','leadership','composure','teamwork','work_rate','positioning','vision','decision_making','anticipation'];
+
+const CANONICAL_DNA2 = [
+  ['passing','Passing','technical'],['dribbling','Dribbling','technical'],
+  ['finishing','Finishing','technical'],['first_touch','First Touch','technical'],
+  ['tackling','Tackling','technical'],['heading','Heading','technical'],
+  ['pace','Pace','physical'],['stamina','Stamina','physical'],
+  ['strength','Strength','physical'],['agility','Agility','physical'],
+  ['leadership','Leadership','mental'],['composure','Composure','mental'],
+  ['teamwork','Teamwork','mental'],['work_rate','Work Rate','mental'],
+  ['positioning','Positioning','tactical'],['vision','Vision','tactical'],
+  ['decision_making','Decision Making','tactical'],['anticipation','Anticipation','tactical']
+];
+function canonicalAttributeRows2(state){
+  if(!state) return [];
+  return CANONICAL_DNA2.filter(function(x){return state[x[0]]!==null&&state[x[0]]!==undefined;})
+    .map(function(x,i){return {
+      attribute_code:x[0],current_value:Number(state[x[0]]),
+      attribute_definitions:{label:x[1],category:x[2],display_order:i+1}
+    };});
+}
 
 let _attrData2=[], _seasonChart2=null;
 
@@ -3457,24 +3477,30 @@ function renderCatBars2(p){
 
 async function loadAttr2(pid){
   try{
-    const{data}=await window.SB.from('player_attributes')
-      .select('attribute_code,current_value,attribute_definitions(label,category,display_order)')
-      .eq('player_id',pid).eq('is_public',true);
-    _attrData2=data||[];
-    
-    _attrData2 = Array.isArray(data) ? data : [];
-    window._attrData2 = _attrData2;
-    window._attrScale2=Math.max(1,..._attrData2.map(r=>r.current_value||0))<=20?20:100;
+    const fields=['player_id'].concat(CANONICAL_DNA2.map(function(x){return x[0];})).concat(['source','confidence','updated_at']).join(',');
+    const {data,error}=await window.SB.from('player_attribute_state')
+      .select(fields).eq('player_id',pid).maybeSingle();
+    if(error) throw error;
+    _attrData2=canonicalAttributeRows2(data);
+    window._attrData2=_attrData2;
+    window._attrScale2=20;
     renderRadar2('all');
     renderAttrCards2('all');
-    document.getElementById('dna2-count').textContent=_attrData2.length+' atribut dinilai';
-    if(_attrData2.length>0){
-      const b=document.getElementById('dna2-badge');
-      b.className='dna2-badge dna2-badge-coach';b.innerHTML='🏋️ Coach Assessed';
+    const count=document.getElementById('dna2-count');
+    if(count) count.textContent=_attrData2.length+'/18 atribut dinilai';
+    const badge=document.getElementById('dna2-badge');
+    if(badge){
+      badge.className='dna2-badge '+(data?.source==='coach_assessment'?'dna2-badge-coach':'');
+      badge.textContent=data?.source==='coach_assessment'?'🏋️ Coach Assessed':data?.source==='organic'?'⚽ Data Prestasi':'🧬 Belum Dinilai';
     }
-    /* Render mini kad selepas atribut diload */
-    if(window._pd) renderMiniKad(window._pd, _attrData2);
-  }catch(e){console.error(e);}
+    if(window._pd) renderMiniKad(window._pd,_attrData2);
+  }catch(e){
+    console.error('[PlayPro:canonical-attributes-own]',e);
+    const count=document.getElementById('dna2-count');
+    if(count) count.textContent='Gagal memuatkan atribut';
+    const grid=document.getElementById('attr2-grid');
+    if(grid) grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:#dc2626">Data atribut gagal dimuatkan.</div>';
+  }
 }
 
 function setRadarFilter2(cat,el){
@@ -4438,6 +4464,12 @@ async function viewPlayerProfile(elOrId){
       kyc_status:raw.verification_status||'unverified',
       profile_visibility:raw.profile_visibility||'public',
       clubs:raw.club_name?{name:raw.club_name}:null,
+      attributes:result.attributes||{},
+      dna_overall:raw.dna_overall??null,
+      dna_technical:raw.dna_technical??null,
+      dna_physical:raw.dna_physical??null,
+      dna_mental:raw.dna_mental??null,
+      dna_tactical:raw.dna_tactical??null,
       isRestricted:result.restricted===true
     };
     if(p.isRestricted){
@@ -4534,42 +4566,25 @@ function closeOtherPassport(){
 
 async function loadAttr2ForOther(pid){
   try{
-    var{data}=await window.SB.from('player_attributes')
-      .select('attribute_code,current_value,attribute_definitions(label,category,display_order)')
-      .eq('player_id',pid).eq('is_public',true);
-    window._attrData2=data||[];
-    
-    /* Stabilkan DNA Radar untuk pemain lain */
-    if (!window._attrData2 || !window._attrData2.length) {
-      var nameKey = window.currentActivePlayerKey || 'Azlan';
-      var reg = PLAYPRO_PLAYER_REGISTRY[nameKey] || PLAYPRO_PLAYER_REGISTRY['Azlan'];
-      if (reg && reg.dnaAttributes) {
-        var aList = [];
-        Object.keys(reg.dnaAttributes).forEach(function(k){
-          aList.push({
-            attribute_code: k,
-            current_value: reg.dnaAttributes[k] * 5,
-            attribute_definitions: { label: k.toUpperCase(), category: 'technical', display_order: 1 }
-          });
-        });
-        window._attrData2 = aList; _attrData2 = aList;
-      }
-    }
-    
-    window._attrScale2=Math.max(1,...(window._attrData2||[]).map(function(r){return r.current_value||0;}))<=20?20:100;
+    const state=window._overrideProfileData?.attributes||{};
+    _attrData2=canonicalAttributeRows2(state);
+    window._attrData2=_attrData2;
+    window._attrScale2=20;
     renderRadar2('all');
     renderAttrCards2('all');
-    /* Render Mini Kad supaya _kadData dikemas kini untuk profil pemain lain */
-    if (window._overrideProfileData) {
-      renderMiniKad(window._overrideProfileData, window._attrData2);
+    if(window._overrideProfileData) renderMiniKad(window._overrideProfileData,_attrData2);
+    const count=document.getElementById('dna2-count');
+    if(count) count.textContent=_attrData2.length+'/18 atribut dinilai';
+    const badge=document.getElementById('dna2-badge');
+    if(badge){
+      badge.className='dna2-badge '+(state.source==='coach_assessment'?'dna2-badge-coach':'');
+      badge.textContent=state.source==='coach_assessment'?'🏋️ Coach Assessed':state.source==='organic'?'⚽ Data Prestasi':'🧬 Belum Dinilai';
     }
-    var el=document.getElementById('dna2-count');
-    if(el) el.textContent=(data||[]).length+' atribut dinilai';
-    if((data||[]).length>0){
-      var b=document.getElementById('dna2-badge');
-      if(b){b.className='dna2-badge dna2-badge-coach';b.innerHTML='🏋️ Coach Assessed';}
-    }
-  }catch(e){console.error(e);}
+  }catch(e){
+    console.error('[PlayPro:canonical-attributes-other]',e);
+    const count=document.getElementById('dna2-count');
+    if(count) count.textContent='Gagal memuatkan atribut';
+  }
 }
 
 async function loadStats2Other(pid){
@@ -5711,82 +5726,46 @@ function tierClass(dna){
 /* Render mini kad dalam header passport */
 function renderMiniKad(p, attrs){
   if(!p) return;
-  var nameKey = p.preferred_name || p.full_name || '';
-  var reg = PLAYPRO_PLAYER_REGISTRY[nameKey] || PLAYPRO_PLAYER_REGISTRY[nameKey.toLowerCase()] || {};
+  const name=p.preferred_name||p.full_name||'Pemain';
+  const attrRows=Array.isArray(attrs)?attrs:[];
+  const attrMap={};
+  attrRows.forEach(function(r){if(r.current_value!==null&&r.current_value!==undefined)attrMap[r.attribute_code]=Number(r.current_value);});
+  const complete=CANONICAL_DNA2.every(function(x){return Number.isFinite(attrMap[x[0]]);});
+  const isVerified=String(p.verification_status||p.kyc_status||'').toLowerCase()==='verified';
+  const realDna=complete&&isVerified&&Number.isFinite(Number(p.dna_overall))?Number(p.dna_overall):0;
+  const dna=realDna;
+  const lv=dnaLevel2(realDna),tc=tierClass(realDna);
+  const init=name?name[0].toUpperCase():'P';
+  const pos=posCode2(p.best_position||p.position||'');
+  const posFullStr=posFull2(p.best_position||p.position||'');
+  const jersey=p.jersey_number||'—';
+  const clubStr=p.clubs?.name||'Tiada Kelab';
+  const pac=(attrMap.pace||0)*5,sho=(attrMap.finishing||0)*5,pas=(attrMap.passing||0)*5;
+  const dri=(attrMap.dribbling||0)*5,def=(attrMap.tackling||0)*5,phy=(attrMap.strength||0)*5;
+  const customImgUrl=p.photo_url||p.avatarCustomUrl||_tempCustomPhotoBase64;
+  _kadData={dna:dna,realDna:realDna,isVerified:isVerified&&complete&&realDna>0,lv:lv,tc:tc,name:name,init:init,pos:pos,posFull:posFullStr,jersey:jersey,fpno:p.passport_number||'PP-000-XX',pac:pac,sho:sho,pas:pas,dri:dri,def:def,phy:phy,club:clubStr,photo_url:customImgUrl,avatarCustomUrl:customImgUrl};
 
-  var isVerified = reg.isVerified !== undefined ? reg.isVerified : (p.kyc_status === 'verified');
-  var realDna = reg.ovr !== undefined ? reg.ovr : (p.dna_overall || 0);
-  var dna = isVerified ? realDna : 0;
-  
-  var lv = dnaLevel2(realDna);
-  var tc = tierClass(realDna);
-  
-  var dn = p.preferred_name || p.full_name || reg.nama || 'Pemain';
-  var init = dn ? dn[0].toUpperCase() : 'A';
-  var pos = reg.posisi || posCode2(p.best_position || p.position || '');
-  var posFullStr = reg.posisiPenuh || posFull2(p.best_position || p.position || '');
-  var jersey = reg.jersey ? reg.jersey.replace('#','') : (p.jersey_number || '—');
-  var clubStr = reg.kelab || p.clubs?.name || 'Tiada Kelab';
-
-  var aMap = {};
-  if(attrs){attrs.forEach(function(r){aMap[r.attribute_code]=r.current_value||0;});}
-  if(reg.stats){
-    aMap['pace'] = reg.stats.pac;
-    aMap['finishing'] = reg.stats.sho;
-    aMap['passing'] = reg.stats.pas;
-    aMap['dribbling'] = reg.stats.dri;
-    aMap['tackling'] = reg.stats.def;
-    aMap['strength'] = reg.stats.phy;
-  }
-
-  var pac = isVerified ? (aMap['pace']||0) : 0;
-  var sho = isVerified ? (aMap['finishing']||0) : 0;
-  var pas = isVerified ? (aMap['passing']||0) : 0;
-  var dri = isVerified ? (aMap['dribbling']||0) : 0;
-  var def = isVerified ? (aMap['tackling']||0) : 0;
-  var phy = isVerified ? (aMap['strength']||0) : 0;
-
-  /* Simpan data untuk modal besar berserta Imej Custom Persisten LocalStorage */
-  var customImgUrl = reg.avatarCustomUrl || p.photo_url || p.avatarCustomUrl || _tempCustomPhotoBase64;
-  _kadData = {
-    dna: dna, realDna: realDna, isVerified: isVerified, lv: lv, tc: tc, name: dn, init: init,
-    pos: pos, posFull: posFullStr, jersey: jersey, fpno: p.passport_number || 'PP-000-XX',
-    pac: pac, sho: sho, pas: pas, dri: dri, def: def, phy: phy,
-    club: clubStr,
-    photo_url: customImgUrl,
-    avatarCustomUrl: customImgUrl
-  };
-
-  /* Update mini kad */
-  var mk=document.getElementById('mini-kad');
+  const mk=document.getElementById('mini-kad');
   if(!mk) return;
   mk.className='mini-kad '+tc;
-  mk.style.setProperty('--kad-glow', lv.color);
-  /* Set glow wrapper supaya drop-shadow luar nampak */
-  var mkw=document.getElementById('mini-kad-wrap');
-  if(mkw) mkw.style.setProperty('--mkw-glow', lv.color);
-  document.getElementById('mini-kad-ovr').textContent=isVerified?dna:'\uD83D\uDD12 0';
-  document.getElementById('mini-kad-init').textContent=init;
-  document.getElementById('mini-kad-init').style.background='rgba(255,255,255,.12)';
-  var customImgUrl = reg.avatarCustomUrl || p.photo_url || p.avatarCustomUrl;
-  var mkImgEl = document.getElementById('mk-custom-img');
-  var mkTxtEl = document.getElementById('mini-kad-init');
-  if(customImgUrl){
-    if(mkImgEl){mkImgEl.src=customImgUrl;mkImgEl.style.display='block';}
-    if(mkTxtEl){mkTxtEl.style.display='none';}
-  } else {
-    if(mkImgEl){mkImgEl.style.display='none';}
-    if(mkTxtEl){mkTxtEl.style.display='inline';}
-  }
-  document.getElementById('mini-kad-pos').textContent=pos||'—';
-  document.getElementById('mini-kad-jersey').textContent='#'+jersey;
-
-  /* State badge */
-  var stEl=document.getElementById('mini-kad-state');
+  mk.style.setProperty('--kad-glow',lv.color);
+  const mkw=document.getElementById('mini-kad-wrap');
+  if(mkw) mkw.style.setProperty('--mkw-glow',lv.color);
+  const ovr=document.getElementById('mini-kad-ovr');
+  if(ovr) ovr.textContent=_kadData.isVerified?dna:'—';
+  const initEl=document.getElementById('mini-kad-init');
+  if(initEl) initEl.textContent=init;
+  if(initEl) initEl.style.background='rgba(255,255,255,.12)';
+  const img=document.getElementById('mk-custom-img');
+  if(customImgUrl){if(img){img.src=customImgUrl;img.style.display='block';}if(initEl)initEl.style.display='none';}
+  else{if(img)img.style.display='none';if(initEl)initEl.style.display='inline';}
+  const posEl=document.getElementById('mini-kad-pos');if(posEl)posEl.textContent=pos||'—';
+  const jerseyEl=document.getElementById('mini-kad-jersey');if(jerseyEl)jerseyEl.textContent='#'+jersey;
+  const stEl=document.getElementById('mini-kad-state');
   if(stEl&&p.passport_number){
-    var SM={'01':'JHR','02':'KDH','03':'KTN','04':'MLK','05':'NS','06':'PHG','07':'PNG','08':'PRK','09':'PLS','10':'SEL','11':'TRG','13':'SWK','14':'KL','15':'LBN','16':'PJY','98':'INTL','99':'OTH'};
-    var pts=p.passport_number.split('-');
-    if(pts.length>=2){var c=pts[1].padStart(2,'0');stEl.textContent=SM[c]||pts[1];stEl.style.display='block';}
+    const SM={'01':'JHR','02':'KDH','03':'KTN','04':'MLK','05':'NS','06':'PHG','07':'PNG','08':'PRK','09':'PLS','10':'SEL','11':'TRG','13':'SWK','14':'KL','15':'LBN','16':'PJY','98':'INTL','99':'OTH'};
+    const pts=p.passport_number.split('-');
+    if(pts.length>=2){const c=pts[1].padStart(2,'0');stEl.textContent=SM[c]||pts[1];stEl.style.display='block';}
   }
 }
 
