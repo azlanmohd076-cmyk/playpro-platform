@@ -5930,6 +5930,8 @@ function openKadModal(){
 
   /* Delay sikit bagi animasi masuk selesai dulu baru float */
   setTimeout(function(){
+    /* Jangan hidupkan semula floating jika pengguna sudah memusing kad. */
+    if(_kadFlipped) return;
     /* Hanya 3 Tier Teratas sahaja yang interaktif bergerak / floating */
     var levelBergerak = ['tier-elite', 'tier-advanced', 'tier-developed'];
     if (levelBergerak.includes(_kadData.tc)) {
