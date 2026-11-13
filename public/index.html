@@ -3365,7 +3365,7 @@ async function loadProfile(){
   let p = null;
   try{
     var {data:dbPlayer, error} = await window.SB.from('players')
-      .select('id,profile_id,full_name,preferred_name,nickname,pitch_nickname,position,jersey_number,preferred_jersey_no,height_cm,weight_kg,preferred_foot,dominant_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,best_position,secondary_position,nationality,phone,city,is_free_agent,clubs(name)')
+      .select('id,profile_id,full_name,preferred_name,nickname,pitch_nickname,position,jersey_number,preferred_jersey_no,height_cm,weight_kg,preferred_foot,dominant_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,is_demo,demo_level,best_position,secondary_position,nationality,phone,city,is_free_agent,clubs(name)')
       .eq('profile_id',_u.id)
       .maybeSingle();
     if(dbPlayer) p = dbPlayer;
@@ -3491,7 +3491,7 @@ async function loadAttr2(pid){
     const badge=document.getElementById('dna2-badge');
     if(badge){
       badge.className='dna2-badge '+(data?.source==='coach_assessment'?'dna2-badge-coach':'');
-      badge.textContent=data?.source==='coach_assessment'?'🏋️ Coach Assessed':data?.source==='organic'?'⚽ Data Prestasi':'🧬 Belum Dinilai';
+      badge.textContent=data?.source==='demo_seed'?'🧪 Demo Fixture · Bukan Penilaian Rasmi':data?.source==='coach_assessment'?'🏋️ Coach Assessed':data?.source==='organic'?'⚽ Data Prestasi':'🧬 Belum Dinilai';
     }
     if(window._pd) renderMiniKad(window._pd,_attrData2);
   }catch(e){
@@ -4463,6 +4463,8 @@ async function viewPlayerProfile(elOrId){
       passport_number:raw.football_passport_no||null,
       verification_status:raw.verification_status||'unverified',
       kyc_status:raw.verification_status||'unverified',
+      is_demo:raw.is_demo===true,
+      demo_level:raw.demo_level||null,
       profile_visibility:raw.profile_visibility||'public',
       clubs:raw.club_name?{name:raw.club_name}:null,
       attributes:result.attributes||{},
@@ -4579,7 +4581,7 @@ async function loadAttr2ForOther(pid){
     const badge=document.getElementById('dna2-badge');
     if(badge){
       badge.className='dna2-badge '+(state.source==='coach_assessment'?'dna2-badge-coach':'');
-      badge.textContent=state.source==='coach_assessment'?'🏋️ Coach Assessed':state.source==='organic'?'⚽ Data Prestasi':'🧬 Belum Dinilai';
+      badge.textContent=state.source==='demo_seed'?'🧪 Demo Fixture · Bukan Penilaian Rasmi':state.source==='coach_assessment'?'🏋️ Coach Assessed':state.source==='organic'?'⚽ Data Prestasi':'🧬 Belum Dinilai';
     }
   }catch(e){
     console.error('[PlayPro:canonical-attributes-other]',e);
@@ -5737,9 +5739,13 @@ function renderMiniKad(p, attrs){
   attrRows.forEach(function(r){if(r.current_value!==null&&r.current_value!==undefined)attrMap[r.attribute_code]=Number(r.current_value);});
   const complete=CANONICAL_DNA2.every(function(x){return Number.isFinite(attrMap[x[0]]);});
   const isVerified=String(p.verification_status||p.kyc_status||'').toLowerCase()==='verified';
+  const isDemo=p.is_demo===true&&complete&&['beginner','novice','intermediate','advanced','pro'].includes(String(p.demo_level||''));
+  const demoLevels={beginner:{score:50,title:'BEGINNER',stars:1},novice:{score:60,title:'NOVICE',stars:2},intermediate:{score:70,title:'INTERMEDIATE',stars:3},advanced:{score:80,title:'ADVANCED',stars:4},pro:{score:90,title:'PRO',stars:5}};
   const realDna=complete&&isVerified&&Number.isFinite(Number(p.dna_overall))?Number(p.dna_overall):0;
   const dna=realDna;
-  const lv=dnaLevel2(realDna),tc=tierClass(realDna);
+  const demoStyle=isDemo?demoLevels[p.demo_level]:null;
+  const lv=demoStyle?Object.assign({},dnaLevel2(demoStyle.score),{title:demoStyle.title,stars:demoStyle.stars}):dnaLevel2(realDna);
+  const tc=tierClass(demoStyle?demoStyle.score:realDna);
   const init=name?name[0].toUpperCase():'P';
   const pos=posCode2(p.best_position||p.position||'');
   const posFullStr=posFull2(p.best_position||p.position||'');
@@ -5748,7 +5754,7 @@ function renderMiniKad(p, attrs){
   const pac=(attrMap.pace||0)*5,sho=(attrMap.finishing||0)*5,pas=(attrMap.passing||0)*5;
   const dri=(attrMap.dribbling||0)*5,def=(attrMap.tackling||0)*5,phy=(attrMap.strength||0)*5;
   const customImgUrl=p.photo_url||p.avatarCustomUrl||_tempCustomPhotoBase64;
-  _kadData={dna:dna,realDna:realDna,isVerified:isVerified&&complete&&realDna>0,lv:lv,tc:tc,name:name,init:init,pos:pos,posFull:posFullStr,jersey:jersey,fpno:p.passport_number||'PP-000-XX',pac:pac,sho:sho,pas:pas,dri:dri,def:def,phy:phy,club:clubStr,photo_url:customImgUrl,avatarCustomUrl:customImgUrl};
+  _kadData={dna:dna,realDna:realDna,isVerified:isVerified&&complete&&realDna>0,isDemo:isDemo,demoLevel:p.demo_level||null,lv:lv,tc:tc,name:name,init:init,pos:pos,posFull:posFullStr,jersey:jersey,fpno:p.passport_number||'PP-000-XX',pac:pac,sho:sho,pas:pas,dri:dri,def:def,phy:phy,club:clubStr,photo_url:customImgUrl,avatarCustomUrl:customImgUrl};
 
   const mk=document.getElementById('mini-kad');
   if(!mk) return;
@@ -5757,7 +5763,7 @@ function renderMiniKad(p, attrs){
   const mkw=document.getElementById('mini-kad-wrap');
   if(mkw) mkw.style.setProperty('--mkw-glow',lv.color);
   const ovr=document.getElementById('mini-kad-ovr');
-  if(ovr) ovr.textContent=_kadData.isVerified?dna:'—';
+  if(ovr) ovr.textContent=_kadData.isDemo?'DEMO':(_kadData.isVerified?dna:'—');
   const initEl=document.getElementById('mini-kad-init');
   if(initEl) initEl.textContent=init;
   if(initEl) initEl.style.background='rgba(255,255,255,.12)';
@@ -5776,7 +5782,7 @@ function renderMiniKad(p, attrs){
 
 /* Buka modal kad besar */
 function openKadModal(){
-  if(!_kadData||!_kadData.dna) return;
+  if(!_kadData||(!_kadData.dna&&!_kadData.isDemo)) return;
   var ov=document.getElementById('kad-modal-overlay');
   if(!ov) return;
   _kadFlipped=false;
@@ -5789,7 +5795,7 @@ function openKadModal(){
   var col=_kadData.lv.color;
 
   /* Isi kandungan */
-  document.getElementById('kad-full-ovr').textContent=_kadData.isVerified?_kadData.dna:'\uD83D\uDD12 0';
+  document.getElementById('kad-full-ovr').textContent=_kadData.isDemo?'DEMO':(_kadData.isVerified?_kadData.dna:'\uD83D\uDD12 0');
   document.getElementById('kad-full-ovr').style.color=col;
   document.getElementById('kad-full-ovr').style.textShadow='0 0 28px '+col;
   document.getElementById('kad-full-tier').textContent=_kadData.lv.title||'\u2014';
@@ -5797,7 +5803,10 @@ function openKadModal(){
   /* Update DNA Status Badge */
   var dnaBadge=document.getElementById('dna-verified-badge');
   if(dnaBadge){
-    if(_kadData.isVerified){
+    if(_kadData.isDemo){
+      dnaBadge.textContent='\uD83E\uDDEA DEMO FIXTURE · NOT OFFICIAL DNA';
+      dnaBadge.className='dna-badge badge-unverified';
+    } else if(_kadData.isVerified){
       dnaBadge.textContent='\u26A1 OFFICIAL DNA VERIFIED';
       dnaBadge.className='dna-badge badge-verified';
     } else {
