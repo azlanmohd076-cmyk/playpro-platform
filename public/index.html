@@ -6003,6 +6003,7 @@ function kadDistance(a,b){var x=a.x-b.x,y=a.y-b.y;return Math.sqrt(x*x+y*y);}
 function startKadSwipe(e){
   if(!e||e.pointerType==='mouse'&&e.button!==0)return;
   var card=e.currentTarget;
+  var scene=card.closest('.kad-modal-scene');if(scene)scene.classList.add('is-active');
   _kadPointers[e.pointerId]={x:e.clientX,y:e.clientY};
   try{card.setPointerCapture(e.pointerId);}catch(err){}
   if(Object.keys(_kadPointers).length===1){
@@ -6061,7 +6062,7 @@ function endKadSwipe(e){
   }
   if(remaining===0){
     var card=document.getElementById('kad-modal-card');
-    if(card)card.classList.remove('is-dragging');
+    if(card){card.classList.remove('is-dragging');var scene=card.closest('.kad-modal-scene');if(scene)scene.classList.remove('is-active');}
     kadApplyTransform(true);
   }
 }
@@ -6069,7 +6070,7 @@ function cancelKadSwipe(e){
   if(e&&_kadPointers[e.pointerId])delete _kadPointers[e.pointerId];
   _kadDrag=null;_kadPinch=null;
   var card=document.getElementById('kad-modal-card');
-  if(card)card.classList.remove('is-dragging');
+  if(card){card.classList.remove('is-dragging');var scene=card.closest('.kad-modal-scene');if(scene)scene.classList.remove('is-active');}
   kadApplyTransform(true);
 }
 function zoomKadWheel(e){
