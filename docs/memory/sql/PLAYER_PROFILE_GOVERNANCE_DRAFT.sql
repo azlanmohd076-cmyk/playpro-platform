@@ -135,9 +135,38 @@ COMMIT;
 
 -- ---------------------------------------------------------------------------
 -- C. Mandatory follow-up before this module can be marked complete:
---    1. Reconcile player_assessments and player_attribute_state attribute names.
---    2. Confirm the canonical attribute set includes the three GK attributes.
---    3. Add and test a controlled aggregation/sync process (multiple assessors).
---    4. Test owner/public/private/approved-follower/anonymous access.
---    5. Test that raw assessment rows are never publicly readable or writable.
+--    1. Canonical Player DNA v1 is exactly 18 outfield attributes:
+--       passing, dribbling, finishing, first_touch, tackling, heading,
+--       pace, stamina, strength, agility, leadership, composure, teamwork,
+--       work_rate, positioning, vision, decision_making, anticipation.
+--       The canonical v1 model has NO separate GK DNA attributes. GK card
+--       face stats must be selected from these 18; do not invent new columns.
+--    2. Live player_assessments is a legacy 19-field evidence table:
+--       passing, crossing, tackling, finishing, dribbling, first_touch,
+--       leadership, teamwork, determination, decisions, positioning, pace,
+--       strength, agility, balance, stamina, gk_handling, gk_reflexes,
+--       gk_positioning. No safe one-to-one mapping exists for all 18 canonical
+--       DNA fields. Do not assume decisions=decision_making or map other fields.
+--    3. Live player_assessments has a 1–20 CHECK constraint, while the current
+--       technical_assessor.html form advertises 1–100; its history query asks
+--       for created_at although the live table exposes assessed_at. Fix the
+--       assessor workflow only after its canonical storage contract is chosen.
+--    4. The assessor UI currently queries public.players directly, but the
+--       live players SELECT policy is owner-only. Add a role-checked, minimal
+--       assessor directory RPC; do not grant broad player-table SELECT.
+--    5. Decide the canonical assessment schema and the aggregation rule for
+--       multiple assessors (e.g. median/mean/latest with confidence) with Owner
+--       approval. Only then create a controlled sync into player_attribute_state.
+--    6. Add a safe follower-request projection for the profile owner so pending
+--       requests can be identified and approved/rejected without exposing
+--       private profiles or unrestricted profiles rows.
+--    7. Enforce profile_visibility inside get_player_match_history itself;
+--       frontend tab hiding is not a security boundary.
+--    8. Test owner/public/private/approved-follower/anonymous access and ensure
+--       raw assessment rows are never publicly readable or writable.
+--
+-- Live counts checked 2026-11-13 on playpro2: players=5,
+-- player_attribute_state=5 (all source='none', confidence=0, no rated values),
+-- player_assessments=0, player_match_stats=0, player_posts=0, player_follows=0.
+-- No production DDL has been applied for these follow-up items.
 -- ---------------------------------------------------------------------------
