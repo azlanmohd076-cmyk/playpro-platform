@@ -964,7 +964,7 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 
 .kad-modal-scene {
   perspective: 1800px;
-  width: min(340px, 88vw, calc(58vh * .7142857));
+  width: min(340px, 88vw, 41vh);
   flex: 0 0 auto;
 }
 .kad-modal-card {
@@ -6027,7 +6027,7 @@ function endKadSwipe(e){
         _kadFlipped=!_kadFlipped;
         _kadRotationY=_kadFlipped?(dx<0?180:-180):(dx<0?360:0);
         _kadRotationX=0;
-        kadUpdateFlipLabel();
+        kadTriggerFlare();kadUpdateFlipLabel();
       }else{
         _kadRotationY=drag.baseY;_kadRotationX=0;
       }
@@ -6058,6 +6058,11 @@ function handleKadCardClick(e){
   if(_kadSwipeHandled){_kadSwipeHandled=false;if(e)e.preventDefault();return;}
   flipKad();
 }
+function kadTriggerFlare(){
+  var card=document.getElementById('kad-modal-card');if(!card)return;
+  card.classList.remove('is-flipping');void card.offsetWidth;card.classList.add('is-flipping');
+  setTimeout(function(){card.classList.remove('is-flipping');},850);
+}
 function kadUpdateFlipLabel(){
   var flipBtn=document.getElementById('kad-flip-btn');
   if(flipBtn)flipBtn.textContent=_kadFlipped?'↻ KEMBALI KE DEPAN':'↻ PUSING KAD · LIHAT BELAKANG';
@@ -6070,8 +6075,7 @@ function flipKad(){
   _kadFlipped=!_kadFlipped;
   _kadRotationY+=180;_kadRotationX=0;
   card.classList.toggle('is-flipped',_kadFlipped);
-  card.classList.remove('is-flipping');void card.offsetWidth;card.classList.add('is-flipping');
-  setTimeout(function(){card.classList.remove('is-flipping');},650);
+  kadTriggerFlare();
   kadApplyTransform(true);kadUpdateFlipLabel();
 }
 
