@@ -948,12 +948,22 @@ async function doRegister() {
 }
 
 async function handleLogout() {
-  await _SB.auth.signOut();
-  _user = null;
-  updateUserUI();
-  closeDrawer();
-  showToast(_lang==='ms'?'👋 Jumpa lagi!':'👋 See you!');
-  renderFeed();
+  const logoutButton=document.getElementById('drawer-logout-btn');
+  if(logoutButton){logoutButton.style.pointerEvents='none';logoutButton.style.opacity='.5';}
+  try{
+    const {error}=await _SB.auth.signOut({scope:'local'});
+    if(error) throw error;
+    const {data:{session},error:sessionError}=await _SB.auth.getSession();
+    if(sessionError) throw sessionError;
+    if(session) throw new Error('Sesi masih aktif selepas log keluar.');
+  }catch(error){
+    console.error('[PlayPro] Logout failed; clearing this device session:',error);
+    // Clear only this project's Supabase auth token; preserve language and app preferences.
+    try{localStorage.removeItem('sb-muirhenvjruvfxenoaxm-auth-token');}catch(e){}
+    try{sessionStorage.removeItem('sb-muirhenvjruvfxenoaxm-auth-token');}catch(e){}
+  }
+  _user=null;
+  window.location.replace('/?signed_out=1');
 }
 
 function updateUserUI() {
