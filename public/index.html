@@ -1002,11 +1002,12 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   touch-action:none;
   -webkit-tap-highlight-color:transparent;
   will-change: transform;
-  filter: drop-shadow(0 24px 32px rgba(0,0,0,.48));
+  /* Jangan guna CSS filter pada bekas 3D: ia flatten lapisan depan/belakang dalam Safari/iOS. */
+  box-shadow: 0 24px 32px rgba(0,0,0,.38), 0 0 22px rgba(34,211,238,.12);
 }
 .kad-modal-card:active { cursor: grabbing; }
 .kad-modal-card.is-dragging{transition:none!important}
-.kad-modal-card.is-zoomed{filter:drop-shadow(0 32px 42px rgba(0,0,0,.62))}
+.kad-modal-card.is-zoomed{box-shadow:0 32px 42px rgba(0,0,0,.48),0 0 30px rgba(34,211,238,.2)}
 .kad-modal-card img{-webkit-user-drag:none;user-select:none;pointer-events:none}
 
 /* Floating animation �� swing kiri kanan + sedikit naik turun */
@@ -1032,7 +1033,7 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 
 
 /* PlayPro Player Card: stable front/back flip */
- .kad-modal-card{position:relative;transform-style:preserve-3d;backface-visibility:visible}
+ .kad-modal-card{position:relative;transform-style:preserve-3d;backface-visibility:visible;-webkit-transform-style:preserve-3d}
 /* Holographic flare sweeps across the card during every flip */
 .kad-modal-card::after{
   content:"";position:absolute;inset:-2%;z-index:8;pointer-events:none;border-radius:20px;
@@ -1067,7 +1068,7 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   overflow: hidden;
   backface-visibility: hidden;
   -webkit-backface-visibility:hidden;
-  transform: rotateY(180deg) translateZ(1px);
+  transform: rotateY(180deg) translateZ(.5px);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: .75rem;
@@ -1102,7 +1103,7 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
   overflow: hidden;
   backface-visibility: hidden;
   -webkit-backface-visibility:hidden;
-  transform:translateZ(1px);
+  transform:rotateY(0deg) translateZ(.5px);
   display: flex; flex-direction: column;
   align-items: center;
   padding: 1.2rem 1rem;
