@@ -2968,6 +2968,7 @@ function go(t){
   });
   _tab=t;
   updateBread(t);
+  if(t==='explore'){ onTerSearch(); }
   if(t==='profile' && !window._overrideProfileData){
     loadProfile();
   }
@@ -4404,36 +4405,49 @@ function syncWithLocalRegistry(p) {
 }
 
 async function viewPlayerProfile(elOrId){
-  const playerId = typeof elOrId === 'string' ? elOrId : (elOrId?.dataset?.pid || elOrId || '');
+  const playerId=typeof elOrId==='string'?elOrId:(elOrId?.dataset?.pid||elOrId||'');
   if(!playerId){toast('❌ ID pemain tidak ditemui');return;}
-
   const obMask=document.getElementById('onboarding-mask');
   if(obMask) obMask.style.display='none';
-
   try{
-    let p = null;
-    
-    // Carian Supabase DB (menyokong UUID dan nama samaran/penuh)
-    let query = window.SB.from('players').select('id,full_name,preferred_name,nickname,position,best_position,jersey_number,height_cm,weight_kg,preferred_foot,biography,passport_number,passport_frame,kyc_status,dna_technical,dna_physical,dna_mental,dna_tactical,dna_overall,dna_band,passport_score,date_of_birth,nationality,phone,clubs(name)');
-    if (playerId.length === 36 && playerId.split('-').length === 5) {
-      query = query.eq('id', playerId);
-    } else {
-      query = query.or('preferred_name.ilike.'+playerId+',full_name.ilike.'+playerId+',nickname.ilike.'+playerId);
-    }
-    const {data:dbPlayers, error} = await query.limit(1);
-    if(dbPlayers && dbPlayers.length > 0) p = dbPlayers[0];
-
-  // Profil hanya boleh datang daripada Supabase; tiada fallback frontend.
-
-    if(!p){
+    const {data,error}=await window.SB.rpc('get_player_profile',{p_player_id:playerId});
+    if(error) throw error;
+    const result=Array.isArray(data)?data[0]:data;
+    if(!result||result.ok!==true||!result.player){
       toast('❌ Profil tidak dijumpai atau tidak awam');
       return;
     }
-    p = syncWithLocalRegistry(p);
+    const raw=result.player;
+    const p={
+      id:raw.id,
+      profile_id:raw.profile_id,
+      full_name:raw.full_name||raw.preferred_name||'Pemain',
+      preferred_name:raw.preferred_name||raw.full_name||'Pemain',
+      position:raw.position||'',
+      best_position:raw.position||'',
+      preferred_foot:raw.preferred_foot||null,
+      photo_url:raw.photo_url||null,
+      biography:raw.bio||'',
+      bio:raw.bio||'',
+      nationality:raw.nationality||'',
+      height_cm:raw.height_cm||null,
+      weight_kg:raw.weight_kg||null,
+      jersey_number:raw.jersey_number||null,
+      passport_number:raw.football_passport_no||null,
+      verification_status:raw.verification_status||'unverified',
+      kyc_status:raw.verification_status||'unverified',
+      profile_visibility:raw.profile_visibility||'public',
+      clubs:raw.club_name?{name:raw.club_name}:null,
+      isRestricted:result.restricted===true
+    };
+    if(p.isRestricted){
+      toast('🔒 Profil ini peribadi. Maklumat penuh tidak dipaparkan.');
+    }
+    window._viewingOtherPlayer=p;
     showPlayerModal(p);
   }catch(e){
-    console.error('viewPlayer exception:',e.message);
-    toast('❌ Ralat: '+e.message);
+    console.error('[PlayPro:view-player]',e);
+    toast('❌ Profil pemain gagal dibuka. Sila cuba lagi.');
   }
 }
 
@@ -5447,81 +5461,81 @@ function onTerState(){
 }
 
 async function onTerSearch(){
+  var q=(document.getElementById('tr-search')?.value||'').trim();
+  var jenis=document.getElementById('tr-jenis')?.value||'';
   var negeri=document.getElementById('tr-negeri')?.value||'';
   var liga=document.getElementById('tr-liga')?.value||'';
-  var jenis=document.getElementById('tr-jenis')?.value||'';
-  var q=(document.getElementById('tr-search')?.value||'').trim();
-
-  // Tunjuk Top DNA / Penjaring jika tiada tapisan spesifik
-  var isDefault = !negeri && !liga && !jenis && !q;
   var defEl=document.getElementById('ter-default');
-  if(defEl) defEl.style.display = isDefault ? 'block' : 'none';
-
+  if(defEl) defEl.style.display='none';
   var resEl=document.getElementById('ter-results');
-  if(resEl) resEl.style.display = 'block';
-
+  if(resEl) resEl.style.display='block';
   var list=document.getElementById('ter-results-list');
-  if(list) list.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--mute)">Mencari...</div>';
-
-  var data = [];
-  try{
-    var query=window.SB.from('players')
-      .select('id,full_name,preferred_name,nickname,position,best_position,dna_overall,dna_band,passport_frame,passport_number,date_of_birth,kyc_status,clubs(name)')
-      .not('full_name','is',null);
-
-    if(negeri) query=query.like('passport_number','%-' + negeri + '-%');
-    if(q) query=query.or('full_name.ilike.%'+q+'%,preferred_name.ilike.%'+q+'%,nickname.ilike.%'+q+'%');
-    var res=await query.order('dna_overall',{ascending:false,nullsFirst:false}).limit(50);
-    if(res.data) data=res.data;
-  }catch(e){
-    console.warn('DB Search failed, using local registry:', e.message);
-  }
-
-  // Jika tiada hasil dari DB, gunakan fallback lokal
-  // Tiada fallback lokal: hasil mesti datang daripada Supabase.
-
   var count=document.getElementById('ter-results-count');
+  if(list) list.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--mute)">Memuatkan direktori pemain...</div>';
 
-  if(!data||!data.length){
-    if(count) count.textContent='Tiada hasil ditemui';
-    if(list) list.innerHTML='<div style="text-align:center;padding:3rem 1rem;color:var(--mute)"><div style="font-size:3.5rem;margin-bottom:.5rem">😔</div><h4 style="font-weight:800;color:var(--txt);margin-bottom:.25rem">Tiada pemain ditemui</h4><div style="font-size:.75rem">Cuba tukar kata kunci carian atau pilihan negeri yang lain.</div></div>';
+  if(jenis && jenis!=='player'){
+    if(count) count.textContent='Direktori ini sedang memaparkan pemain sahaja.';
+    if(list) list.innerHTML='<div style="text-align:center;padding:2rem 1rem;color:var(--mute)">Direktori jurulatih dan pengadil belum disambungkan.</div>';
     return;
   }
 
-  if(count) count.textContent=data.length+' pemain ditemui ('+(isDefault?'Semua Berdaftar':'Tapisan Aktif')+')';
-  if(list) list.innerHTML='';
-  
-  data.forEach(function(p){
-    var lv=dnaLevel2(p.dna_overall||0);
-    var dn=p.preferred_name||p.full_name||'Pemain';
-    var pos=p.best_position||p.position||'—';
-    var age=p.date_of_birth?Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)):'—';
-    var isVerified=p.kyc_status==='verified';
-    
-    var div=document.createElement('div');
-    div.style.cssText='display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;background:var(--card);border:1.5px solid var(--bdr);border-radius:14px;margin-bottom:.55rem;cursor:pointer;transition:transform .2s, border-color .2s, box-shadow .2s';
-    div.className='style-result-card';
-    
-    div.innerHTML='<div style="width:46px;height:46px;border-radius:12px;border:2px solid '+lv.color+';background:linear-gradient(135deg,var(--g),var(--g3));display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:1.15rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.4)">'+dn[0]+'</div>'
-      +'<div style="flex:1;min-width:0">'
-        +'<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.1rem">'
-          +'<span style="font-size:.95rem;font-weight:800;color:var(--txt)">'+dn+'</span>'
-          +(isVerified?'<span style="font-size:.5rem;background:#10B981;color:#fff;padding:.08rem .35rem;border-radius:4px;font-weight:800;letter-spacing:.05em">✓ VERIFIED</span>':'<span style="font-size:.5rem;background:#EF4444;color:#fff;padding:.08rem .35rem;border-radius:4px;font-weight:800;letter-spacing:.05em">🔒 STATS LOCK</span>')
-        +'</div>'
-        +'<div style="font-size:.65rem;color:var(--mute);margin-bottom:.15rem">'+posCode2(pos)+' · '+(p.clubs?.name||'Tiada Kelab')+' · '+age+' thn</div>'
-        +'<div style="font-size:.58rem;font-family:monospace;color:var(--g)">'+(p.passport_number||'—')+'</div>'
-      +'</div>'
-      +'<div style="text-align:right;flex-shrink:0">'
-        +'<div style="font-size:1.25rem;font-weight:900;color:'+lv.color+';line-height:1">'+(isVerified?(p.dna_overall||'—'):'🔒 0')+'</div>'
-        +'<div style="font-size:.48rem;font-weight:800;color:'+lv.color+';letter-spacing:.1em;margin-top:.2rem;text-transform:uppercase;background:rgba(255,255,255,.05);padding:.1rem .3rem;border-radius:4px;border:1px solid '+lv.color+'44">'+lv.title+'</div>'
-      +'</div>';
-      
-    div.addEventListener('click',function(){
-      toast('🔍 Muatkan profil '+dn+'...');
-      viewPlayerProfile(p.id||p.preferred_name);
+  try{
+    const {data,error}=await window.SB.rpc('get_public_player_directory',{
+      p_search:q||null,
+      p_limit:50
     });
-    if(list) list.appendChild(div);
-  });
+    if(error) throw error;
+    const players=Array.isArray(data)?data:[];
+    if(count){
+      count.textContent=players.length+' pemain ditemui'
+        +((negeri||liga)?' · Penapis negeri/liga belum diaktifkan':'');
+    }
+    if(!list) return;
+    list.innerHTML='';
+    if(!players.length){
+      list.innerHTML='<div style="text-align:center;padding:2.5rem 1rem;color:var(--mute)"><div style="font-size:2.5rem;margin-bottom:.5rem">🔎</div><strong style="color:var(--txt)">Tiada pemain ditemui</strong><div style="font-size:.75rem;margin-top:.35rem">Cuba nama lain atau kosongkan carian.</div></div>';
+      return;
+    }
+
+    players.forEach(function(p){
+      const name=p.display_name||'Pemain';
+      const card=document.createElement('button');
+      card.type='button';
+      card.style.cssText='width:100%;display:flex;align-items:center;gap:.75rem;padding:.85rem 1rem;background:var(--card);border:1.5px solid var(--bdr);border-radius:14px;margin-bottom:.55rem;cursor:pointer;text-align:left;color:var(--txt);font-family:inherit;transition:border-color .15s';
+      const avatar=document.createElement('div');
+      avatar.style.cssText='width:46px;height:46px;border-radius:12px;border:2px solid var(--g);background:var(--bg3);display:flex;align-items:center;justify-content:center;overflow:hidden;font-weight:900;font-size:1.1rem;flex-shrink:0';
+      if(p.photo_url){
+        const img=document.createElement('img');
+        img.src=p.photo_url;img.alt='';img.style.cssText='width:100%;height:100%;object-fit:cover';
+        avatar.appendChild(img);
+      }else{
+        avatar.textContent=name.charAt(0).toUpperCase();
+      }
+      const info=document.createElement('div');
+      info.style.cssText='flex:1;min-width:0';
+      const title=document.createElement('div');
+      title.style.cssText='font-size:.9rem;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      title.textContent=name;
+      const meta=document.createElement('div');
+      meta.style.cssText='font-size:.68rem;color:var(--mute);margin-top:.2rem';
+      meta.textContent=(p.player_position||'Posisi belum diisi').toUpperCase()+' · '+(p.club_name||'Tiada Kelab');
+      const status=document.createElement('div');
+      status.style.cssText='font-size:.55rem;font-weight:800;letter-spacing:.04em;margin-top:.25rem;color:'+(p.verification_status==='verified'?'#059669':'var(--mute)');
+      status.textContent=p.verification_status==='verified'?'✓ DISAHKAN':'BELUM DISAHKAN';
+      info.append(title,meta,status);
+      const arrow=document.createElement('div');
+      arrow.textContent='›';arrow.style.cssText='font-size:1.5rem;color:var(--mute);padding:0 .2rem';
+      card.append(avatar,info,arrow);
+      card.addEventListener('mouseenter',()=>card.style.borderColor='var(--g)');
+      card.addEventListener('mouseleave',()=>card.style.borderColor='var(--bdr)');
+      card.addEventListener('click',()=>viewPlayerProfile(p.player_id));
+      list.appendChild(card);
+    });
+  }catch(error){
+    console.error('[PlayPro:player-directory]',error);
+    if(count) count.textContent='Direktori tidak dapat dimuatkan';
+    if(list) list.innerHTML='<div style="text-align:center;padding:2rem 1rem;color:#dc2626">Ralat memuatkan direktori pemain. Sila cuba semula.</div>';
+  }
 }
 
 /* ── FEED ── */
