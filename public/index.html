@@ -3174,9 +3174,24 @@ async function doRegister(){
 }
 
 async function doLogout(){
-  await window.SB.auth.signOut();_u=null;_pd=null;
-  updateUI();closeDr();toast('👋 Jumpa lagi!');
-  if(_tab==='profile')loadProfile();
+  const logoutButton=document.getElementById('dr-logout-btn');
+  if(logoutButton){logoutButton.style.pointerEvents='none';logoutButton.style.opacity='.5';}
+  try{
+    const client=window.SB||window.getPlayProSupabase?.();
+    if(!client) throw new Error('Sambungan PlayPro tidak tersedia.');
+    const {error}=await client.auth.signOut({scope:'local'});
+    if(error) throw error;
+    const {data:{session},error:sessionError}=await client.auth.getSession();
+    if(sessionError) throw sessionError;
+    if(session) throw new Error('Sesi masih aktif selepas log keluar.');
+  }catch(error){
+    console.error('[PlayPro] Logout failed; clearing this device session:',error);
+    // Clear only this project's Supabase auth token; preserve language and app preferences.
+    try{localStorage.removeItem('sb-muirhenvjruvfxenoaxm-auth-token');}catch(e){}
+    try{sessionStorage.removeItem('sb-muirhenvjruvfxenoaxm-auth-token');}catch(e){}
+  }
+  _u=null;_pd=null;
+  window.location.replace('/?signed_out=1');
 }
 
 function updateUI(){
