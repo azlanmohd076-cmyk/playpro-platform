@@ -1636,6 +1636,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
       <div>
         <div class="dr-uname" id="dr-name">Tetamu</div>
         <div class="dr-urole" id="dr-role">Log masuk untuk akses penuh</div>
+        <div class="dr-uemail" id="dr-email" style="font-size:.68rem;color:var(--mute);margin-top:.18rem;overflow-wrap:anywhere"></div>
       </div>
     </div>
   </div>
@@ -3223,6 +3224,8 @@ function updateUI(){
   document.getElementById('dr-av').textContent=_u?name[0].toUpperCase():'?';
   document.getElementById('dr-name').textContent=_u?name:'Tetamu';
   document.getElementById('dr-role').textContent=_u?(role||'Pengguna PlayPro'):'Log masuk untuk akses penuh';
+  const drawerEmail=document.getElementById('dr-email');
+  if(drawerEmail) drawerEmail.textContent=_u?.email||'';
   document.getElementById('dr-login-btn').style.display=_u?'none':'flex';
   document.getElementById('dr-logout-btn').style.display=_u?'flex':'none';
   document.getElementById('hdr-login-btn').style.display=_u?'none':'flex';
