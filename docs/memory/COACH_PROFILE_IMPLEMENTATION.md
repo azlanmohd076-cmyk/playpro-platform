@@ -84,3 +84,5 @@ These remain future work; the current profile, KYC, certification request and Pl
 ## Developer KYC review
 
 The Developer Coach control panel now includes a pending Coach KYC queue. Developers can inspect short-lived signed links to the private Coach KYC documents, compare Document AI extraction with the claimed identity, then call the existing privileged `approve_coach_kyc()` or `reject_coach_kyc()` RPC. Approval updates the authoritative legal identity and locks it. The storage read policy is restricted to Developer and only objects referenced by Coach KYC requests.
+
+- Coach KYC document paths are attached through the owner-checked `attach_coach_kyc_documents()` RPC, which verifies that each uploaded object belongs to the signed-in Coach before recording it.
