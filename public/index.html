@@ -2954,7 +2954,7 @@ async function routeAuthenticatedUser(user){
       }
       return;
     }
-    if(role==='club_owner'){
+    if(role==='club_owner'||role==='club_admin'){
       if(!window.location.pathname.endsWith('/club.html')) window.location.assign('/club.html');
       return;
     }
@@ -3257,7 +3257,7 @@ async function doRegister(){
     var confirmedRole=res.role||role||'player';
     if(confirmedRole==='coach'){
       window.location.assign('/coach_profile_v2.html');
-    } else if(confirmedRole==='club_owner'){
+    } else if(confirmedRole==='club_owner'||confirmedRole==='club_admin'){
       window.location.assign('/club.html');
     } else if(confirmedRole==='organizer'){
       window.location.assign('/organizer_profile.html');
@@ -3291,7 +3291,7 @@ async function doRegister(){
     updateUI(); closeLogin();
     var r2=(prof&&prof.role)||role||'player';
     if(r2==='coach'){ window.location.assign('/coach_profile_v2.html'); }
-    else if(r2==='club_owner'){ window.location.assign('/club.html'); }
+    else if(r2==='club_owner'||r2==='club_admin'){ window.location.assign('/club.html'); }
     else if(r2==='organizer'){ window.location.assign('/organizer_profile.html'); }
     else if(r2==='player'||r2==='referee'){ showOnboarding(); }
     else { toast('✅ Akaun dibuat! Selamat datang ke PlayPro!'); }
