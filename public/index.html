@@ -1699,6 +1699,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
     <div class="dr-grp">NAVIGASI</div>
     <div class="dr-row on" id="dr-home" onclick="go('home');closeDr()"><span class="dr-ic">🏠</span><span class="dr-tx">Hub</span></div>
     <div class="dr-row" id="dr-explore" onclick="go('explore');closeDr()"><span class="dr-ic">🔍</span><span class="dr-tx">Terokai</span></div>
+    <div class="dr-row" id="dr-developer-editor" onclick="window.location.href='/database_editor.html';closeDr()" style="display:none"><span class="dr-ic">🛡️</span><span class="dr-tx">Master Database Editor</span></div>
     <div class="dr-row" id="dr-team" onclick="go('team');closeDr()"><span class="dr-ic">⚽</span><span class="dr-tx">Pasukan Saya</span></div>
     <div class="dr-row" id="dr-profile" onclick="go('profile');closeDr()"><span class="dr-ic">🪪</span><span class="dr-tx">Football Passport</span></div>
     <div class="dr-grp">CIPTA</div>
@@ -3277,6 +3278,14 @@ async function doLogout(){
 function updateUI(){
   const name=_u?.user_metadata?.full_name||_u?.email?.split('@')[0]||'Tetamu';
   const role=_u?.user_metadata?.role||'';
+  const devLink=document.getElementById('dr-developer-editor');
+  if(devLink) devLink.style.display='none';
+  if(_u && window.SB?.from){
+    window.SB.from('profiles').select('role,is_active').eq('id',_u.id).maybeSingle().then(({data})=>{
+      if(devLink) devLink.style.display=(data?.role==='developer' && data?.is_active===true)?'flex':'none';
+      if(data?.role==='developer') document.getElementById('dr-role').textContent='Developer PlayPro';
+    }).catch(()=>{});
+  }
   document.getElementById('dr-av').textContent=_u?name[0].toUpperCase():'?';
   document.getElementById('dr-name').textContent=_u?name:'Tetamu';
   document.getElementById('dr-role').textContent=_u?(role||'Pengguna PlayPro'):'Log masuk untuk akses penuh';
