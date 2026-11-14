@@ -3781,8 +3781,8 @@ function renderBio2(p){
   var reg = PLAYPRO_PLAYER_REGISTRY[nameKey] || PLAYPRO_PLAYER_REGISTRY[nameKey.toLowerCase()] || {};
 
   var fullName = reg.namaPenuh || p.full_name || dn;
-  var dob = reg.tarikhLahir || (p.date_of_birth ? new Date(p.date_of_birth).toLocaleDateString('ms-MY',{day:'2-digit',month:'long',year:'numeric'}) : '—');
-  var ageStr = reg.umur || '—';
+  var dob = reg.tarikhLahir || (p.date_of_birth ? new Date(p.date_of_birth).toLocaleDateString('ms-MY',{day:'2-digit',month:'long',year:'numeric'}) : (p.profile_id ? '—' : 'Dirahsiakan'));
+  var ageStr = reg.umur || (p.age !== null && p.age !== undefined ? p.age+' tahun' : '—');
   if(!reg.umur && p.date_of_birth){
     const dobd=new Date(p.date_of_birth);
     const today=new Date();
@@ -4580,13 +4580,14 @@ async function viewPlayerProfile(elOrId){
       preferred_foot:raw.preferred_foot||null,
       photo_url:raw.photo_url||null,
       date_of_birth:raw.date_of_birth||null,
+      age:raw.age??null,
       biography:raw.bio||'',
       bio:raw.bio||'',
       nationality:raw.nationality||'',
       height_cm:raw.height_cm||null,
       weight_kg:raw.weight_kg||null,
       jersey_number:raw.jersey_number||null,
-      passport_number:raw.football_passport_no||null,
+      passport_number:raw.football_passport_no||(raw.profile_id?'Belum ada nombor':'Dirahsiakan'),
       verification_status:raw.verification_status||'unverified',
       kyc_status:raw.verification_status||'unverified',
       is_demo:raw.is_demo===true,
@@ -4645,7 +4646,7 @@ function renderOtherPassport(p){
   var dna = p.dna_overall || 0;
   var lv = dnaLevel2(dna);
   var pos = p.best_position || p.position || '';
-  var age = p.date_of_birth ? Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)) : '—';
+  var age = p.age !== null && p.age !== undefined ? p.age : (p.date_of_birth ? Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)) : '—');
   var foot = p.preferred_foot === 'left' ? 'Kiri' : p.preferred_foot === 'right' ? 'Kanan' : '—';
 
   var bar = document.getElementById('other-player-bar');
