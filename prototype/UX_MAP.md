@@ -87,7 +87,7 @@ Persistent global actions: search, create (+), notifications, account/role switc
 
 ## Core end-to-end journeys
 1. **New person:** open app → sign up/sign in → land on Home → explore → create a basic profile or add a role only when useful.
-2. **Player:** My PlayPro → Player profile → add football details → view Player Card/Passport → discover club/competition → attempt official registration → complete only the missing required verification.
+2. **Player:** Login / Sign up → choose Player → three-step onboarding → create Player Profile → view DNA / Player Card / Football Passport / match and career history → discover club/competition → complete only the missing required verification when an official action requires it.
 3. **Coach:** add Coach role → create concise profile → add qualifications/accreditation separately → create/manage team or training → assess players where authorised.
 4. **Club:** create Club → set name/badge/location → create squad → invite players/staff → complete organisation recognition only when a controlled club action requires it.
 5. **Organizer:** create competition → set format/category/rules/venue/dates → open registration → review entries → publish fixtures → manage matchday → publish results/table.
@@ -164,7 +164,7 @@ Persistent global actions: search, create (+), notifications, account/role switc
 - Use realistic but clearly synthetic fixture/profile data; never represent it as production data.
 - Consistent responsive patterns for mobile bottom navigation and desktop sidebar/top navigation.
 
-## Phase 1 decisions to confirm
+## Detailed journey specifications\n- [Journey 01 — Login to Player Profile](./FLOW_01_LOGIN_TO_PLAYER_PROFILE.md) defines the first-time player journey, returning-user branches, current production baseline, known UX gaps and acceptance criteria.\n\n## Phase 1 decisions to confirm
 - Final top-level navigation labels and ordering.
 - Exact inclusion and scope of Parent/Guardian and Merchant in the first prototype.
 - Which Admin/Developer screens are represented and which are intentionally excluded.
