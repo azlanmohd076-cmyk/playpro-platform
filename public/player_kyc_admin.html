@@ -8,6 +8,7 @@ main{max-width:1100px;margin:auto;padding:18px}.top{display:flex;align-items:cen
 </style></head><body><main>
 <header class="top"><div><div class="logo">PlayPro</div><div class="muted">DEVELOPER · PLAYER KYC REVIEW</div></div><a href="database_editor.html">← Kembali ke MCP</a></header>
 <section class="panel"><h1>Semakan KYC Pemain</h1><p class="muted">Semak dokumen asal secara manual. Google Document AI hanya membantu bacaan dokumen; ia bukan pihak yang meluluskan identiti. Kelulusan akan mengunci nama sah dan menjana Football Passport.</p><div id="notice" class="notice">Mengesahkan sesi Developer…</div><div id="queue"></div></section>
+<section class="panel"><h2>Semakan KYC Peranan Tambahan</h2><p class="muted">Semak KYC Club Owner, Organizer dan Referee. Google Document AI hanya membantu bacaan; keputusan akhir dibuat oleh Developer selepas menyemak dokumen asal.</p><div id="roleNotice" class="notice">Memuatkan permohonan KYC peranan...</div><div id="roleQueue"></div></section>
 </main>
 <script>
 'use strict';
@@ -45,12 +46,47 @@ $('queue').addEventListener('click',async e=>{
   msg('Permohonan KYC ditolak.',true);await load();
  }
 });
+function roleMsg(t,good=false){$('roleNotice').textContent=t;$('roleNotice').style.color=good?'#9ff4df':'#ffb4b4';}
+async function loadRoles(){
+ const {data,error}=await SB.rpc('get_role_kyc_admin_list');
+ if(error)throw error;
+ const rows=data?.requests||[];
+ if(!rows.length){$('roleQueue').innerHTML='<div class="empty">Tiada KYC peranan tambahan menunggu semakan.</div>';return;}
+ const cards=await Promise.all(rows.map(async r=>{
+  const paths=Array.isArray(r.document_storage_paths)?r.document_storage_paths:[];
+  const urls=await Promise.all(paths.map(async(path,i)=>{
+   const x=await SB.storage.from('kyc-documents').createSignedUrl(path,300);
+   return x.error?'':'<a target="_blank" rel="noopener" href="'+esc(x.data.signedUrl)+'">Buka dokumen '+(i+1)+'</a>';
+  }));
+  const roleLabel={club_owner:'Club Owner',organizer:'Organizer',referee:'Referee'}[r.subject_type]||r.subject_type;
+  return '<article class="card" data-role-card="'+esc(r.kyc_id)+'"><h3>'+esc(roleLabel)+' · '+esc(r.profile_name||'Pengguna PlayPro')+'</h3><div class="grid"><div class="fact"><b>NAMA DITUNTUT</b>'+esc(r.legal_name_claimed)+'</div><div class="fact"><b>JENIS DOKUMEN</b>'+esc(r.id_type)+'</div><div class="fact"><b>NAMA PROFIL</b>'+esc(r.profile_name||'—')+'</div><div class="fact"><b>PADANAN AI</b>'+esc(r.match_status||'—')+' · '+esc(r.provider_status||'—')+'</div><div class="fact"><b>TARIKH LAHIR PROFIL</b>'+esc(r.profile_dob||'—')+'</div><div class="fact"><b>KOD NEGERI</b>'+esc(r.birth_state_code||'—')+'</div><div class="fact"><b>DITERIMA</b>'+esc(new Date(r.submitted_at).toLocaleString('ms-MY'))+'</div></div><div class="docs">'+(urls.join('')||'<span class="muted">Dokumen tidak dapat dibuka.</span>')+'</div><div class="fields"><label>Nama sah yang disahkan<input data-role-name value="'+esc(r.legal_name_claimed||'')+'"></label><label>Tarikh lahir yang disahkan<input data-role-dob type="date" value="'+esc(r.extracted_birth_date||r.profile_dob||'')+'"></label><label>Kod negeri kelahiran (2 digit)<input data-role-state maxlength="2" inputmode="numeric" value="'+esc(r.birth_state_code||'')+'"></label><label>Catatan / sebab penolakan<input data-role-note maxlength="500" placeholder="Wajib diisi jika menolak"></label></div><div class="actions"><button class="btn good" data-role-approve>Sahkan KYC</button><button class="btn reject" data-role-reject>Tolak KYC</button></div></article>';
+ }));
+ $('roleQueue').innerHTML=cards.join('');
+}
+$('roleQueue').addEventListener('click',async e=>{
+ const card=e.target.closest('[data-role-card]');if(!card)return;const id=card.dataset.roleCard;
+ const note=card.querySelector('[data-role-note]').value.trim()||null;
+ if(e.target.closest('[data-role-approve]')){
+  const name=card.querySelector('[data-role-name]').value.trim(),dob=card.querySelector('[data-role-dob]').value||null,state=card.querySelector('[data-role-state]').value.trim();
+  if(!name||!/^\d{2}$/.test(state)){roleMsg('Nama sah dan kod negeri 2 digit wajib disahkan.');return;}
+  if(!confirm('Sahkan KYC peranan ini selepas menyemak dokumen asal?'))return;
+  const {data,error}=await SB.rpc('approve_role_kyc',{p_kyc_id:id,p_reviewer_note:note,p_verified_legal_name:name,p_verified_birth_date:dob,p_verified_birth_state_code:state});
+  if(error){roleMsg('Kelulusan gagal: '+error.message);return;}
+  roleMsg('KYC peranan disahkan. Pengguna kini boleh melengkapkan profil peranan.',true);await loadRoles();
+ }else if(e.target.closest('[data-role-reject]')){
+  if(!note){roleMsg('Sebab penolakan wajib diisi.');return;}
+  if(!confirm('Tolak permohonan KYC peranan ini?'))return;
+  const {error}=await SB.rpc('reject_role_kyc',{p_kyc_id:id,p_reviewer_note:note});
+  if(error){roleMsg('Penolakan gagal: '+error.message);return;}
+  roleMsg('Permohonan KYC peranan ditolak.',true);await loadRoles();
+ }
+});
 async function init(){
  const {data:{user},error}=await SB.auth.getUser();
  if(error||!user){msg('Sesi tiada. Log masuk melalui MCP dahulu.');return;}
  const {data:p,error:pe}=await SB.from('profiles').select('role,is_active').eq('id',user.id).single();
  if(pe||!p||p.role!=='developer'||!p.is_active){msg('Akses ditolak. Developer PlayPro sahaja.');return;}
- msg('Akses Developer disahkan.',true);await load();
+ msg('Akses Developer disahkan.',true);await Promise.all([load(),loadRoles()]);
 }
 init().catch(e=>msg('Panel gagal dimuatkan: '+e.message));
 </script></body></html>
