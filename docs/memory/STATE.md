@@ -143,3 +143,24 @@ Actions         : "PlayPro Shell v1" lulus 2026-09-09 pada 23569ac (bot auto-com
         commit hilang) — peraturan baharu `AGENTS.md` §3(9) |
 | 2026-09-10 (malam 5) | **Semakan bebas ChatGPT (Reviewer) diterima + disimpan** sebagai `PEER_REVIEW_2026-09-10.md`. Kami **salah** pada 3 angka `[DB]` (lapuk) + 1 bilangan fail di 2 tempat; kami **betul** pada semua yang dia sahkan semula (1 repo, status PR #5, `main` 404 migrasi, angka advisor, `match_events` tiada di Git). `playpro1` → rasmi **TAK SEMAK**. Ditambah `WO-23`…`WO-26` + `DEC-039 (PROPOSED)` |
 | 2026-09-10 (malam 4) | `DEC-038` (K1): ASAS = sah selagi akaun hidup; LANJUT = 12 bulan rolling. Tiada beban pembaharuan tahunan akar umbi, tiada penyingkiran pemain amatur tengah musim. Satu syarat penerimaan ditambah: **umur dikira dari `date_of_birth`, bukan dari kesegaran pengesahan**. **Penambahan ke PR #5 DIBEKUKAN** selepas ini — walau apa pun jawapan seterusnya, ia masuk PR #6 selepas PR #5 digabung |
+
+---
+
+## 8. Addendum Owner — KYC individu tunggal dan persediaan onboarding (2026-11-14)
+
+**Keputusan Owner DEC-043:** One Person, One KYC. Identiti individu disahkan sekali bagi satu akaun, dikongsi semua role, sah lima tahun dari tarikh pengesahan. Penambahan role tidak mencetuskan KYC baharu. Lesen/akreditasi profesional dan pengiktirafan entiti kelab kekal semakan berasingan — bukan KYC individu kedua. Rujuk docs/PLAYPRO_PRINCIPLES.md.
+
+**[GIT] Perubahan branch PR #60 feat/unified-multi-role-account-model:**
+- Ditambah docs/PLAYPRO_PRINCIPLES.md sebagai rujukan induk prinsip produk dan onboarding.
+- AGENTS.md ditambah arahan wajib One Person, One KYC.
+- BOUNDARIES.md ditambah sumber kebenaran KYC pusat.
+- DECISIONS.md ditambah DEC-043 (Owner-approved), mengatasi reka bentuk lama KYC berasingan ikut role.
+- Ditambah migration cadangan 20261114130000_unified_individual_kyc_five_year_validity.sql: kanonik subject_type=individual, expires_at 5 tahun, RPC pusat status/permintaan/lampiran dokumen/semakan Developer, storage policies pusat, serta adapter endpoint lama.
+- public/player_kyc.html ditukar kepada satu aliran identiti pusat, tidak lagi memilih KYC berdasarkan role.
+- public/coach_profile_v2.html diarahkan ke halaman KYC pusat dan membaca status identiti yang sama.
+- supabase/functions/kyc-verify-coach/index.ts di branch diubah supaya OCR membaca profil identiti akaun, bukan rekod Coach.
+- public/player_kyc_admin.html diubah kepada satu queue semakan identiti Developer.
+
+**Had status — jangan salah lapor:** migration baharu BELUM diterapkan ke Supabase playpro2; Edge Function baharu BELUM dideploy; Vercel TIDAK dideploy; PR #60 TIDAK digabung. Maka UI/DB end-to-end belum boleh dianggap lulus. Perubahan ini ialah persediaan kod/dokumen dalam branch sahaja sehingga migration dan Edge Function diluluskan serta diuji.
+
+**Ujian yang masih wajib:** semak semua call sites KYC role lama; semak adapter approval dan role onboarding; uji akaun yang sudah verified menambah Player/Coach/Club Owner/Organizer/Referee tanpa upload semula; uji expiry lima tahun; uji upload/read isolation dan Developer review; uji OCR hanya sekali; semak data legacy sebelum migration live. Tiada data pengguna diubah dalam sesi ini.
