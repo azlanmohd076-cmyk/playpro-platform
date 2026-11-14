@@ -294,3 +294,20 @@ Yang **TIDAK** berubah: `DEC-001`…`DEC-038` (beku) · skop terkunci (`leagues`
 | 2026-09-10 (malam 6) | Addendum CTO daripada semakan Reviewer: 4 temuan **`[GIT]`** direkod di `PEER_REVIEW_2026-09-10.md` §9 — `DRIFT-013` (observer mungkin tak menyimpan + ✅ palsu) · `DRIFT-014` (penulis 404 itu menunjuk ke skema lain: 6 lajur tiada, `sequence`/`recorded_by`/`voided_*` ditinggalkan) · `DRIFT-015` (`savePlayerStats` upsert terus + `trg_fixture_status_pipeline` = dua arkitektur bersaing) · `DRIFT-016` (3 skrip 404 pada 6 halaman, termasuk `playpro_audit_fixes.js`). Diletak larangan `WO-29`: jangan "baiki 404" dengan menyalin fail. **Tiada keputusan beku diubah** |
 | 2026-09-10 (malam 5) | **Semakan bebas Reviewer (ChatGPT) diterima + disimpan** (`PEER_REVIEW_2026-09-10.md`). 3 angka `[DB]` kami **lapuk** (14→**20** fungsi, 57→**61** policy, 0→**4** migration) dan dibetulkan di `EVIDENCE.md`/`ENVIRONMENT.md`; `DEC-039 (PROPOSED)` ditambah. **Tiada keputusan beku diubah** |
 | 2026-09-10 (malam 4) | CEO jawab K1 → **`DEC-038`**: ASAS sah selagi akaun hidup; 12 bulan hanya LANJUT. 4 akibat direkod (`expires_at` null untuk ASAS · umur wajib dikira dari `date_of_birth` setiap perlawanan · kategori perlu simpan "tahap diwajibkan" · renewal LANJUT = rekod baharu, append). **Halangan semantik untuk fasa SKEMA = NOL.** R-04/R-07 kekal ditangguh seperti diarah |
+
+
+## DEC-043 — ONE PERSON, ONE KYC (APPROVED BY OWNER, 2026-11-14)
+
+**Keputusan Owner secara langsung:** KYC ialah pengesahan identiti individu sekali sahaja untuk satu akaun PlayPro dan dikongsi oleh semua peranan. Pengguna tidak perlu menghantar MyKad/MyKid/pasport semula apabila menambah Player, Coach, Referee, Organizer atau Club Owner.
+
+1. Satu identiti akaun mempunyai satu rekod KYC kanonik. Semua role membaca status rekod yang sama.
+2. Pengesahan sah selama lima (5) tahun dari tarikh disahkan. Selepas luput, pengguna membuat kemas kini melalui satu aliran KYC pusat.
+3. Kemas kini awal hanya apabila ada sebab nyata seperti dokumen tamat tempoh, perubahan identiti, dokumen tidak sah atau percanggahan material yang perlu diselesaikan.
+4. KYC individu mesti dipisahkan daripada lesen/akreditasi profesional, pengiktirafan entiti kelab, membership, registration, payment dan eligibility.
+5. OCR hanya alat bantuan membaca dokumen. Ia bukan keputusan kelulusan automatik dan tidak boleh diulang tanpa sebab.
+6. Semua modul menggunakan satu status KYC pusat, satu laluan kemas kini, dan corak onboarding/UI yang konsisten.
+7. Dokumen KYC disimpan private dengan akses minimum dan audit. Pelaksanaan retention/pemadaman dokumen mesti mematuhi undang-undang perlindungan data; tempoh sah lima tahun bukan lesen untuk pendedahan data.
+
+**Mengatasi percanggahan:** keputusan ini mengatasi reka bentuk lama yang memisahkan permohonan KYC mengikut subject_type/role, termasuk logik role-specific KYC yang dibina sebelum 2026-11-14. Sejarah audit lama tidak dipadam; ia direkonsiliasi kepada identiti kanonik tanpa meminta pengguna mengulang KYC.
+
+Rujukan pelaksanaan: `docs/PLAYPRO_PRINCIPLES.md`. Perubahan DB/kod mesti melalui PR dan ujian; tiada deployment Vercel atau merge dibenarkan tanpa arahan Owner berasingan.

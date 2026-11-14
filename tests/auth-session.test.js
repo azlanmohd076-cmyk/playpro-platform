@@ -121,6 +121,8 @@ function loadService(mock, opts) {
   {
     const svc = loadService(makeMock());
     check("'player' preserved (was fatal 22P02 pre-fix)", svc.normalizeRole('player') === 'player');
+    check("'user' basic account role preserved", svc.normalizeRole('user') === 'user');
+    check("Malay 'pengguna' -> user", svc.normalizeRole('pengguna') === 'user');
     check("'referee' preserved (was fatal 22P02 pre-fix)", svc.normalizeRole('referee') === 'referee');
     check("'coach' preserved", svc.normalizeRole('coach') === 'coach');
     check("'club_owner' preserved", svc.normalizeRole('club_owner') === 'club_owner');

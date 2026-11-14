@@ -274,7 +274,7 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 #bnav {
   position:fixed; bottom:0; left:0; right:0; height:var(--nh); z-index:300;
   background:var(--bg2); border-top:1px solid var(--bdr);
-  display:grid; grid-template-columns:repeat(6,1fr);
+  display:grid; grid-template-columns:repeat(7,1fr);
 }
 .bn {
   display:flex; flex-direction:column; align-items:center;
@@ -2846,9 +2846,9 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
       <div id="d-s1">
         <p style="font-size:.74rem;color:var(--mute);margin-bottom:.7rem;font-weight:500">Pilih peranan kau dalam bola sepak Malaysia:</p>
         <div class="portal-grid">
+          <div class="portal-card" onclick="pickRole('user','👤','Pengguna Biasa')"><span>👤</span><span>Pengguna Biasa</span></div>
           <div class="portal-card" onclick="pickRole('player','⚽','Pemain')"><span>⚽</span><span>Pemain</span></div>
           <div class="portal-card" onclick="pickRole('coach','👨‍🏫','Jurulatih')"><span>👨‍🏫</span><span>Jurulatih</span></div>
-          <div class="portal-card" onclick="pickRole('club_owner','🛡️','Pemilik Kelab')"><span>🛡️</span><span>Pemilik Kelab</span></div>
           <div class="portal-card" onclick="pickRole('organizer','🏆','Penganjur')"><span>🏆</span><span>Penganjur</span></div>
           <div class="portal-card" onclick="pickRole('referee','🟨','Pengadil')"><span>🟨</span><span>Pengadil</span></div>
         </div>
@@ -2931,6 +2931,17 @@ window.updateLencanaNotif = function updateLencanaNotif(){
 async function routeAuthenticatedUser(user){
   if(!user||!window.SB) return;
   try{
+    // Re-check account status before trusting an existing or newly-created session.
+    const {data:account,error:accountError}=await window.SB
+      .from('profiles').select('is_active').eq('id',user.id).maybeSingle();
+    if(accountError) throw accountError;
+    if(account && account.is_active===false){
+      await window.SB.auth.signOut({scope:'local'});
+      _u=null;_pd=null;updateUI();
+      toast('Akaun PlayPro dinyahaktifkan. Sesi pada peranti ini telah ditamatkan.');
+      return;
+    }
+    _u=user;updateUI();
     let pendingRole='';
     try{
       const pendingAt=Number(sessionStorage.getItem('playpro_pending_signup_role_at')||0);
@@ -2939,10 +2950,12 @@ async function routeAuthenticatedUser(user){
       sessionStorage.removeItem('playpro_pending_signup_role');
       sessionStorage.removeItem('playpro_pending_signup_role_at');
     }catch(ignore){}
+    if(pendingRole==='user'){window.location.assign('/role_center.html');return;}
     if(pendingRole==='coach'){window.location.assign('/coach_profile_v2.html');return;}
     if(pendingRole==='club_owner'){window.location.assign('/club.html');return;}
     if(pendingRole==='organizer'){window.location.assign('/organizer_profile.html');return;}
-    if(pendingRole==='player'||pendingRole==='referee'){showOnboarding();return;}
+    if(pendingRole==='player'){window.location.assign('/player_onboarding_v2.html');return;}
+    if(pendingRole==='referee'){window.location.assign('/referee_onboarding.html');return;}
 
     const{data:profile,error:profileError}=await window.SB.from('profiles').select('id,role').eq('id',user.id).maybeSingle();
     if(profileError) throw profileError;
@@ -2962,10 +2975,18 @@ async function routeAuthenticatedUser(user){
       if(!window.location.pathname.endsWith('/organizer_profile.html')) window.location.assign('/organizer_profile.html');
       return;
     }
+    if(role==='referee'){
+      if(!window.location.pathname.endsWith('/referee_onboarding.html')) window.location.assign('/referee_onboarding.html');
+      return;
+    }
+    if(role==='user'){
+      if(!window.location.pathname.endsWith('/role_center.html')) window.location.assign('/role_center.html');
+      return;
+    }
     if(role==='player'){
       const{data:player,error:playerError}=await window.SB.from('players').select('id').eq('profile_id',user.id).maybeSingle();
       if(playerError) throw playerError;
-      if(!player) showOnboarding();
+      if(!player) window.location.assign('/player_onboarding_v2.html');
     }
   }catch(error){
     console.warn('[PlayPro] onboarding status check skipped:',error.message);
@@ -2990,14 +3011,15 @@ async function init(){
       client.auth.getSession().then(result=>{
         const session=result?.data?.session;
         if(session){
-          _u=session.user;
-          updateUI();
-          Promise.resolve(routeAuthenticatedUser(_u)).catch(error=>console.warn('[PlayPro] onboarding route skipped:',error.message));
+          Promise.resolve(routeAuthenticatedUser(session.user)).catch(error=>console.warn('[PlayPro] onboarding route skipped:',error.message));
         }
       }).catch(error=>console.warn('[PlayPro] session check skipped:',error.message));
       client.auth.onAuthStateChange((event,sessionState)=>{
         if(event==='SIGNED_OUT'){_u=null;_pd=null;updateUI();return;}
-        if(sessionState?.user){_u=sessionState.user;updateUI();setTimeout(()=>routeAuthenticatedUser(sessionState.user),0);}
+        if(sessionState?.user){
+          _u=null;_pd=null;updateUI();
+          setTimeout(()=>routeAuthenticatedUser(sessionState.user),0);
+        }
       });
     }else{
       console.warn('[PlayPro] Supabase belum tersedia; memaparkan portal awam.');
@@ -3121,7 +3143,7 @@ function backRole(){document.getElementById('d-s1').style.display='block';docume
   const rawRole=document.getElementById('d-role')?.value||'';
   const roleAliases={club_admin:'club_owner',club_manager:'club_owner',league_admin:'organizer'};
   const selectedRole=roleAliases[rawRole]||rawRole;
-  if(!['player','coach','club_owner','organizer','referee'].includes(selectedRole)){
+  if(!['user','player','coach','organizer','referee'].includes(selectedRole)){
     setMsg('d-msg','Pilih peranan dahulu, kemudian tekan Daftar dengan Google.','err');
     return;
   }
@@ -3261,8 +3283,12 @@ async function doRegister(){
       window.location.assign('/club.html');
     } else if(confirmedRole==='organizer'){
       window.location.assign('/organizer_profile.html');
-    } else if(confirmedRole==='player'||confirmedRole==='referee'){
-      showOnboarding();
+    } else if(confirmedRole==='player'){
+      window.location.assign('/player_onboarding_v2.html');
+    } else if(confirmedRole==='referee'){
+      window.location.assign('/referee_onboarding.html');
+    } else if(confirmedRole==='user'){
+      window.location.assign('/role_center.html');
     } else {
       toast('✅ Akaun dibuat! Selamat datang ke PlayPro!');
     }
@@ -3293,7 +3319,9 @@ async function doRegister(){
     if(r2==='coach'){ window.location.assign('/coach_profile_v2.html'); }
     else if(r2==='club_owner'||r2==='club_admin'){ window.location.assign('/club.html'); }
     else if(r2==='organizer'){ window.location.assign('/organizer_profile.html'); }
-    else if(r2==='player'||r2==='referee'){ showOnboarding(); }
+    else if(r2==='player'){ window.location.assign('/player_onboarding_v2.html'); }
+    else if(r2==='referee'){ window.location.assign('/referee_onboarding.html'); }
+    else if(r2==='user'){ window.location.assign('/role_center.html'); }
     else { toast('✅ Akaun dibuat! Selamat datang ke PlayPro!'); }
   } else {
     setMsg('d-msg','✅ Akaun dibuat! Semak emel '+em+' untuk pengesahan.','ok');
@@ -3765,8 +3793,8 @@ function renderBio2(p){
   var reg = PLAYPRO_PLAYER_REGISTRY[nameKey] || PLAYPRO_PLAYER_REGISTRY[nameKey.toLowerCase()] || {};
 
   var fullName = reg.namaPenuh || p.full_name || dn;
-  var dob = reg.tarikhLahir || (p.date_of_birth ? new Date(p.date_of_birth).toLocaleDateString('ms-MY',{day:'2-digit',month:'long',year:'numeric'}) : '—');
-  var ageStr = reg.umur || '—';
+  var dob = reg.tarikhLahir || (p.date_of_birth ? new Date(p.date_of_birth).toLocaleDateString('ms-MY',{day:'2-digit',month:'long',year:'numeric'}) : (p.profile_id ? '—' : 'Dirahsiakan'));
+  var ageStr = reg.umur || (p.age !== null && p.age !== undefined ? p.age+' tahun' : '—');
   if(!reg.umur && p.date_of_birth){
     const dobd=new Date(p.date_of_birth);
     const today=new Date();
@@ -4564,13 +4592,14 @@ async function viewPlayerProfile(elOrId){
       preferred_foot:raw.preferred_foot||null,
       photo_url:raw.photo_url||null,
       date_of_birth:raw.date_of_birth||null,
+      age:raw.age??null,
       biography:raw.bio||'',
       bio:raw.bio||'',
       nationality:raw.nationality||'',
       height_cm:raw.height_cm||null,
       weight_kg:raw.weight_kg||null,
       jersey_number:raw.jersey_number||null,
-      passport_number:raw.football_passport_no||null,
+      passport_number:raw.football_passport_no||(raw.profile_id?'Belum ada nombor':'Dirahsiakan'),
       verification_status:raw.verification_status||'unverified',
       kyc_status:raw.verification_status||'unverified',
       is_demo:raw.is_demo===true,
@@ -4629,7 +4658,7 @@ function renderOtherPassport(p){
   var dna = p.dna_overall || 0;
   var lv = dnaLevel2(dna);
   var pos = p.best_position || p.position || '';
-  var age = p.date_of_birth ? Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)) : '—';
+  var age = p.age !== null && p.age !== undefined ? p.age : (p.date_of_birth ? Math.floor((new Date()-new Date(p.date_of_birth))/(365.25*24*3600*1000)) : '—');
   var foot = p.preferred_foot === 'left' ? 'Kiri' : p.preferred_foot === 'right' ? 'Kanan' : '—';
 
   var bar = document.getElementById('other-player-bar');

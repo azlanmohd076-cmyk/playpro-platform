@@ -143,3 +143,36 @@ Actions         : "PlayPro Shell v1" lulus 2026-09-09 pada 23569ac (bot auto-com
         commit hilang) — peraturan baharu `AGENTS.md` §3(9) |
 | 2026-09-10 (malam 5) | **Semakan bebas ChatGPT (Reviewer) diterima + disimpan** sebagai `PEER_REVIEW_2026-09-10.md`. Kami **salah** pada 3 angka `[DB]` (lapuk) + 1 bilangan fail di 2 tempat; kami **betul** pada semua yang dia sahkan semula (1 repo, status PR #5, `main` 404 migrasi, angka advisor, `match_events` tiada di Git). `playpro1` → rasmi **TAK SEMAK**. Ditambah `WO-23`…`WO-26` + `DEC-039 (PROPOSED)` |
 | 2026-09-10 (malam 4) | `DEC-038` (K1): ASAS = sah selagi akaun hidup; LANJUT = 12 bulan rolling. Tiada beban pembaharuan tahunan akar umbi, tiada penyingkiran pemain amatur tengah musim. Satu syarat penerimaan ditambah: **umur dikira dari `date_of_birth`, bukan dari kesegaran pengesahan**. **Penambahan ke PR #5 DIBEKUKAN** selepas ini — walau apa pun jawapan seterusnya, ia masuk PR #6 selepas PR #5 digabung |
+
+---
+
+## 8. Addendum Owner — KYC individu tunggal dan persediaan onboarding (2026-11-14)
+
+**Keputusan Owner DEC-043:** One Person, One KYC. Identiti individu disahkan sekali bagi satu akaun, dikongsi semua role, sah lima tahun dari tarikh pengesahan. Penambahan role tidak mencetuskan KYC baharu. Lesen/akreditasi profesional dan pengiktirafan entiti kelab kekal semakan berasingan — bukan KYC individu kedua. Rujuk docs/PLAYPRO_PRINCIPLES.md.
+
+**[GIT] Perubahan branch PR #60 feat/unified-multi-role-account-model:**
+- Ditambah docs/PLAYPRO_PRINCIPLES.md sebagai rujukan induk prinsip produk dan onboarding.
+- AGENTS.md ditambah arahan wajib One Person, One KYC.
+- BOUNDARIES.md ditambah sumber kebenaran KYC pusat.
+- DECISIONS.md ditambah DEC-043 (Owner-approved), mengatasi reka bentuk lama KYC berasingan ikut role.
+- Ditambah migration kanonik 20261114130439_unified_individual_kyc_five_year_validity.sql dan susulan 20261114131153_unified_kyc_compatibility_and_passport_fix.sql: subject_type=individual, satu rekod per akaun, sah lima tahun, RPC pusat, polisi storan private, adapter lama selamat, dan Passport Player dijana pada kelulusan pusat.
+- public/player_kyc.html ditukar kepada satu aliran identiti pusat, tidak lagi memilih KYC berdasarkan role.
+- public/coach_profile_v2.html diarahkan ke halaman KYC pusat dan membaca status identiti yang sama.
+- supabase/functions/kyc-verify-coach/index.ts di branch diubah supaya OCR membaca profil identiti akaun, bukan rekod Coach.
+- public/player_kyc_admin.html diubah kepada satu queue semakan identiti Developer.
+
+**Status selepas arahan Owner:** migration KYC kanonik dan migration pembetulan adapter/Passport TELAH diterapkan ke Supabase playpro2. Edge Function kanonik kyc-verify-identity versi 1 aktif dengan verify_jwt=true. Alias keserasian kyc-verify-coach v5 dan kyc-verify-player v8 juga aktif dan menggunakan kod identiti yang sama. Vercel TIDAK dideploy; PR #60 TIDAK digabung. Ujian SQL status/expiry, guna semula pending/verified dan perkongsian KYC merentas lima role lulus; ujian browser sebenar upload/OCR/semakan Developer masih belum lengkap.
+
+**Ujian yang masih wajib:** uji browser sebenar upload/OCR/semakan Developer dan tambah peranan dari akaun verified; uji upload/read isolation; uji expired renewal; semak setiap aliran onboarding di semua peranti. Migration merekonsiliasi dua rekod sedia ada kepada subject_type individual; tiada rekod digandakan.
+
+- Susulan dalam branch yang sama: pautan KYC Club Owner, Organizer dan Referee kini menuju ke halaman pusat; Organizer membaca status KYC pusat; borang KYC Referee diganti pautan pusat. Semakan lesen/akreditasi Referee kekal berasingan.
+
+
+## 9. Penyelarasan onboarding selepas arahan Owner (2026-11-14)
+
+- Ditambah docs/ONBOARDING_STANDARD.md sebagai standard user journey, peraturan KYC, keperluan setiap modul dan syarat penerimaan.
+- Ditambah public/css/playpro-onboarding.css dan disambungkan ke Player signup/onboarding, KYC, Developer KYC review, Coach, Club, Organizer, Referee dan Role Center.
+- Role Center kini memaparkan status KYC pusat dan tarikh luput; Player Profile CM menghala pengurusan peranan ke Role Center tunggal dan membaca status KYC pusat.
+- KYC central page membolehkan pengguna terus ke modul asal selepas verified atau pending; semua pautan Organizer/Club/Coach/Referee menggunakan parameter next, bukan subject_type role.
+- Organizer legacy KYC link dibetulkan; Player KYC status UI dibetulkan supaya membaca status pusat.
+- Migration susulan mengarahkan legacy document adapters melalui attach_identity_kyc_documents (validasi pemilik), menjana Football Passport di dalam kelulusan KYC pusat, dan memulangkan boolean has_documents supaya OCR boleh dicuba semula menggunakan dokumen sedia ada tanpa muat naik kedua. Adapter lama tidak melampirkan dokumen baru apabila identiti sudah verified; status legacy approved juga dianggap sah.

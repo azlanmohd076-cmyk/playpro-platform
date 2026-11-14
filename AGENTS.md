@@ -79,7 +79,7 @@ Blueprint v1.3 BEKU  →  MASTER CONTEXT  →  [GATE: WO-08 eksport produksi + 0
 - ❌ `git push` terus ke `main`. **Semua perubahan melalui PR** (§6), digabung hanya selepas kelulusan Owner/CEO.
 - ❌ Jawab soalan semantik/perniagaan (R-01, R-03a, R-04, R-07) dengan rekaan — itu hak CEO. CTO hanya bawa bukti + pilihan + kos setiap pilihan.
 - ❌ Cipta repo GitHub kedua; cipta projek Supabase baharu; restore/padam/project settings apa pun tanpa work order bertandatangan.
-- ❌ Jalankan DDL ke sebarang projek Supabase yang bukan branch pembangunan boleh-guna — kecuali turutan 7 langkah Fasa 2C selesai.
+- ❌ Jalankan DDL ke sebarang projek Supabase yang bukan branch pembangunan boleh-guna — kecuali turutan 7 langkah Fasa 2C selesai atau pengecualian kecemasan Owner yang direkod secara bertulis dalam `BOUNDARIES.md` §7; pengecualian itu mesti terhad kepada projek, tujuan dan migrasi yang dinyatakan.
 - ❌ Cipta Jadual / RPC / enum / policy **dalam dokumen** selain fasa yang sedang diluluskan.
 - ❌ `git filter-repo`, `push --force`, rewrite sejarah, padam branch — tanpa kelulusan Owner bertulis (kosnya: 235 commit + 4 PR + 2 branch memori fasa-1/2 + deployment Vercel).
 - ❌ Letak Service Key / anon token / emel peribadi / nombor dokumen perjalanan orang sebenar dalam fail repo, dalam migration, atau dalam chat.
@@ -97,4 +97,16 @@ Blueprint v1.3 BEKU  →  MASTER CONTEXT  →  [GATE: WO-08 eksport produksi + 0
 
 ## 7. UI shell yang sudah dikunci (jangan cadang lain)
 
-Header: `LIVE · CARI · MYTEAM · KEDAI` · Footer: `CARI · MYTEAM · INBOX · PASSPORT` · Tiada header kedua · Match Observer **bukan** navigasi global. Perubahan shell = work order, bukan "sambil-sambil".
+Header: `LIVE · CARI · MYTEAM · KEDAI` · Footer semasa dalam `public/index.html`: `HUB · CARI · MYHUB · MYTEAM · INBOX · PASSPORT` (6 item; kekalkan susunan produksi) · Tiada header kedua · Match Observer **bukan** navigasi global. Perubahan shell = work order, bukan "sambil-sambil".
+
+
+## 8. Prinsip produk terkini — KYC dan onboarding (Owner, 2026-11-14)
+
+Rujuk `docs/PLAYPRO_PRINCIPLES.md` sebagai rujukan induk.
+
+- **One Person, One KYC:** satu rekod pengesahan identiti individu untuk satu akaun; dikongsi semua peranan.
+- Tempoh sah KYC ialah 5 tahun dari tarikh disahkan. Penambahan peranan tidak mencetuskan KYC baharu.
+- KYC individu tidak sama dengan lesen/akreditasi profesional, pengiktirafan entiti kelab, membership atau eligibility pertandingan.
+- OCR alat bantuan sahaja; bukan kelulusan automatik dan bukan alasan untuk mengulang proses.
+- Semua modul onboarding mesti menggunakan status KYC pusat dan corak UI/UX yang seragam.
+- Keputusan ini datang terus daripada arahan Owner bertarikh 2026-11-14 dan mengatasi sebarang kod/dokumen lama yang memisahkan KYC mengikut role.

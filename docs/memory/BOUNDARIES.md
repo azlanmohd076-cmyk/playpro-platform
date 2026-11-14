@@ -109,6 +109,31 @@ Data rakan Owner yang berada dalam `index.html` = data ujian → **dibuang** (WO
 Production migration remains unauthorized.
 ```
 
+**Pengecualian kecemasan Owner — 14 Nov 2026 (skop terhad):** Owner meluluskan pelaksanaan pembaikan keselamatan akaun dinyahaktifkan pada projek Supabase aktif `playpro2` sahaja, walaupun gerbang 7 langkah belum selesai. Pengecualian ini hanya meliputi pengawal akaun aktif, penguncian RPC/RLS, dan ujian pengesahan yang berkaitan. Ia **bukan** kebenaran umum untuk DDL lain, pembangunan ciri, perubahan rasmi kemasukan pertandingan, reka bentuk sejarah/rating, atau kerja pada projek `playpro` / `playpro1`. Tiada deployment Vercel dibenarkan melalui pengecualian ini. Migrasi yang diluluskan: `20261114105719`, `20261114105826`, `20261114105934`, `20261114110516`, `20261114110725`, `20261114114015`, `20261114114117`.
+
+**Pelanjutan kebenaran Owner — 14 Nov 2026 (arahan eksplisit dalam chat):** Owner membenarkan kerja pembaikan yang boleh disiapkan tanpa deployment Vercel, termasuk hardening RPC bacaan peribadi dan kawalan kemasukan kelab ke liga pada projek Supabase aktif `playpro2`, serta penyelarasan migrasi ke branch PR #60. Skop ini tidak membenarkan deployment Vercel, merge PR, perubahan pada projek `playpro` / `playpro1`, atau perubahan data pengguna sebenar; ujian fixture mesti di-rollback. Migrasi tambahan dalam skop ini: `20261114114015`, `20261114114117`, `20261114114231`, `20261114114925`, `20261114115214`, `20261114115556`, `20261114120920`. Semakan kelayakan roster pemain (KYC, umur/kategori dan keahlian pasukan) kekal berasingan dan tidak dianggap selesai oleh polisi `league_clubs` ini. Pelanjutan arahan Owner seterusnya meliputi minimisasi data profil pemain awam/peribadi dan pembatalan refresh token/sesi Auth apabila akaun dinyahaktifkan, bersama ujian rollback dan penyelarasan ke PR #60; token akses JWT yang telah ditandatangani kekal sah sehingga tamat tempoh, tetapi operasi DB terlindung terus ditolak oleh active-account guards. Profil peribadi kini mengembalikan respons terhad kepada tetamu/pengikut tanpa akses yang diluluskan, dan respons awam/pengikut yang dibenarkan tidak memulangkan tarikh lahir, nombor Passport, UUID profil/kelab atau penanda demo; pemilik masih boleh membaca butiran sendiri. Aliran Coach turut diperketatkan: profil baharu bermula `unverified`, permohonan KYC mengemas kini permohonan pending sedia ada dan tidak boleh menurunkan status Coach yang sudah verified, kelulusan memerlukan dokumen dilampirkan, keputusan OCR bukan `match` memerlukan nota semakan, tarikh lahir yang disahkan reviewer mengatasi OCR, dan polisi bacaan/muat naik KYC Coach menyemak akaun aktif. Edge Function `kyc-verify-coach` versi 3 turut menyemak `profiles.is_active` sebelum memproses dokumen; deployment ini hanya ke Supabase Edge Functions, bukan Vercel.  Semasa dinyahaktifkan, semua pautan role tambahan dinyahaktifkan tetapi rekod dikekalkan; selepas pengaktifan semula, role tidak dipulihkan secara automatik dan hanya Developer aktif boleh memulihkan pautan role sedia ada melalui RPC `playpro_restore_profile_role`, dengan jejak audit.
+
 ⚠️ Nota CTO: dokumen yang mengandungi 7 langkah ini **belum masuk `main`** — ia tersangkut di branch tanpa PR (`BACKLOG.md` WO-15). AI yang hanya membaca `main` tidak akan menemuinya.
 
 P1 wajib yang direkod dalam dokumen yang sama (P1-4…P1-9), sebagai peringatan supaya tidak diulang: `unique(profile_id, capability)` **salah** untuk sejarah revoke→regrant (perlu active-row uniqueness / status) · `match_events.sequence` **dibekalkan klien** (race-prone; agihan mesti berlaku di pelayan) · lebih dari satu selang playing-time aktif boleh wujud untuk pemain yang sama · `MATCH_START`/`MATCH_END` tiada unik · `competition_player_registrations` perlu laluan autoriti backend + semakan kelayakan · `verification_cases` (KYC) **mesti kekal di luar** public view pemain/kelab.
+
+
+## 8. KYC individu pusat (DEC-043 — arahan Owner 2026-11-14)
+
+- Sumber kebenaran KYC ialah satu rekod identiti individu per akaun, bukan rekod berasingan per role.
+- Semua role menggunakan pengesahan identiti pusat yang sama; status sah selama lima tahun dari tarikh pengesahan.
+- Role-specific verification hanya untuk lesen, akreditasi, kelayakan atau kuasa profesional — bukan untuk mengesahkan semula identiti.
+- Pengiktirafan kelab ialah semakan entiti organisasi dan kekal berasingan daripada KYC Club Owner.
+- KYC tidak menjadi syarat untuk aktiviti yang tidak memerlukannya. Apabila diperlukan, sistem menyemak status pusat; ia tidak meminta dokumen kedua.
+- Dokumen identiti dan metadata KYC kekal private. Tempoh sah lima tahun ialah tempoh sah pengesahan, bukan kebenaran akses tanpa had atau pengecualian daripada undang-undang perlindungan data.
+- Semua modul mesti menggunakan satu aliran KYC pusat dan komponen onboarding yang seragam.
+
+
+## 9. Pelaksanaan KYC pusat dan onboarding (DEC-043, Owner 2026-11-14)
+
+- Owner secara jelas membenarkan migration KYC kanonik dan Edge Function OCR di Supabase playpro2; skop ini tidak membenarkan deployment Vercel atau merge PR #60.
+- Migration live: 20261114130439_unified_individual_kyc_five_year_validity, 20261114131153_unified_kyc_compatibility_and_passport_fix, 20261114131518_kyc_status_document_presence_for_retry dan 20261114131825_kyc_verified_compatibility_polish.
+- Edge Function kanonik kyc-verify-identity v1 digunakan oleh halaman KYC pusat; alias kyc-verify-coach v5 dan kyc-verify-player v8 mengekalkan keserasian lama. Semua menggunakan implementasi individual KYC yang sama dan verify_jwt=true. Atomic claim pada satu rekod KYC mengelakkan dua OCR serentak.
+- Legacy request adapters mesti menggunakan attach_identity_kyc_documents untuk semak path, owner dan bucket; jangan tulis document_storage_paths terus melalui SECURITY DEFINER. Jika KYC sudah verified, adapter tidak boleh meminta atau melampirkan dokumen baru.
+- Kelulusan pusat juga menjana Football Passport untuk Player jika belum wujud. Tiada Passport atau data identiti direka untuk ujian.
+- Semua modul onboarding dalam PR #60 menggunakan stylesheet bersama dan Role Center tunggal. Ujian browser hujung ke hujung masih perlu dibuat selepas deployment aplikasi yang berasingan; jangan sentuh Vercel tanpa arahan Owner.
