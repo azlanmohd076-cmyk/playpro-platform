@@ -79,3 +79,8 @@ These remain future work; the current profile, KYC, certification request and Pl
 - Authenticated club administrators can read only the roster-safe columns for their own club. Adding a roster-only Coach record now goes through `add_club_roster_coach()`; it does not create a PlayPro user or grant KYC/assessor status.
 - Legacy five-field `coach_assessments` is empty and no longer publicly readable or writable by clients.
 - Coach disciplinary evidence and appeal records are no longer public; access is limited to the Coach concerned and Developer.
+
+
+## Developer KYC review
+
+The Developer Coach control panel now includes a pending Coach KYC queue. Developers can inspect short-lived signed links to the private Coach KYC documents, compare Document AI extraction with the claimed identity, then call the existing privileged `approve_coach_kyc()` or `reject_coach_kyc()` RPC. Approval updates the authoritative legal identity and locks it. The storage read policy is restricted to Developer and only objects referenced by Coach KYC requests.
