@@ -67,11 +67,12 @@ async function boot(){
  const {data:{user},error}=await SB.auth.getUser();
  if(error||!user){$('loading').classList.add('hidden');$('loginPanel').classList.remove('hidden');$('app').classList.add('hidden');$('logoutBtn').classList.add('hidden');return;}
  const {data:profile,error:pe}=await SB.from('profiles').select('id,email,full_name,role,is_active').eq('id',user.id).single();
- if(pe||!profile||!profile.is_active||!['developer','admin'].includes(profile.role)){
+ const {data:access,error:ae}=await SB.rpc('mcp_overview');
+ if(pe||!profile||!profile.is_active||ae||!access){
   $('loading').textContent='Akses ditolak. Akaun ini belum diberikan peranan Developer atau Admin.';
   $('loginPanel').classList.add('hidden');$('app').classList.add('hidden');$('logoutBtn').classList.remove('hidden');return;
  }
- currentProfile=profile;const isDev=profile.role==='developer';
+ currentProfile={...profile,role:access.role};const isDev=access.role==='developer';
  $('userLabel').textContent=(profile.full_name||user.email)+' · '+profile.role.toUpperCase();
  $('roleHint').textContent=isDev?'Developer: kawalan penuh MCP.':'Admin: akses operasi terhad kepada data pemain dan coach.';
  document.querySelectorAll('[data-dev-only]').forEach(el=>el.classList.toggle('hidden',!isDev));
@@ -167,7 +168,7 @@ async function loadUsers(){
  const {data,error}=await SB.rpc('mcp_list_users',{p_search:$('searchBox').value||'',p_limit:100});
  if(error){$('tableHost').innerHTML='<div class="empty">'+esc(error.message)+'</div>';return;}
  const rows=Array.isArray(data)?data:[];
- $('tableHost').innerHTML='<table><thead><tr><th>NAMA</th><th>EMAIL</th><th>PERANAN</th><th>STATUS</th><th>AKSI</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.full_name)+'</td><td>'+esc(r.email)+'</td><td>'+esc(r.role)+'</td><td>'+esc(r.is_active?'Aktif':'Tidak aktif')+'</td><td>'+(r.role==='developer'?'Protected':r.role==='admin'?'<button class="btn" data-revoke="'+r.id+'">Tarik Admin</button>':'<button class="btn primary" data-grant="'+r.id+'">Jadikan Admin</button>')+'</td></tr>').join('')+'</tbody></table>';
+ $('tableHost').innerHTML='<table><thead><tr><th>NAMA</th><th>EMAIL</th><th>PERANAN</th><th>STATUS</th><th>AKSI</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.full_name)+'</td><td>'+esc(r.email)+'</td><td>'+esc(r.role==='developer'?'DEVELOPER':r.mcp_access?'ADMIN':r.role)+'</td><td>'+esc(r.is_active?'Aktif':'Tidak aktif')+'</td><td>'+(r.role==='developer'?'Protected':r.mcp_access?'<button class="btn" data-revoke="'+r.id+'">Tarik Admin</button>':'<button class="btn primary" data-grant="'+r.id+'">Jadikan Admin</button>')+'</td></tr>').join('')+'</tbody></table>';
  document.querySelectorAll('[data-grant]').forEach(b=>b.addEventListener('click',()=>changeAdmin(b.dataset.grant,true)));
  document.querySelectorAll('[data-revoke]').forEach(b=>b.addEventListener('click',()=>changeAdmin(b.dataset.revoke,false)));
 }
