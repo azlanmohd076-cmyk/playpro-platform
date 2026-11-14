@@ -155,7 +155,7 @@ Actions         : "PlayPro Shell v1" lulus 2026-09-09 pada 23569ac (bot auto-com
 - AGENTS.md ditambah arahan wajib One Person, One KYC.
 - BOUNDARIES.md ditambah sumber kebenaran KYC pusat.
 - DECISIONS.md ditambah DEC-043 (Owner-approved), mengatasi reka bentuk lama KYC berasingan ikut role.
-- Ditambah migration kanonik 20261114130439_unified_individual_kyc_five_year_validity.sql dan susulan 2026111413xxxx_unified_kyc_compatibility_and_passport_fix.sql: subject_type=individual, satu rekod per akaun, sah lima tahun, RPC pusat, polisi storan private, adapter lama selamat, dan Passport Player dijana pada kelulusan pusat.
+- Ditambah migration kanonik 20261114130439_unified_individual_kyc_five_year_validity.sql dan susulan 20261114131153_unified_kyc_compatibility_and_passport_fix.sql: subject_type=individual, satu rekod per akaun, sah lima tahun, RPC pusat, polisi storan private, adapter lama selamat, dan Passport Player dijana pada kelulusan pusat.
 - public/player_kyc.html ditukar kepada satu aliran identiti pusat, tidak lagi memilih KYC berdasarkan role.
 - public/coach_profile_v2.html diarahkan ke halaman KYC pusat dan membaca status identiti yang sama.
 - supabase/functions/kyc-verify-coach/index.ts di branch diubah supaya OCR membaca profil identiti akaun, bukan rekod Coach.
