@@ -18,7 +18,7 @@ body.pp-onboarding .top,body.pp-onboarding .head,body.pp-onboarding header.top{
 }
 body.pp-onboarding .logo,body.pp-onboarding .brand{color:#fff!important}
 body.pp-onboarding .wrap{width:min(1080px,100%);margin-inline:auto;padding:20px 16px 56px}
-body.pp-onboarding .card,body.pp-onboarding .panel,body.pp-onboarding .role,
+body.pp-onboarding .card,body.pp-onboarding .panel,body.pp-onboarding .box,body.pp-onboarding .login,body.pp-onboarding .role,
 body.pp-onboarding .hero,body.pp-onboarding .summary,body.pp-onboarding .form,
 body.pp-onboarding .notice,body.pp-onboarding .crumb,body.pp-onboarding .modal,
 body.pp-onboarding .license{
