@@ -21,17 +21,34 @@ People come to PlayPro to play football, develop players, coach, manage a club, 
 2. **Discover** — find players, clubs, teams, coaches, referees, competitions and matches.
 3. **Competitions** — browse competitions, register, view standings, fixtures and results.
 4. **Inbox** — conversations, invitations, notifications and requests.
-5. **My PlayPro** — personal identity, role workspaces, profile, Player Card/Passport, settings and verification.
+5. **My Profile** — personal identity, role workspaces, profile posts, Player Card/Passport, football statistics, settings and verification.
 
 Persistent global actions: search, create (+), notifications, account/role switcher.
+
+## Home newsfeed and profile publishing
+- Home includes a text-first newsfeed for grassroots football updates, match results, fixtures, club/player announcements and topic-based conversations.
+- Users can publish text status updates from My Profile; these may appear in the Home feed according to visibility and relevance rules.
+- Users can share match results and football updates as text posts. Structured match-result sharing should link to the relevant match/competition record when that feature exists.
+- No user-uploaded photos or videos in this prototype scope. Do not add media upload controls or media storage dependencies at this stage.
+- Discussion should be organised by topic/context (for example a match, competition, club or general football topic), rather than creating an unrestricted noisy chat stream. Replies/comments should remain attached to the relevant post/topic.
+- Provide basic text interactions such as post, reply/comment, like/react, and share/link where appropriate; every action must have a clear permission and visibility model.
+- Feed and profile content must support empty, loading, error and moderation states. Include basic reporting/moderation considerations before production integration.
+
+## My Profile: preserve PlayPro football IP
+- My Profile is not merely a social profile and must not replace or hide PlayPro's existing football identity and intellectual property.
+- Preserve Player Card, Football DNA, Football Passport, player attributes/statistics, assessment history, match history, development records and other established PlayPro football metrics/features.
+- Organise the profile into clear sections or tabs so social posts and football identity/data coexist without overwhelming the user.
+- Do not remove or silently downgrade existing production capabilities during the redesign. Audit each existing feature and map it to a destination in the new UX before implementation.
 
 ## Role workspaces and modules
 ### User / shared identity
 - Account overview, profile, privacy, role switcher, identity KYC status, security and settings.
+- Personal status publishing and profile activity.
 - Add a role without creating another account or repeating identity KYC.
 
 ### Player
 - Player profile and privacy controls.
+- Profile newsfeed/status posts and topic-based discussions (text only; no photo/video uploads).
 - Football DNA / assessment history.
 - Player Card (front/back, zoom/rotate) and Football Passport.
 - Club/team membership, competition eligibility, match history and development timeline.
@@ -88,7 +105,7 @@ Persistent global actions: search, create (+), notifications, account/role switc
 - Inbox list and conversation
 - Create action menu
 - Account menu / role switcher
-- My PlayPro hub
+- My Profile hub
 - Profile and privacy settings
 - Shared KYC status / verification explanation
 - Empty, loading, error, success and access-denied states
@@ -131,7 +148,7 @@ Persistent global actions: search, create (+), notifications, account/role switc
 - Match assignment and report
 
 ### Shared / operational
-- Profile view
+- Profile view with preserved football statistics, Football DNA, Player Card, Football Passport and profile posts
 - KYC submission and status
 - Inbox
 - Shop/services placeholder only if supported
