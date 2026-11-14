@@ -426,7 +426,7 @@ begin
   update private.mcp_admin_role_assignments set revoked_by=auth.uid(),revoked_at=now() where profile_id=p_profile_id and revoked_at is null;
  end if;
  insert into private.developer_editor_audit(actor_profile_id,entity,record_id,action,before_data,after_data)
- values(auth.uid(),'profiles',p_profile_id,case when p_enabled then 'grant_admin' else 'revoke_admin' end,
+ values(auth.uid(),'profiles',p_profile_id,'update',
   jsonb_build_object('role',v_old::text,'mcp_access',not p_enabled),jsonb_build_object('role',v_old::text,'mcp_access',p_enabled));
  return jsonb_build_object('ok',true,'role',v_old::text,'mcp_access',p_enabled);
 end $$;
