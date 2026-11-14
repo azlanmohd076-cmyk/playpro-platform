@@ -164,3 +164,5 @@ Actions         : "PlayPro Shell v1" lulus 2026-09-09 pada 23569ac (bot auto-com
 **Had status — jangan salah lapor:** migration baharu BELUM diterapkan ke Supabase playpro2; Edge Function baharu BELUM dideploy; Vercel TIDAK dideploy; PR #60 TIDAK digabung. Maka UI/DB end-to-end belum boleh dianggap lulus. Perubahan ini ialah persediaan kod/dokumen dalam branch sahaja sehingga migration dan Edge Function diluluskan serta diuji.
 
 **Ujian yang masih wajib:** semak semua call sites KYC role lama; semak adapter approval dan role onboarding; uji akaun yang sudah verified menambah Player/Coach/Club Owner/Organizer/Referee tanpa upload semula; uji expiry lima tahun; uji upload/read isolation dan Developer review; uji OCR hanya sekali; semak data legacy sebelum migration live. Tiada data pengguna diubah dalam sesi ini.
+
+- Susulan dalam branch yang sama: pautan KYC Club Owner, Organizer dan Referee kini menuju ke halaman pusat; Organizer membaca status KYC pusat; borang KYC Referee diganti pautan pusat. Semakan lesen/akreditasi Referee kekal berasingan.
