@@ -132,8 +132,8 @@ P1 wajib yang direkod dalam dokumen yang sama (P1-4…P1-9), sebagai peringatan 
 ## 9. Pelaksanaan KYC pusat dan onboarding (DEC-043, Owner 2026-11-14)
 
 - Owner secara jelas membenarkan migration KYC kanonik dan Edge Function OCR di Supabase playpro2; skop ini tidak membenarkan deployment Vercel atau merge PR #60.
-- Migration live: 20261114130439_unified_individual_kyc_five_year_validity dan 20261114131153_unified_kyc_compatibility_and_passport_fix.
+- Migration live: 20261114130439_unified_individual_kyc_five_year_validity, 20261114131153_unified_kyc_compatibility_and_passport_fix, 20261114131518_kyc_status_document_presence_for_retry dan 20261114131825_kyc_verified_compatibility_polish.
 - Edge Function kyc-verify-coach v5 dan kyc-verify-player v8 kini berkongsi implementasi individual KYC yang sama; verify_jwt=true. Atomic claim pada satu rekod KYC mengelakkan dua OCR serentak.
-- Legacy request adapters mesti menggunakan attach_identity_kyc_documents untuk semak path, owner dan bucket; jangan tulis document_storage_paths terus melalui SECURITY DEFINER.
+- Legacy request adapters mesti menggunakan attach_identity_kyc_documents untuk semak path, owner dan bucket; jangan tulis document_storage_paths terus melalui SECURITY DEFINER. Jika KYC sudah verified, adapter tidak boleh meminta atau melampirkan dokumen baru.
 - Kelulusan pusat juga menjana Football Passport untuk Player jika belum wujud. Tiada Passport atau data identiti direka untuk ujian.
 - Semua modul onboarding dalam PR #60 menggunakan stylesheet bersama dan Role Center tunggal. Ujian browser hujung ke hujung masih perlu dibuat selepas deployment aplikasi yang berasingan; jangan sentuh Vercel tanpa arahan Owner.
