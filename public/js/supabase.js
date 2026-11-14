@@ -13,8 +13,8 @@
 
 /* ── Environment ──────────────────────────────────────────────── */
 const PLAYPRO_CONFIG = {
-  supabaseUrl:     window.PLAYPRO_SUPABASE_URL     || 'https://YOUR_PROJECT.supabase.co',
-  supabaseAnonKey: window.PLAYPRO_SUPABASE_ANON_KEY || 'YOUR_ANON_KEY',
+  supabaseUrl:     window.PLAYPRO_SUPABASE_URL     || 'https://muirhenvjruvfxenoaxm.supabase.co',
+  supabaseAnonKey: window.PLAYPRO_SUPABASE_ANON_KEY || 'sb_publishable_exWFL10h8zcpyFyEdq7jAw_XoBl2RwZ',
   authRedirectUrl: window.PLAYPRO_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`,
   defaultPageSize: 50,
   cacheTtlMs:      30_000,

@@ -16,7 +16,7 @@ const PLAYPRO_CONFIG = {
   /* Replace with your real project values.
      In production, inject via a build-time env or a small
      /config endpoint served by Supabase Edge Functions.      */
-  supabaseUrl:     window.PLAYPRO_SUPABASE_URL     || 'https://YOUR_PROJECT.supabase.co',
+  supabaseUrl:     window.PLAYPRO_SUPABASE_URL     || 'https://muirhenvjruvfxenoaxm.supabase.co',
   supabaseAnonKey: window.PLAYPRO_SUPABASE_ANON_KEY || 'sb_publishable_exWFL10h8zcpyFyEdq7jAw_XoBl2RwZ',
 
   /* App settings */
