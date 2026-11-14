@@ -109,6 +109,8 @@ Data rakan Owner yang berada dalam `index.html` = data ujian → **dibuang** (WO
 Production migration remains unauthorized.
 ```
 
+**Pengecualian kecemasan Owner — 14 Nov 2026 (skop terhad):** Owner meluluskan pelaksanaan pembaikan keselamatan akaun dinyahaktifkan pada projek Supabase aktif `playpro2` sahaja, walaupun gerbang 7 langkah belum selesai. Pengecualian ini hanya meliputi pengawal akaun aktif, penguncian RPC/RLS, dan ujian pengesahan yang berkaitan. Ia **bukan** kebenaran umum untuk DDL lain, pembangunan ciri, perubahan rasmi kemasukan pertandingan, reka bentuk sejarah/rating, atau kerja pada projek `playpro` / `playpro1`. Tiada deployment Vercel dibenarkan melalui pengecualian ini. Migrasi yang diluluskan: `20261114105719`, `20261114105826`, `20261114105934`.
+
 ⚠️ Nota CTO: dokumen yang mengandungi 7 langkah ini **belum masuk `main`** — ia tersangkut di branch tanpa PR (`BACKLOG.md` WO-15). AI yang hanya membaca `main` tidak akan menemuinya.
 
 P1 wajib yang direkod dalam dokumen yang sama (P1-4…P1-9), sebagai peringatan supaya tidak diulang: `unique(profile_id, capability)` **salah** untuk sejarah revoke→regrant (perlu active-row uniqueness / status) · `match_events.sequence` **dibekalkan klien** (race-prone; agihan mesti berlaku di pelayan) · lebih dari satu selang playing-time aktif boleh wujud untuk pemain yang sama · `MATCH_START`/`MATCH_END` tiada unik · `competition_player_registrations` perlu laluan autoriti backend + semakan kelayakan · `verification_cases` (KYC) **mesti kekal di luar** public view pemain/kelab.
