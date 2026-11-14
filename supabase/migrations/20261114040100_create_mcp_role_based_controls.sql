@@ -246,7 +246,7 @@ begin
    coalesce(auth.uid(),new.reviewer_profile_id),
    'identity_verifications:'||new.subject_type,
    new.id,
-   'kyc_'||new.status,
+   'update',
    jsonb_build_object('status',old.status,'reviewer_note',old.reviewer_note),
    jsonb_build_object('status',new.status,'reviewer_note',new.reviewer_note,'reviewer_profile_id',new.reviewer_profile_id)
   );
