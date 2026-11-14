@@ -33,9 +33,11 @@
   bridge.Core = bridge.Core || {};
   bridge.Auth = bridge.Auth || {};
 
-  var SELF_SERVE_ROLES = ['player', 'coach', 'club_owner', 'organizer', 'referee'];
+  var SELF_SERVE_ROLES = ['user', 'player', 'coach', 'club_owner', 'organizer', 'referee'];
 
   var ROLE_ALIASES = {
+    pengguna: 'user',
+    user_biasa: 'user',
     pemain: 'player',
     jurulatih: 'coach',
     pengurus_kelab: 'club_owner',
