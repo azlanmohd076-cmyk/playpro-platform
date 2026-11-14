@@ -27,11 +27,11 @@ Deno.serve(async(req)=>{
   const admin=createClient(url,secret);const {data:au,error:ae}=await admin.auth.getUser(jwt);if(ae||!au.user)throw new Error('Invalid session')
   const {data:account,error:pe}=await admin.from('profiles').select('is_active').eq('id',au.user.id).maybeSingle();if(pe)throw pe;if(!account||account.is_active!==true)throw new Error('ACCOUNT_DISABLED_OR_INACTIVE')
   const body=await req.json();kycId=String(body?.kyc_id||'');if(!kycId)throw new Error('kyc_id diperlukan')
-  const {data:k,error:ke}=await admin.from('identity_verifications').select('id,profile_id,subject_type,id_type,legal_name_claimed,birth_state_code,document_storage_paths,status').eq('id',kycId).eq('profile_id',au.user.id).eq('subject_type','coach').maybeSingle();if(ke)throw ke;if(!k)throw new Error('Coach KYC request not found')
+  const {data:k,error:ke}=await admin.from('identity_verifications').select('id,profile_id,subject_type,id_type,legal_name_claimed,birth_state_code,document_storage_paths,status').eq('id',kycId).eq('profile_id',au.user.id).eq('subject_type','individual').maybeSingle();if(ke)throw ke;if(!k)throw new Error('KYC identiti PlayPro tidak ditemui')
   if(k.status!=='pending')return new Response(JSON.stringify({ok:true,status:k.status,kyc_id:k.id}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
   const paths=Array.isArray(k.document_storage_paths)?k.document_storage_paths:[];if(!paths.length||paths.length>2||paths.some((p:unknown)=>typeof p!=='string'||!p.startsWith(`${au.user.id}/`)))throw new Error('Dokumen KYC tidak sah')
   const saText=Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON'),project=Deno.env.get('GOOGLE_DOCUMENT_AI_PROJECT_ID'),location=Deno.env.get('GOOGLE_DOCUMENT_AI_LOCATION')||'asia-southeast1',processor=Deno.env.get('GOOGLE_DOCUMENT_AI_PROCESSOR_ID');if(!saText||!project||!processor)throw new Error('Google Document AI belum dikonfigurasi sepenuhnya')
-  const {data:coach,error:ce}=await admin.from('coaches').select('id,full_name,date_of_birth').eq('profile_id',au.user.id).eq('is_active',true).maybeSingle();if(ce)throw ce;if(!coach)throw new Error('Coach profile not found')
+  const {data:identity,error:ie}=await admin.from('profiles').select('full_name,date_of_birth').eq('id',au.user.id).maybeSingle();if(ie)throw ie;if(!identity)throw new Error('Profil identiti PlayPro tidak ditemui')
   // Claim the pending request atomically so duplicate clicks cannot run OCR concurrently.
   const {data:claimed,error:claimError}=await admin.from('identity_verifications')
     .update({status:'processing',provider:'google_document_ai',provider_status:'processing',match_status:'not_processed',updated_at:new Date().toISOString()})
@@ -44,7 +44,7 @@ Deno.serve(async(req)=>{
   }
   const token=await googleToken(JSON.parse(saText));let ocr='',detectedName:string|null=null,detectedDob:string|null=null,type=k.id_type,masked:string|null=null
   for(const path of paths){const {data:file,error:de}=await admin.storage.from('kyc-documents').download(path);if(de||!file)throw new Error('Dokumen KYC tidak boleh dibaca');const lower=path.toLowerCase();const mime=lower.endsWith('.pdf')?'application/pdf':lower.endsWith('.png')?'image/png':'image/jpeg';const r=await processDoc(token,project,location,processor,new Uint8Array(await file.arrayBuffer()),mime);const text=String(r?.document?.text||'');ocr+=`\n${text}`;detectedName=detectedName||extractName(text);detectedDob=detectedDob||extractDob(text);type=detectType(text,type);const id=extractMyKad(text);if(id)masked=`••••••-${id.slice(7,9)}-••••`}
-  const score=nameScore(coach.full_name,detectedName||ocr);const dobMatch=detectedDob?detectedDob===coach.date_of_birth:true;const matchStatus=detectedName&&score>=90&&dobMatch?'match':score>=50?'inconclusive':'mismatch'
+  const score=nameScore(identity.full_name,detectedName||ocr);const dobMatch=detectedDob&&identity.date_of_birth?detectedDob===identity.date_of_birth:true;const matchStatus=detectedName&&score>=90&&dobMatch?'match':score>=50?'inconclusive':'mismatch'
   // Re-check account status after external OCR; disabled accounts cannot complete processing.
   const {data:stillActive,error:activeError}=await admin.from('profiles').select('is_active').eq('id',au.user.id).maybeSingle();
   if(activeError)throw activeError;
