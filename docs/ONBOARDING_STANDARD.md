@@ -75,7 +75,7 @@ Ayat standard:
 ## 7. Status pelaksanaan 14 November 2026
 
 - Migration kanonik KYC dan pembetulan adapter/passport telah diterapkan ke Supabase playpro2.
-- Edge Function OCR kyc-verify-coach dan alias keserasian kyc-verify-player menggunakan kod identiti individu yang sama; kedua-duanya mewajibkan JWT.
+- Edge Function OCR kanonik kyc-verify-identity menggunakan kod identiti individu; alias kyc-verify-coach dan kyc-verify-player mengekalkan keserasian lama. Semua mewajibkan JWT.
 - Komponen UI bersama telah disambungkan ke Player onboarding, KYC, Developer KYC review, Coach, Club, Organizer, Referee, Role Center dan Player signup.
 - PR #60 kekal terbuka. Vercel tidak dideploy.
 - Ujian browser hujung ke hujung (upload dokumen sebenar, OCR Google, semakan Developer, dan role onboarding semua modul) masih memerlukan sesi pengguna sebenar; jangan lapor lulus sebelum diuji.
