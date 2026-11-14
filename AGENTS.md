@@ -79,7 +79,7 @@ Blueprint v1.3 BEKU  →  MASTER CONTEXT  →  [GATE: WO-08 eksport produksi + 0
 - ❌ `git push` terus ke `main`. **Semua perubahan melalui PR** (§6), digabung hanya selepas kelulusan Owner/CEO.
 - ❌ Jawab soalan semantik/perniagaan (R-01, R-03a, R-04, R-07) dengan rekaan — itu hak CEO. CTO hanya bawa bukti + pilihan + kos setiap pilihan.
 - ❌ Cipta repo GitHub kedua; cipta projek Supabase baharu; restore/padam/project settings apa pun tanpa work order bertandatangan.
-- ❌ Jalankan DDL ke sebarang projek Supabase yang bukan branch pembangunan boleh-guna — kecuali turutan 7 langkah Fasa 2C selesai.
+- ❌ Jalankan DDL ke sebarang projek Supabase yang bukan branch pembangunan boleh-guna — kecuali turutan 7 langkah Fasa 2C selesai atau pengecualian kecemasan Owner yang direkod secara bertulis dalam `BOUNDARIES.md` §7; pengecualian itu mesti terhad kepada projek, tujuan dan migrasi yang dinyatakan.
 - ❌ Cipta Jadual / RPC / enum / policy **dalam dokumen** selain fasa yang sedang diluluskan.
 - ❌ `git filter-repo`, `push --force`, rewrite sejarah, padam branch — tanpa kelulusan Owner bertulis (kosnya: 235 commit + 4 PR + 2 branch memori fasa-1/2 + deployment Vercel).
 - ❌ Letak Service Key / anon token / emel peribadi / nombor dokumen perjalanan orang sebenar dalam fail repo, dalam migration, atau dalam chat.
