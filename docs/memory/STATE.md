@@ -161,7 +161,7 @@ Actions         : "PlayPro Shell v1" lulus 2026-09-09 pada 23569ac (bot auto-com
 - supabase/functions/kyc-verify-coach/index.ts di branch diubah supaya OCR membaca profil identiti akaun, bukan rekod Coach.
 - public/player_kyc_admin.html diubah kepada satu queue semakan identiti Developer.
 
-**Status selepas arahan Owner:** migration KYC kanonik dan migration pembetulan adapter/Passport TELAH diterapkan ke Supabase playpro2. Edge Function kyc-verify-coach versi 5 dan alias kyc-verify-player versi 8 aktif dengan kod identiti yang sama serta verify_jwt=true. Vercel TIDAK dideploy; PR #60 TIDAK digabung. Ujian SQL status/expiry, guna semula pending/verified dan perkongsian KYC merentas lima role lulus; ujian browser sebenar upload/OCR/semakan Developer masih belum lengkap.
+**Status selepas arahan Owner:** migration KYC kanonik dan migration pembetulan adapter/Passport TELAH diterapkan ke Supabase playpro2. Edge Function kanonik kyc-verify-identity versi 1 aktif dengan verify_jwt=true. Alias keserasian kyc-verify-coach v5 dan kyc-verify-player v8 juga aktif dan menggunakan kod identiti yang sama. Vercel TIDAK dideploy; PR #60 TIDAK digabung. Ujian SQL status/expiry, guna semula pending/verified dan perkongsian KYC merentas lima role lulus; ujian browser sebenar upload/OCR/semakan Developer masih belum lengkap.
 
 **Ujian yang masih wajib:** uji browser sebenar upload/OCR/semakan Developer dan tambah peranan dari akaun verified; uji upload/read isolation; uji expired renewal; semak setiap aliran onboarding di semua peranti. Migration merekonsiliasi dua rekod sedia ada kepada subject_type individual; tiada rekod digandakan.
 
