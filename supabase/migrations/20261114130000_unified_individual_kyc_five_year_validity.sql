@@ -570,3 +570,73 @@ using (
   and public.playpro_account_is_active()
   and (select public.get_my_role())='developer'::public.user_role
 );
+
+
+-- A pending/processing request is reused; a user is not prompted to submit again.
+-- Attaching a deliberately replaced document set queues OCR once for that new set.
+create or replace function public.request_identity_kyc(
+  p_id_type text,p_legal_name text,p_birth_state_code text default null
+) returns jsonb
+language plpgsql security definer set search_path=''
+as $$
+declare v_uid uuid:=(select auth.uid()); v_k public.identity_verifications%rowtype; v_id uuid;
+begin
+  perform public.playpro_require_active_account();
+  if v_uid is null then raise exception 'Authentication required' using errcode='42501'; end if;
+  if lower(trim(coalesce(p_id_type,''))) not in ('mykad','mykid','passport') then raise exception 'Jenis dokumen tidak disokong' using errcode='22023'; end if;
+  if nullif(btrim(coalesce(p_legal_name,'')),'') is null then raise exception 'Nama sah diperlukan' using errcode='22023'; end if;
+  perform pg_advisory_xact_lock(hashtext(v_uid::text||':identity_kyc'));
+  select * into v_k from public.identity_verifications where profile_id=v_uid and subject_type='individual' for update;
+  if found then
+    if v_k.status in ('verified','approved') and v_k.expires_at>now() then
+      return jsonb_build_object('ok',true,'kyc_id',v_k.id,'status','verified','expires_at',v_k.expires_at);
+    end if;
+    if v_k.status in ('pending','processing') then
+      return jsonb_build_object('ok',true,'kyc_id',v_k.id,'status',v_k.status,'provider_status',v_k.provider_status);
+    end if;
+    update public.identity_verifications set id_type=lower(trim(p_id_type)),
+      legal_name_claimed=btrim(p_legal_name),
+      birth_state_code=nullif(btrim(coalesce(p_birth_state_code,'')),''),
+      status='pending',reviewer_profile_id=null,reviewer_note=null,reviewed_at=null,expires_at=null,
+      document_storage_paths='[]'::jsonb,provider='google_document_ai',provider_status='queued',
+      match_status='not_processed',match_score=null,extracted_legal_name=null,
+      extracted_birth_date=null,extracted_id_type=null,extracted_identifier_masked=null,
+      processed_at=null,submitted_at=now(),updated_at=now()
+      where id=v_k.id returning id into v_id;
+  else
+    insert into public.identity_verifications(profile_id,subject_type,id_type,legal_name_claimed,
+      birth_state_code,document_storage_paths,provider,provider_status,status,match_status)
+    values(v_uid,'individual',lower(trim(p_id_type)),btrim(p_legal_name),
+      nullif(btrim(coalesce(p_birth_state_code,'')),''),
+      '[]'::jsonb,'google_document_ai','queued','pending','not_processed')
+    returning id into v_id;
+  end if;
+  return jsonb_build_object('ok',true,'kyc_id',v_id,'status','pending');
+end;
+$$;
+
+create or replace function public.attach_identity_kyc_documents(p_kyc_id uuid,p_document_paths jsonb)
+returns jsonb language plpgsql security definer set search_path=''
+as $$
+declare v_uid uuid:=(select auth.uid()); v_path text; v_count integer;
+begin
+  perform public.playpro_require_active_account();
+  if v_uid is null then raise exception 'Authentication required' using errcode='42501'; end if;
+  if p_document_paths is null or jsonb_typeof(p_document_paths)<>'array' then raise exception 'Dokumen tidak sah' using errcode='22023'; end if;
+  v_count:=jsonb_array_length(p_document_paths);
+  if v_count<1 or v_count>2 then raise exception 'Muat naik satu atau dua dokumen sahaja' using errcode='22023'; end if;
+  if not exists(select 1 from public.identity_verifications where id=p_kyc_id and profile_id=v_uid and subject_type='individual' and status='pending') then
+    raise exception 'Permohonan KYC tidak ditemui atau tidak boleh dikemas kini' using errcode='42501';
+  end if;
+  for v_path in select jsonb_array_elements_text(p_document_paths) loop
+    if v_path is null or v_path not like v_uid::text||'/%' then raise exception 'Lokasi dokumen tidak sah' using errcode='42501'; end if;
+    if not exists(select 1 from storage.objects where bucket_id='kyc-documents' and name=v_path and owner_id=v_uid::text) then
+      raise exception 'Dokumen tidak ditemui atau bukan milik akaun ini' using errcode='42501';
+    end if;
+  end loop;
+  update public.identity_verifications set document_storage_paths=p_document_paths,
+    provider_status='queued',match_status='not_processed',match_score=null,processed_at=null,updated_at=now()
+    where id=p_kyc_id and profile_id=v_uid;
+  return jsonb_build_object('ok',true,'kyc_id',p_kyc_id,'document_count',v_count);
+end;
+$$;
