@@ -77,7 +77,7 @@ async function requestCertification(track,level){const trackCode=track==='A'?'pl
 function bind(id,fn){$(id).addEventListener('click',async e=>{e.preventDefault();try{await fn();}catch(err){notice('appMsg',err.message||String(err),'error');}});}
 document.querySelectorAll('.tab').forEach(x=>x.addEventListener('click',()=>tab(x.dataset.tab)));
 $('openKycTab')?.addEventListener('click',()=>{tab('kyc');$('tab-kyc')?.scrollIntoView({behavior:'smooth',block:'start'});});
-bind('loginBtn',signIn);bind('googleBtn',()=>SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href}}));bind('createCoach',createCoach);bind('saveProfile',saveProfile);bind('requestTrackA',()=>requestCertification('A',$('trackALevel').value));bind('requestTrackB',()=>requestCertification('B',$('trackBLevel').value));
+bind('loginBtn',signIn);bind('googleBtn',()=>SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+'/' ,queryParams:{prompt:'select_account'}}}));bind('createCoach',createCoach);bind('saveProfile',saveProfile);bind('requestTrackA',()=>requestCertification('A',$('trackALevel').value));bind('requestTrackB',()=>requestCertification('B',$('trackBLevel').value));
 $('editToggle').addEventListener('click',()=>$('editForm').classList.toggle('hidden'));$('cancelEdit').addEventListener('click',()=>$('editForm').classList.add('hidden'));
 SB.auth.onAuthStateChange((_event,newSession)=>{session=newSession;if(newSession)setTimeout(()=>refresh().catch(e=>notice('appMsg',e.message,'error')),0);});
 refresh().catch(e=>notice('loginMsg',e.message,'error'));
