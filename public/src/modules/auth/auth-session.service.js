@@ -33,15 +33,17 @@
   bridge.Core = bridge.Core || {};
   bridge.Auth = bridge.Auth || {};
 
-  var SELF_SERVE_ROLES = ['player', 'coach', 'club_admin', 'league_admin', 'referee'];
+  var SELF_SERVE_ROLES = ['player', 'coach', 'club_owner', 'organizer', 'referee'];
 
   var ROLE_ALIASES = {
     pemain: 'player',
     jurulatih: 'coach',
-    pengurus_kelab: 'club_admin',
-    club_manager: 'club_admin',
-    manager: 'club_admin',
-    penganjur_liga: 'league_admin',
+    pengurus_kelab: 'club_owner',
+    club_admin: 'club_owner',
+    club_manager: 'club_owner',
+    manager: 'club_owner',
+    penganjur_liga: 'organizer',
+    league_admin: 'organizer',
     pengadil: 'referee'
   };
 
