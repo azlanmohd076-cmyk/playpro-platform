@@ -70,13 +70,15 @@ async function boot(){
   $('form').style.display='block';
   syncUpload();
 }
-async function upload(file,label){
+function makePath(file,label){
   if(!file)throw new Error('Fail '+label+' diperlukan');
   if(file.size>10*1024*1024)throw new Error('Fail '+label+' melebihi 10MB');
   const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
-  const path=uid+'/'+crypto.randomUUID()+'.'+ext;
+  return uid+'/'+crypto.randomUUID()+'.'+ext;
+}
+async function uploadToPath(file,path,label){
   const r=await SB.storage.from('kyc-documents').upload(path,file,{contentType:file.type,upsert:false});
-  if(r.error)throw r.error;
+  if(r.error)throw new Error('Muat naik '+label+' gagal: '+r.error.message);
   return path;
 }
 async function submitKyc(){
@@ -85,20 +87,23 @@ async function submitKyc(){
   if(!/^[0-9]{2}$/.test(state))return $('msg').textContent='Kod negeri kelahiran mesti 2 digit.';
   btn.disabled=true;btn.textContent='Memuat naik & memproses...';$('msg').className='msg';$('msg').textContent='';
   try{
-    const paths=[await upload($('front').files[0],'utama')];
-    if(type==='mykad')paths.push(await upload($('back').files[0],'belakang'));
+    const selectedFiles=type==='mykad'?[$('front').files[0],$('back').files[0]]:[$('front').files[0]];
+    const paths=selectedFiles.map((file,index)=>makePath(file,index===0?'utama':'belakang'));
     let kycIdValue;
     if(isPlayer){
+      for(let i=0;i<selectedFiles.length;i++)await uploadToPath(selectedFiles[i],paths[i],i===0?'utama':'belakang');
       const r=await SB.rpc('request_player_kyc_document',{p_id_type:type,p_legal_name:name,p_birth_state_code:state,p_document_storage_paths:paths});
       if(r.error)throw r.error;
       kycIdValue=r.data?.kyc_id;
     }else{
+      // Create/update the pending request first; Storage policy then permits only these declared paths.
       const r=await SB.rpc('request_role_kyc',{
         p_subject_type:subjectType,p_id_type:type,p_legal_name:name,p_birth_state_code:state,
         p_masked_identifier:null,p_document_storage_paths:paths,p_provider_reference:null
       });
       if(r.error)throw r.error;
       kycIdValue=r.data;
+      for(let i=0;i<selectedFiles.length;i++)await uploadToPath(selectedFiles[i],paths[i],i===0?'utama':'belakang');
     }
     if(!kycIdValue)throw new Error('KYC ID tidak dijana');
     const f=await SB.functions.invoke('kyc-verify-player',{body:{kyc_id:kycIdValue}});
