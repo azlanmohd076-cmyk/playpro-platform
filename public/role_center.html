@@ -31,7 +31,15 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 async function boot(){
  const s=await SB.auth.getSession();session=s.data.session;
  if(!session){$('welcome').textContent='Sila log masuk melalui PlayPro dahulu.';$('roles').innerHTML='';return}
- const p=await SB.from('profiles').select('full_name,email').eq('id',session.user.id).maybeSingle();
+ const p=await SB.from('profiles').select('full_name,email,is_active').eq('id',session.user.id).maybeSingle();
+ if(p.error)throw p.error;
+ if(p.data?.is_active===false){
+   await SB.auth.signOut({scope:'local'});
+   session=null;
+   $('welcome').textContent='Akaun PlayPro dinyahaktifkan. Sesi pada peranti ini telah ditamatkan.';
+   $('roles').innerHTML='';
+   return;
+ }
  $('welcome').textContent='Akaun: '+(p.data?.full_name||session.user.email||'Pengguna PlayPro')+' · Pendaftaran akaun percuma';
  const r=await SB.rpc('get_my_role_profiles');if(r.error)throw r.error;rows=r.data||[];
  render();
