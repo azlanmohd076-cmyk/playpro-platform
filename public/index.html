@@ -2928,6 +2928,35 @@ window.updateLencanaNotif = function updateLencanaNotif(){
   badge.style.display=unread?'flex':'none';
 }
 
+function consumePendingSignupRole(user){
+  try{
+    const role=localStorage.getItem('pp_pending_signup_role');
+    const createdAt=Number(localStorage.getItem('pp_pending_signup_role_at')||0);
+    if(!role)return false;
+    if(!createdAt||Date.now()-createdAt>30*60*1000){
+      localStorage.removeItem('pp_pending_signup_role');
+      localStorage.removeItem('pp_pending_signup_role_at');
+      return false;
+    }
+    localStorage.removeItem('pp_pending_signup_role');
+    localStorage.removeItem('pp_pending_signup_role_at');
+    const routes={
+      coach:'/coach_profile_v2.html',
+      club_admin:'/player_kyc.html?subject_type=club_owner',
+      club_owner:'/player_kyc.html?subject_type=club_owner',
+      league_admin:'/player_kyc.html?subject_type=organizer',
+      organizer:'/player_kyc.html?subject_type=organizer'
+    };
+    const destination=routes[role];
+    if(!destination)return false;
+    window.location.assign(destination);
+    return true;
+  }catch(error){
+    console.warn('[PlayPro] Pending role routing skipped:',error);
+    return false;
+  }
+}
+
 async function routeAuthenticatedUser(user){
   if(!user||!window.SB) return;
   try{
@@ -2939,6 +2968,14 @@ async function routeAuthenticatedUser(user){
       if(!window.location.pathname.endsWith('/coach_profile_v2.html')){
         window.location.assign('/coach_profile_v2.html');
       }
+      return;
+    }
+    if(role==='club_admin'){
+      if(!window.location.pathname.endsWith('/club.html')) window.location.assign('/club.html');
+      return;
+    }
+    if(role==='organizer'||role==='league_admin'){
+      if(!window.location.pathname.endsWith('/organizer_profile.html')) window.location.assign('/organizer_profile.html');
       return;
     }
     if(role==='player'){
@@ -2971,12 +3008,15 @@ async function init(){
         if(session){
           _u=session.user;
           updateUI();
-          Promise.resolve(routeAuthenticatedUser(_u)).catch(error=>console.warn('[PlayPro] onboarding route skipped:',error.message));
+          if(!consumePendingSignupRole(_u)) Promise.resolve(routeAuthenticatedUser(_u)).catch(error=>console.warn('[PlayPro] onboarding route skipped:',error.message));
         }
       }).catch(error=>console.warn('[PlayPro] session check skipped:',error.message));
       client.auth.onAuthStateChange((event,sessionState)=>{
         if(event==='SIGNED_OUT'){_u=null;_pd=null;updateUI();return;}
-        if(sessionState?.user){_u=sessionState.user;updateUI();setTimeout(()=>routeAuthenticatedUser(sessionState.user),0);}
+        if(sessionState?.user){
+          _u=sessionState.user;updateUI();
+          if(!consumePendingSignupRole(sessionState.user)) setTimeout(()=>routeAuthenticatedUser(sessionState.user),0);
+        }
       });
     }else{
       console.warn('[PlayPro] Supabase belum tersedia; memaparkan portal awam.');
@@ -3099,6 +3139,13 @@ function backRole(){document.getElementById('d-s1').style.display='block';docume
     return;
   }
   const redirectTo=window.PLAYPRO_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`;
+  const selectedRole=document.getElementById('d-role')?.value||'';
+  if(selectedRole){
+    try{
+      localStorage.setItem('pp_pending_signup_role',selectedRole);
+      localStorage.setItem('pp_pending_signup_role_at',String(Date.now()));
+    }catch(storageError){console.warn('[PlayPro] Could not preserve selected signup role.',storageError);}
+  }
   try{
     // Always remove the previous PlayPro identity before starting Google OAuth.
     // Google will then ask which account to use, and Supabase cannot silently
@@ -3224,13 +3271,11 @@ async function doRegister(){
     updateUI(); closeLogin();
 
     var confirmedRole=res.role||role||'player';
-    if(confirmedRole==='coach'){
-      window.location.assign('/coach_profile_v2.html');
-    } else if(confirmedRole==='player'||confirmedRole==='referee'){
-      showOnboarding();
-    } else {
-      toast('✅ Akaun dibuat! Selamat datang ke PlayPro!');
-    }
+    if(confirmedRole==='coach') window.location.assign('/coach_profile_v2.html');
+    else if(confirmedRole==='club_admin') window.location.assign('/player_kyc.html?subject_type=club_owner');
+    else if(confirmedRole==='organizer'||confirmedRole==='league_admin') window.location.assign('/player_kyc.html?subject_type=organizer');
+    else if(confirmedRole==='player'||confirmedRole==='referee') showOnboarding();
+    else toast('✅ Akaun dibuat! Selamat datang ke PlayPro!');
     return;
   }
 
@@ -3255,9 +3300,11 @@ async function doRegister(){
     _u=data.user; _pd=null;
     updateUI(); closeLogin();
     var r2=(prof&&prof.role)||role||'player';
-    if(r2==='coach'){ window.location.assign('/coach_profile_v2.html'); }
-    else if(r2==='player'||r2==='referee'){ showOnboarding(); }
-    else { toast('✅ Akaun dibuat! Selamat datang ke PlayPro!'); }
+    if(r2==='coach') window.location.assign('/coach_profile_v2.html');
+    else if(r2==='club_admin') window.location.assign('/player_kyc.html?subject_type=club_owner');
+    else if(r2==='organizer'||r2==='league_admin') window.location.assign('/player_kyc.html?subject_type=organizer');
+    else if(r2==='player'||r2==='referee') showOnboarding();
+    else toast('✅ Akaun dibuat! Selamat datang ke PlayPro!');
   } else {
     setMsg('d-msg','✅ Akaun dibuat! Semak emel '+em+' untuk pengesahan.','ok');
   }
