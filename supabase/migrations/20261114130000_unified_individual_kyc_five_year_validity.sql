@@ -500,3 +500,73 @@ grant execute on function public.get_my_player_kyc_status() to authenticated,ser
 grant execute on function public.get_player_kyc_admin_list() to authenticated,service_role;
 grant execute on function public.get_role_kyc_admin_list() to authenticated,service_role;
 grant execute on function public.get_coach_kyc_admin_list() to authenticated,service_role;
+
+
+-- Enforce one canonical row per person. The live audit on 2026-11-14 found
+-- zero profiles with multiple identity_verifications rows.
+drop index if exists public.ux_identity_verifications_active_request;
+create unique index if not exists ux_identity_verifications_one_per_person
+  on public.identity_verifications(profile_id);
+
+create or replace function public.request_identity_kyc(
+  p_id_type text,
+  p_legal_name text,
+  p_birth_state_code text default null
+) returns jsonb
+language plpgsql security definer set search_path=''
+as $$
+declare
+  v_uid uuid:=(select auth.uid());
+  v_k public.identity_verifications%rowtype;
+  v_id uuid;
+begin
+  perform public.playpro_require_active_account();
+  if v_uid is null then raise exception 'Authentication required' using errcode='42501'; end if;
+  if lower(trim(coalesce(p_id_type,''))) not in ('mykad','mykid','passport') then
+    raise exception 'Jenis dokumen tidak disokong' using errcode='22023';
+  end if;
+  if nullif(btrim(coalesce(p_legal_name,'')),'') is null then
+    raise exception 'Nama sah diperlukan' using errcode='22023';
+  end if;
+  perform pg_advisory_xact_lock(hashtext(v_uid::text||':identity_kyc'));
+  select * into v_k from public.identity_verifications
+    where profile_id=v_uid and subject_type='individual' for update;
+  if found then
+    if v_k.status in ('verified','approved') and v_k.expires_at>now() then
+      return jsonb_build_object('ok',true,'kyc_id',v_k.id,'status','verified','expires_at',v_k.expires_at);
+    end if;
+    if v_k.status='processing' then
+      return jsonb_build_object('ok',true,'kyc_id',v_k.id,'status','processing');
+    end if;
+    update public.identity_verifications set
+      id_type=lower(trim(p_id_type)),
+      legal_name_claimed=btrim(p_legal_name),
+      birth_state_code=nullif(btrim(coalesce(p_birth_state_code,'')),''),
+      status='pending',reviewer_profile_id=null,reviewer_note=null,reviewed_at=null,expires_at=null,
+      document_storage_paths='[]'::jsonb,provider='google_document_ai',
+      provider_status='queued',match_status='not_processed',match_score=null,
+      extracted_legal_name=null,extracted_birth_date=null,extracted_id_type=null,
+      extracted_identifier_masked=null,processed_at=null,submitted_at=now(),updated_at=now()
+      where id=v_k.id returning id into v_id;
+  else
+    insert into public.identity_verifications(
+      profile_id,subject_type,id_type,legal_name_claimed,birth_state_code,
+      document_storage_paths,provider,provider_status,status,match_status
+    ) values (
+      v_uid,'individual',lower(trim(p_id_type)),btrim(p_legal_name),
+      nullif(btrim(coalesce(p_birth_state_code,'')),''),
+      '[]'::jsonb,'google_document_ai','queued','pending','not_processed'
+    ) returning id into v_id;
+  end if;
+  return jsonb_build_object('ok',true,'kyc_id',v_id,'status','pending');
+end;
+$$;
+
+drop policy if exists identity_verification_developer_read_coach on public.identity_verifications;
+create policy identity_verification_developer_read_active
+on public.identity_verifications for select to authenticated
+using (
+  subject_type='individual'
+  and public.playpro_account_is_active()
+  and (select public.get_my_role())='developer'::public.user_role
+);
