@@ -1,23 +1,81 @@
 {
   "outputDirectory": "public",
   "rewrites": [
-    { "source": "/app", "destination": "/app.html" },
-    { "source": "/player", "destination": "/player.html" },
-    { "source": "/card", "destination": "/player_card.html" },
-    { "source": "/ops", "destination": "/dev_panel.html" },
-    { "source": "/club", "destination": "/club_center_v3.html" },
-    { "source": "/club/operations", "destination": "/club_operations.html" },
-    { "source": "/club/membership", "destination": "/club_membership.html" },
-    { "source": "/club/training", "destination": "/club_training.html" },
-    { "source": "/club/history", "destination": "/club_history.html" },
-    { "source": "/club/team", "destination": "/club_team.html" },
-    { "source": "/organizer/competitions", "destination": "/organizer_competitions.html" },
-    { "source": "/coach/certification", "destination": "/coach_certification.html" },
-    { "source": "/passport", "destination": "/football_passport.html" },
-    { "source": "/referee", "destination": "/referee_operations.html" },
-    { "source": "/referee/profile", "destination": "/referee_profile.html" },
-    { "source": "/referee/dashboard", "destination": "/referee_dashboard.html" },
-    { "source": "/referee/assignments", "destination": "/referee_assignments.html" },
-    { "source": "/referee/matches", "destination": "/referee_matches.html" }
+    {
+      "source": "/",
+      "destination": "/landing.html"
+    },
+    {
+      "source": "/app",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/player",
+      "destination": "/player.html"
+    },
+    {
+      "source": "/card",
+      "destination": "/player_card.html"
+    },
+    {
+      "source": "/ops",
+      "destination": "/dev_panel.html"
+    },
+    {
+      "source": "/club",
+      "destination": "/club_center_v3.html"
+    },
+    {
+      "source": "/club/operations",
+      "destination": "/club_operations.html"
+    },
+    {
+      "source": "/club/membership",
+      "destination": "/club_membership.html"
+    },
+    {
+      "source": "/club/training",
+      "destination": "/club_training.html"
+    },
+    {
+      "source": "/club/history",
+      "destination": "/club_history.html"
+    },
+    {
+      "source": "/club/team",
+      "destination": "/club_team.html"
+    },
+    {
+      "source": "/organizer/competitions",
+      "destination": "/organizer_competitions.html"
+    },
+    {
+      "source": "/coach/certification",
+      "destination": "/coach_certification.html"
+    },
+    {
+      "source": "/passport",
+      "destination": "/football_passport.html"
+    },
+    {
+      "source": "/referee",
+      "destination": "/referee_operations.html"
+    },
+    {
+      "source": "/referee/profile",
+      "destination": "/referee_profile.html"
+    },
+    {
+      "source": "/referee/dashboard",
+      "destination": "/referee_dashboard.html"
+    },
+    {
+      "source": "/referee/assignments",
+      "destination": "/referee_assignments.html"
+    },
+    {
+      "source": "/referee/matches",
+      "destination": "/referee_matches.html"
+    }
   ]
 }
