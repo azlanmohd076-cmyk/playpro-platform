@@ -2939,6 +2939,7 @@ async function routeAuthenticatedUser(user){
       sessionStorage.removeItem('playpro_pending_signup_role');
       sessionStorage.removeItem('playpro_pending_signup_role_at');
     }catch(ignore){}
+    if(pendingRole==='user'){window.location.assign('/role_center.html');return;}
     if(pendingRole==='coach'){window.location.assign('/coach_profile_v2.html');return;}
     if(pendingRole==='club_owner'){window.location.assign('/club.html');return;}
     if(pendingRole==='organizer'){window.location.assign('/organizer_profile.html');return;}
