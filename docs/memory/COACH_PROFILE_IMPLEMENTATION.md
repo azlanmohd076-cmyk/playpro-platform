@@ -46,7 +46,7 @@ Values are not user-editable. The eventual organic performance engine based on o
 - **Track A — Player Assessment Authority:** certification course Levels 1–5. This is distinct from the operational Player DNA assessor accreditation Level 1–7, which is separately granted by an authorised Developer through `coach_accreditations`.
 - **Track B — Coach Attribute Certification:** evaluates the Coach's own coaching attributes, also through course Levels 1–5.
 
-The request and review RPCs now use the current database columns, keep the two tracks separate, prevent duplicate open requests, require verified Coach KYC before requesting, and restrict review to Developer. The legacy request RPC is routed through the same guarded workflow. A request approval schedules the course; it does not fabricate a passed certificate.
+The request and review RPCs now use the current database columns, keep the two tracks separate, prevent duplicate open requests, require verified Coach KYC before requesting, and restrict review to Developer. The legacy request RPC is routed through the same guarded workflow. A request approval schedules the course; it does not fabricate a passed certificate. The operational Level 1–7 assessor accreditation panel only lists and accredits active Coach profiles with verified KYC; it cannot grant assessment authority to an ordinary player account.
 
 ## Player assessment authority
 
