@@ -2931,6 +2931,17 @@ window.updateLencanaNotif = function updateLencanaNotif(){
 async function routeAuthenticatedUser(user){
   if(!user||!window.SB) return;
   try{
+    // Re-check account status before trusting an existing or newly-created session.
+    const {data:account,error:accountError}=await window.SB
+      .from('profiles').select('is_active').eq('id',user.id).maybeSingle();
+    if(accountError) throw accountError;
+    if(account && account.is_active===false){
+      await window.SB.auth.signOut({scope:'local'});
+      _u=null;_pd=null;updateUI();
+      toast('Akaun PlayPro dinyahaktifkan. Sesi pada peranti ini telah ditamatkan.');
+      return;
+    }
+    _u=user;updateUI();
     let pendingRole='';
     try{
       const pendingAt=Number(sessionStorage.getItem('playpro_pending_signup_role_at')||0);
@@ -3000,14 +3011,15 @@ async function init(){
       client.auth.getSession().then(result=>{
         const session=result?.data?.session;
         if(session){
-          _u=session.user;
-          updateUI();
-          Promise.resolve(routeAuthenticatedUser(_u)).catch(error=>console.warn('[PlayPro] onboarding route skipped:',error.message));
+          Promise.resolve(routeAuthenticatedUser(session.user)).catch(error=>console.warn('[PlayPro] onboarding route skipped:',error.message));
         }
       }).catch(error=>console.warn('[PlayPro] session check skipped:',error.message));
       client.auth.onAuthStateChange((event,sessionState)=>{
         if(event==='SIGNED_OUT'){_u=null;_pd=null;updateUI();return;}
-        if(sessionState?.user){_u=sessionState.user;updateUI();setTimeout(()=>routeAuthenticatedUser(sessionState.user),0);}
+        if(sessionState?.user){
+          _u=null;_pd=null;updateUI();
+          setTimeout(()=>routeAuthenticatedUser(sessionState.user),0);
+        }
       });
     }else{
       console.warn('[PlayPro] Supabase belum tersedia; memaparkan portal awam.');
