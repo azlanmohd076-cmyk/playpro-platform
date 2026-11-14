@@ -60,7 +60,7 @@ const cols={
  coaches:[['full_name','Nama penuh','text'],['preferred_name','Nama paparan','text'],['bio','Bio','textarea'],['coaching_role','Peranan kejurulatihan','text'],['preferred_formation','Formasi pilihan','text'],['preferred_style','Gaya kejurulatihan','text'],['coaching_specialties','Kepakaran (JSON)','textarea'],['license_type','Jenis lesen','text'],['license_number','Nombor lesen','text'],['license_issuing_body','Badan pengeluar lesen','text'],['license_issue_date','Tarikh lesen','date'],['license_expiry_date','Tamat lesen','date'],['license_status','Status lesen','text'],['is_active','Status aktif','checkbox']],
  clubs:[['name','Nama kelab','text',true],['description','Penerangan','textarea'],['city','Bandar','text'],['state','Negeri','text'],['country','Negara','text'],['home_venue','Padang utama','text'],['colours','Warna kelab','text']]
 };
-function notifyfunction notify(msg,good=false){$('notice').textContent=msg;$('notice').className='notice show'+(good?' good':'');}
+function notify(msg,good=false){$('notice').textContent=msg;$('notice').className='notice show'+(good?' good':'');}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 let currentProfile=null;
 async function boot(){
