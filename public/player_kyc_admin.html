@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#07120d"><title>PlayPro — Player KYC Review</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#07120d;--panel:#101d16;--line:#26392e;--green:#00d4aa;--gold:#f0c040;--text:#eef7f2;--muted:#91a398;--red:#ff7474}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -20%,#194b36,#050b07 65%);color:var(--text);font:14px system-ui,sans-serif}
+main{max-width:1100px;margin:auto;padding:18px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.logo{font-size:23px;font-weight:950;color:var(--green)}a{color:var(--gold)}.panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:17px;margin:12px 0}.muted{color:var(--muted);line-height:1.55}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.fact{background:#ffffff06;border:1px solid #ffffff0b;border-radius:10px;padding:10px}.fact b{display:block;color:var(--gold);font-size:10px;margin-bottom:5px}.docs{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.docs a{padding:8px 10px;border:1px solid #8a6d1855;border-radius:9px;text-decoration:none}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.fields label{font-size:10px;color:var(--muted);font-weight:900}.fields input{width:100%;padding:10px;background:#07160f;border:1px solid var(--line);border-radius:8px;color:var(--text);margin-top:5px}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.btn{border:1px solid var(--line);border-radius:9px;padding:10px 14px;background:#1b3527;color:var(--text);font-weight:900;cursor:pointer}.btn.good{background:var(--green);color:#002016;border-color:var(--green)}.btn.reject{border-color:#843c3c;color:#ffaaaa}.notice{padding:12px;border:1px solid var(--line);border-radius:10px;margin:12px 0}.empty{text-align:center;padding:30px;color:var(--muted)}@media(max-width:650px){.grid,.fields{grid-template-columns:1fr}main{padding:12px}}
+</style></head><body><main>
+<header class="top"><div><div class="logo">PlayPro</div><div class="muted">DEVELOPER · PLAYER KYC REVIEW</div></div><a href="database_editor.html">← Kembali ke MCP</a></header>
+<section class="panel"><h1>Semakan KYC Pemain</h1><p class="muted">Semak dokumen asal secara manual. Google Document AI hanya membantu bacaan dokumen; ia bukan pihak yang meluluskan identiti. Kelulusan akan mengunci nama sah dan menjana Football Passport.</p><div id="notice" class="notice">Mengesahkan sesi Developer…</div><div id="queue"></div></section>
+</main>
+<script>
+'use strict';
+const SB=supabase.createClient('https://muirhenvjruvfxenoaxm.supabase.co','sb_publishable_exWFL10h8zcpyFyEdq7jAw_XoBl2RwZ');
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function msg(t,good=false){$('notice').textContent=t;$('notice').style.color=good?'#9ff4df':'#ffb4b4';}
+async function load(){
+ const {data,error}=await SB.rpc('get_player_kyc_admin_list');
+ if(error)throw error;
+ const rows=data?.requests||[];
+ if(!rows.length){$('queue').innerHTML='<div class="empty">Tiada permohonan KYC Pemain yang menunggu semakan.</div>';return;}
+ const cards=await Promise.all(rows.map(async r=>{
+  const paths=Array.isArray(r.document_storage_paths)?r.document_storage_paths:[];
+  const urls=await Promise.all(paths.map(async (path,i)=>{const x=await SB.storage.from('kyc-documents').createSignedUrl(path,300);return x.error?'':'<a target="_blank" rel="noopener" href="'+esc(x.data.signedUrl)+'">Buka dokumen '+(i+1)+'</a>';}));
+  return '<article class="card" data-card="'+esc(r.kyc_id)+'"><h3>'+esc(r.player_name)+' · '+esc(r.player_passport||'Belum ada Passport')+'</h3><div class="grid"><div class="fact"><b>NAMA DITUNTUT</b>'+esc(r.legal_name_claimed)+'</div><div class="fact"><b>JENIS DOKUMEN</b>'+esc(r.id_type)+'</div><div class="fact"><b>NAMA DIEKSTRAK</b>'+esc(r.extracted_legal_name||'Belum diproses')+'</div><div class="fact"><b>TARIKH LAHIR DIEKSTRAK</b>'+esc(r.extracted_birth_date||'—')+'</div><div class="fact"><b>TARIKH LAHIR PROFIL</b>'+esc(r.profile_dob||'—')+'</div><div class="fact"><b>PADANAN AI</b>'+esc(r.match_status||'—')+' · '+esc(r.provider_status||'—')+'</div><div class="fact"><b>KOD NEGERI</b>'+esc(r.birth_state_code||'—')+'</div><div class="fact"><b>DITERIMA</b>'+esc(new Date(r.submitted_at).toLocaleString('ms-MY'))+'</div></div><div class="docs">'+(urls.join('')||'<span class="muted">Dokumen tidak dapat dibuka.</span>')+'</div><div class="fields"><label>Nama sah yang disahkan<input data-name value="'+esc(r.extracted_legal_name||r.legal_name_claimed||'')+'"></label><label>Tarikh lahir yang disahkan<input data-dob type="date" value="'+esc(r.extracted_birth_date||r.profile_dob||'')+'"></label><label>Kod negeri kelahiran (2 digit)<input data-state maxlength="2" inputmode="numeric" value="'+esc(r.birth_state_code||'')+'"></label><label>Catatan / sebab penolakan<input data-note maxlength="500" placeholder="Wajib diisi jika menolak"></label></div><div class="actions"><button class="btn good" data-approve>Sahkan KYC</button><button class="btn reject" data-reject>Tolak KYC</button></div></article>';
+ }));
+ $('queue').innerHTML=cards.join('');
+}
+$('queue').addEventListener('click',async e=>{
+ const card=e.target.closest('[data-card]');if(!card)return;const id=card.dataset.card;
+ const note=card.querySelector('[data-note]').value.trim()||null;
+ if(e.target.closest('[data-approve]')){
+  const name=card.querySelector('[data-name]').value.trim(),dob=card.querySelector('[data-dob]').value||null,state=card.querySelector('[data-state]').value.trim();
+  if(!name||!/^\d{2}$/.test(state)){msg('Nama sah dan kod negeri 2 digit wajib disahkan.');return;}
+  if(!confirm('Kau telah membandingkan dokumen asal dan mahu sahkan identiti pemain ini?'))return;
+  const {data,error}=await SB.rpc('approve_player_kyc',{p_kyc_id:id,p_reviewer_note:note,p_verified_legal_name:name,p_verified_birth_date:dob,p_verified_birth_state_code:state});
+  if(error){msg('Kelulusan gagal: '+error.message);return;}
+  msg('KYC disahkan. Football Passport: '+(data?.football_passport_no||'dijana')+'.',true);await load();
+ }else if(e.target.closest('[data-reject]')){
+  if(!note){msg('Sebab penolakan wajib diisi.');return;}
+  if(!confirm('Tolak permohonan KYC pemain ini?'))return;
+  const {data,error}=await SB.rpc('reject_player_kyc',{p_kyc_id:id,p_reviewer_note:note});
+  if(error){msg('Penolakan gagal: '+error.message);return;}
+  msg('Permohonan KYC ditolak.',true);await load();
+ }
+});
+async function init(){
+ const {data:{user},error}=await SB.auth.getUser();
+ if(error||!user){msg('Sesi tiada. Log masuk melalui MCP dahulu.');return;}
+ const {data:p,error:pe}=await SB.from('profiles').select('role,is_active').eq('id',user.id).single();
+ if(pe||!p||p.role!=='developer'||!p.is_active){msg('Akses ditolak. Developer PlayPro sahaja.');return;}
+ msg('Akses Developer disahkan.',true);await load();
+}
+init().catch(e=>msg('Panel gagal dimuatkan: '+e.message));
+</script></body></html>
