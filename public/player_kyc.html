@@ -23,6 +23,7 @@ async function boot(){
   if(d.is_verified){showVerified(d);return;}
   kycId=d.kyc_id||null;
   $('state').innerHTML='<div class="status">Status identiti: <b>'+esc(String(d.status||'not_submitted').toUpperCase())+'</b>'+(d.expires_at?' · Tamat '+esc(new Date(d.expires_at).toLocaleDateString('ms-MY')):'')+'</div>';
+  if(d.status==='processing'||(d.status==='pending'&&d.provider_status==='processed')){ $('form').style.display='none'; $('state').innerHTML+='<p class="muted">Dokumen telah diterima. Tiada tindakan atau muat naik semula diperlukan. PlayPro akan menyemak identiti ini untuk semua peranan.</p>'; return; }
   $('form').style.display='block';
   const profile=await SB.from('profiles').select('full_name').eq('id',uid).maybeSingle();
   $('name').value=profile.data?.full_name||'';
@@ -58,7 +59,7 @@ async function submitKyc(){
     if(!f.data?.ok)throw new Error(f.data?.error||'Pemprosesan dokumen gagal.');
     $('msg').className='msg ok';
     $('msg').textContent='✓ Dokumen diterima. Semakan identiti sedang menunggu pengesahan PlayPro. KYC ini akan digunakan untuk semua peranan.';
-    $('state').innerHTML='<div class="status">Status identiti: <b>PENDING</b>. Anda tidak perlu menghantar dokumen untuk peranan lain.</div>';
+    $('form').style.display='none';$('state').innerHTML='<div class="status">Status identiti: <b>PENDING</b>. Dokumen telah diterima dan OCR tidak akan dijalankan semula tanpa set dokumen baharu. Anda tidak perlu menghantar dokumen untuk peranan lain.</div>';
   }catch(e){
     $('msg').className='msg err';$('msg').textContent='❌ '+(e.message||e);
     btn.disabled=false;btn.textContent='Hantar & Semak KYC →';
