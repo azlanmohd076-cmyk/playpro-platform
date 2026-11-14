@@ -8,13 +8,23 @@
 :root{--bg:#07140f;--panel:#102219;--panel2:#142c20;--line:#294536;--green:#00d4a0;--gold:#e8bd61;--text:#eef8f2;--muted:#9bb2a4;--red:#ff7777}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -15%,#1d5138 0,#07140f 54%);color:var(--text);font:14px Inter,system-ui,sans-serif;min-height:100vh}
 button,input,select,textarea{font:inherit}button{cursor:pointer}.shell{max-width:1440px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:22px}.brand{font-weight:1000;font-size:24px;letter-spacing:-1px;color:var(--green)}.brand small{display:block;font-size:9px;letter-spacing:2px;color:var(--muted);font-weight:800}.user{color:var(--muted);font-size:12px;text-align:right}.hero{border:1px solid #37634c;background:linear-gradient(120deg,#143d2a,#102219 70%);border-radius:20px;padding:24px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:18px}.eyebrow{color:var(--gold);font-size:10px;font-weight:900;letter-spacing:2px}.hero h1{font-size:clamp(24px,4vw,38px);margin:8px 0}.hero p{color:var(--muted);max-width:650px;line-height:1.6;margin:0}.shield{font-size:52px;filter:drop-shadow(0 8px 18px #0008)}.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:16px 0}.stat,.panel{background:#102219eF;border:1px solid var(--line);border-radius:15px;padding:16px}.stat label{font-size:10px;color:var(--muted);font-weight:900;letter-spacing:1px}.stat strong{display:block;font-size:28px;margin-top:7px}.layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px}.side{align-self:start;position:sticky;top:12px}.side button{width:100%;text-align:left;padding:12px 13px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--muted);font-weight:800;margin:3px 0}.side button.active,.side button:hover{background:#1b3a2a;border-color:#37634c;color:var(--text)}.side .hint{font-size:10px;line-height:1.5;color:var(--muted);padding:12px}.panel h2{font-size:18px;margin:0 0 6px}.sub{color:var(--muted);font-size:12px;line-height:1.55;margin:0 0 16px}.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:14px 0}.search{flex:1;min-width:180px;background:#07160f;border:1px solid var(--line);border-radius:9px;color:var(--text);padding:11px}.btn{border:1px solid var(--line);border-radius:9px;padding:10px 14px;background:#1b3527;color:var(--text);font-weight:900}.btn.primary{background:var(--green);color:#002016;border-color:var(--green)}.btn.gold{border-color:#9a783b;color:var(--gold)}.btn:disabled{opacity:.5}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;padding:12px;border-bottom:1px solid #294536;font-size:12px}th{color:var(--muted);font-size:10px;letter-spacing:1px;background:#0b1a12}td strong{font-size:13px}.tag{display:inline-block;border:1px solid #41634f;color:#bde8d0;padding:4px 7px;border-radius:20px;font-size:10px;font-weight:900}.empty{padding:30px;text-align:center;color:var(--muted)}.notice{display:none;border:1px solid #6c5930;background:#332911;color:#ffe2a0;border-radius:10px;padding:12px;margin:12px 0}.notice.show{display:block}.notice.good{border-color:#276d50;background:#123b29;color:#9ff4d1}.modal{display:none;position:fixed;inset:0;background:#000b;z-index:20;padding:18px;overflow:auto}.modal.show{display:flex;align-items:center;justify-content:center}.dialog{width:min(720px,100%);background:#102219;border:1px solid #41634f;border-radius:18px;padding:20px;max-height:94vh;overflow:auto}.dialoghead{display:flex;justify-content:space-between;align-items:center;gap:10px}.dialog h2{margin:0}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}.field label{display:block;color:var(--muted);font-size:10px;font-weight:900;letter-spacing:1px;margin:0 0 6px}.field input,.field select,.field textarea{width:100%;background:#07160f;border:1px solid var(--line);border-radius:9px;color:var(--text);padding:11px}.field textarea{min-height:90px}.wide{grid-column:1/-1}.foot{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}.loading{color:var(--muted);padding:24px;text-align:center}.readonly{opacity:.85}.hidden{display:none!important}
+.loginbox{max-width:460px;margin:30px auto;background:#102219;border:1px solid #37634c;border-radius:18px;padding:24px;box-shadow:0 20px 60px #0007}
+.loginbox h2{margin:0 0 8px}.loginbox p{color:var(--muted);line-height:1.5;font-size:12px}
+.loginbox input{width:100%;padding:12px;margin:7px 0;background:#07160f;border:1px solid var(--line);border-radius:9px;color:var(--text)}
+.loginbox button{width:100%;margin-top:9px}.loginmsg{color:#ffb4b4;min-height:20px;font-size:12px;margin-top:8px}
+.side .group{color:var(--gold);font-size:9px;letter-spacing:1.5px;font-weight:900;padding:12px 12px 4px}
+.topactions{display:flex;gap:8px;align-items:center}
+.auditlink{display:block;padding:10px 12px;color:var(--gold);font-size:11px;text-decoration:none;border:1px solid #9a783b55;border-radius:9px;margin:4px 0}
+
 @media(max-width:850px){.shell{padding:12px}.stats{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.side{position:static;display:flex;overflow:auto;gap:5px}.side button{white-space:nowrap;width:auto}.side .hint{display:none}.hero{padding:18px}.shield{font-size:38px}}
 @media(max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:1fr}.wide{grid-column:auto}.hero{align-items:flex-start}.shield{display:none}.user{font-size:10px}}
 </style></head>
 <body><main class="shell">
-<header class="top"><div class="brand">PlayPro<small>MASTER DATABASE EDITOR</small></div><div class="user" id="userLabel">Menyemak sesi…</div></header>
+<header class="top"><div class="brand">PlayPro<small>MASTER CONTROL PANEL · MCP</small></div><div class="topactions"><div class="user" id="userLabel">Menyemak sesi…</div><button id="logoutBtn" class="btn hidden">Log keluar</button></div></header>
 <section class="hero"><div><div class="eyebrow">DEVELOPER CONTROL CENTRE</div><h1>Master Control Panel</h1><p>Pusat pengurusan data PlayPro. Cari rekod, semak hubungan data dan baiki maklumat secara langsung. Setiap perubahan disimpan bersama rekod audit.</p></div><div class="shield">🛡️</div></section>
-<div id="notice" class="notice"></div><div id="loading" class="loading">Mengesahkan akses Developer…</div>
+<div id="notice" class="notice"></div>
+<section id="loginPanel" class="loginbox hidden"><div class="eyebrow">PLAYPRO SECURE ACCESS</div><h2>Log masuk MCP</h2><p>Gunakan akaun PlayPro yang telah diberikan peranan Developer atau Admin. Tiada kata laluan berasingan diperlukan.</p><input id="loginEmail" type="email" autocomplete="username" placeholder="Email PlayPro"><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Kata laluan"><button id="loginBtn" class="btn primary">Log masuk</button><button id="googleLoginBtn" class="btn">Teruskan dengan Google</button><div id="loginMsg" class="loginmsg"></div></section>
+<div id="loading" class="loading">Mengesahkan akses…</div>
 <div id="app" class="hidden">
 <section class="stats" id="stats"></section>
 <div class="layout">
@@ -24,8 +34,12 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.shell{max-width
 <button data-entity="coaches">♟ Database Coach</button>
 <button data-entity="clubs">▦ Database Kelab</button>
 <button data-entity="assessments">◎ Rekod Penilaian</button>
-<button data-entity="audits">◷ Audit Centre</button>
-<div class="hint">Akses Developer sahaja. Data KYC dan identiti sensitif tidak dipaparkan dalam senarai umum editor.</div>
+<button data-entity="audits" data-dev-only class="hidden">◷ Audit Centre</button>
+<button data-entity="users" data-dev-only class="hidden">♙ User & Access Control</button>
+<div class="group" data-dev-only>DEVELOPER TOOLS</div>
+<a class="auditlink hidden" data-dev-only href="coach_accreditation_admin.html">KYC & Coach Accreditation ↗</a>
+<a class="auditlink hidden" data-dev-only href="technical_assessor.html">Assessment Workspace ↗</a>
+<div class="hint" id="roleHint">Akses terhad mengikut peranan akaun.</div>
 </nav>
 <section class="panel">
 <div id="overviewView"><h2>Ringkasan sistem</h2><p class="sub">Pilih modul di sebelah untuk melihat dan mengurus rekod. Modul yang belum disambungkan akan ditambah secara berperingkat tanpa mengganggu data sedia ada.</p><div class="tag">LIVE DATABASE · SUPABASE</div><p class="sub" style="margin-top:14px">Pemain dan kelab boleh ditambah sebagai rekod baharu berstatus belum aktif / belum disahkan. Akaun pemain sebenar perlu dipautkan kemudian melalui proses pendaftaran dan pengesahan. Coach tidak dicipta secara palsu — identiti dan KYC mesti wujud dahulu.</p></div>
@@ -39,43 +53,68 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.shell{max-width
 <script>
 const $=id=>document.getElementById(id);
 let entity='overview',records=[],editing=null,creating=false;
-const labels={players:'Database Pemain',coaches:'Database Coach',clubs:'Database Kelab',assessments:'Rekod Penilaian',audits:'Audit Centre'};
+const labels={players:'Database Pemain',coaches:'Database Coach',clubs:'Database Kelab',assessments:'Rekod Penilaian',audits:'Audit Centre',users:'User & Access Control'};
 const cols={
- players:[['full_name','Nama penuh','text'],['preferred_name','Nama paparan','text'],['date_of_birth','Tarikh lahir','date',true],['position','Posisi','select',[['goalkeeper','Penjaga gol'],['defender','Pertahanan'],['midfielder','Tengah'],['forward','Penyerang'],['gk','GK'],['cb','CB'],['rb','RB'],['lb','LB'],['rwb','RWB'],['lwb','LWB'],['cm','CM'],['dm','DM'],['am','AM'],['rm','RM'],['lm','LM'],['st','ST'],['rw','RW'],['lw','LW'],['cf','CF']]],['nationality','Warganegara','text'],['is_active','Status aktif','checkbox'],['is_free_agent','Free agent','checkbox']],
- clubs:[['name','Nama kelab','text',true],['description','Penerangan','textarea'],['city','Bandar','text'],['state','Negeri','text'],['country','Negara','text'],['home_venue','Padang utama','text'],['colours','Warna kelab','text']],
- coaches:[['full_name','Nama penuh','text',true],['preferred_name','Nama paparan','text'],['bio','Bio','textarea'],['coaching_role','Peranan kejurulatihan','text'],['license_number','Nombor lesen','text'],['license_status','Status lesen','text'],['is_active','Status aktif','checkbox']]
+ players:[['full_name','Nama penuh','text'],['preferred_name','Nama paparan','text'],['date_of_birth','Tarikh lahir','date'],['position','Posisi','select',[['goalkeeper','Penjaga gol'],['defender','Pertahanan'],['midfielder','Tengah'],['forward','Penyerang'],['gk','GK'],['cb','CB'],['rb','RB'],['lb','LB'],['rwb','RWB'],['lwb','LWB'],['cm','CM'],['dm','DM'],['am','AM'],['rm','RM'],['lm','LM'],['st','ST'],['rw','RW'],['lw','LW'],['cf','CF']]],['nationality','Warganegara','text'],['height_cm','Tinggi (cm)','number'],['weight_kg','Berat (kg)','number'],['preferred_foot','Kaki utama','select',[['','Belum dipilih'],['left','Kiri'],['right','Kanan'],['both','Kedua-dua']]],['jersey_number','Nombor jersi','number'],['bio','Biodata','textarea'],['is_active','Status aktif','checkbox'],['is_free_agent','Free agent','checkbox']],
+ coaches:[['full_name','Nama penuh','text'],['preferred_name','Nama paparan','text'],['bio','Bio','textarea'],['coaching_role','Peranan kejurulatihan','text'],['preferred_formation','Formasi pilihan','text'],['preferred_style','Gaya kejurulatihan','text'],['coaching_specialties','Kepakaran (JSON)','textarea'],['license_type','Jenis lesen','text'],['license_number','Nombor lesen','text'],['license_issuing_body','Badan pengeluar lesen','text'],['license_issue_date','Tarikh lesen','date'],['license_expiry_date','Tamat lesen','date'],['license_status','Status lesen','text'],['is_active','Status aktif','checkbox']],
+ clubs:[['name','Nama kelab','text',true],['description','Penerangan','textarea'],['city','Bandar','text'],['state','Negeri','text'],['country','Negara','text'],['home_venue','Padang utama','text'],['colours','Warna kelab','text']]
 };
-function notify(msg,good=false){$('notice').textContent=msg;$('notice').className='notice show'+(good?' good':'');}
+function notifyfunction notify(msg,good=false){$('notice').textContent=msg;$('notice').className='notice show'+(good?' good':'');}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+let currentProfile=null;
 async function boot(){
- const {data:{user},error}=await SB.auth.getUser();if(error||!user){$('loading').textContent='Sila log masuk ke PlayPro dahulu.';return;}
+ const {data:{user},error}=await SB.auth.getUser();
+ if(error||!user){$('loading').classList.add('hidden');$('loginPanel').classList.remove('hidden');$('app').classList.add('hidden');$('logoutBtn').classList.add('hidden');return;}
  const {data:profile,error:pe}=await SB.from('profiles').select('id,email,full_name,role,is_active').eq('id',user.id).single();
- if(pe||!profile||profile.role!=='developer'||!profile.is_active){$('loading').textContent='Akses ditolak. Akaun ini bukan Developer PlayPro yang aktif.';return;}
- $('userLabel').textContent=(profile.full_name||user.email)+' · DEVELOPER';$('loading').classList.add('hidden');$('app').classList.remove('hidden');
+ if(pe||!profile||!profile.is_active||!['developer','admin'].includes(profile.role)){
+  $('loading').textContent='Akses ditolak. Akaun ini belum diberikan peranan Developer atau Admin.';
+  $('loginPanel').classList.add('hidden');$('app').classList.add('hidden');$('logoutBtn').classList.remove('hidden');return;
+ }
+ currentProfile=profile;const isDev=profile.role==='developer';
+ $('userLabel').textContent=(profile.full_name||user.email)+' · '+profile.role.toUpperCase();
+ $('roleHint').textContent=isDev?'Developer: kawalan penuh MCP.':'Admin: akses operasi terhad kepada data pemain dan coach.';
+ document.querySelectorAll('[data-dev-only]').forEach(el=>el.classList.toggle('hidden',!isDev));
+ $('loading').classList.add('hidden');$('loginPanel').classList.add('hidden');$('app').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');
  await loadOverview();
 }
+async function loginPassword(){
+ $('loginBtn').disabled=true;$('loginMsg').textContent='Sedang mengesahkan…';
+ const {error}=await SB.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});
+ $('loginBtn').disabled=false;if(error){$('loginMsg').textContent=error.message;return;}await boot();
+}
+async function loginGoogle(){
+ const {error}=await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});
+ if(error)$('loginMsg').textContent=error.message;
+}
+$('loginBtn').addEventListener('click',loginPassword);
+$('googleLoginBtn').addEventListener('click',loginGoogle);
+$('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')loginPassword();});
+$('logoutBtn').addEventListener('click',async()=>{await SB.auth.signOut({scope:'local'});location.reload();});
 async function loadOverview(){
- const {data,error}=await SB.rpc('developer_editor_overview');if(error){notify(error.message);return;}
- const items=[['PEMAIN',data.players],['PEMAIN AKTIF',data.active_players],['COACH',data.coaches],['KELAB',data.clubs],['PENILAIAN DNA',data.player_assessments]];
+ const {data,error}=await SB.rpc('mcp_overview');if(error){notify(error.message);return;}
+ const items=[['PEMAIN',data.players],['PEMAIN AKTIF',data.active_players],['COACH',data.coaches],['COACH AKTIF',data.active_coaches],['PENILAIAN DNA',data.player_assessments]];
  $('stats').innerHTML=items.map(x=>'<div class="stat"><label>'+x[0]+'</label><strong>'+Number(x[1]||0).toLocaleString('ms-MY')+'</strong></div>').join('');
 }
 document.querySelectorAll('[data-entity]').forEach(b=>b.addEventListener('click',()=>selectEntity(b.dataset.entity)));
-async function selectEntity(e){entity=e;document.querySelectorAll('[data-entity]').forEach(b=>b.classList.toggle('active',b.dataset.entity===e));
+async function selectEntity(e){if((e==='audits'||e==='users')&&currentProfile?.role!=='developer')return;entity=e;document.querySelectorAll('[data-entity]').forEach(b=>b.classList.toggle('active',b.dataset.entity===e));
  $('overviewView').classList.toggle('hidden',e!=='overview');$('dataView').classList.toggle('hidden',e==='overview');
  if(e==='overview'){await loadOverview();return;}
  $('entityTitle').textContent=labels[e];$('entitySub').textContent=e==='assessments'?'Sejarah penilaian rasmi — paparan sahaja, rekod asal tidak boleh diubah dari sini.':e==='audits'?'Sejarah tindakan Developer. Paparan ini hanya boleh diakses oleh akaun Developer aktif.':'Data live. Pilih rekod untuk mengemaskini medan yang dibenarkan.';
- $('addBtn').classList.toggle('hidden',!['players','clubs'].includes(e));$('addBtn').textContent=e==='players'?'＋ Daftar Pemain':'＋ Daftar Kelab';
+ $('addBtn').classList.toggle('hidden',!(e==='players'||(e==='clubs'&&currentProfile?.role==='developer')));$('addBtn').textContent=e==='players'?'＋ Daftar Pemain':'＋ Daftar Kelab';
  await loadRows();
 }
 async function loadRows(){
  $('tableHost').innerHTML='<div class="loading">Memuatkan rekod…</div>';
  if(entity==='audits'){await loadAuditRows();return;}
- const {data,error}=await SB.rpc('developer_editor_search',{p_entity:entity,p_search:$('searchBox').value||'',p_limit:100});
+ if(entity==='users'){await loadUsers();return;}
+ const rpc=entity==='clubs'?'developer_editor_search':'mcp_search_records';
+ const args=entity==='clubs'?{p_entity:entity,p_search:$('searchBox').value||'',p_limit:100}:{p_entity:entity,p_search:$('searchBox').value||'',p_limit:100};
+ const {data,error}=await SB.rpc(rpc,args);
  if(error){$('tableHost').innerHTML='<div class="empty">Gagal memuatkan data: '+esc(error.message)+'</div>';return;}
  records=Array.isArray(data)?data:[];
  if(!records.length){$('tableHost').innerHTML='<div class="empty">Tiada rekod ditemui.</div>';return;}
- const keys={players:['full_name','position','date_of_birth','nationality','verification_status','is_active'],coaches:['full_name','coaching_role','license_status','verification_status','accreditation_level','is_active'],clubs:['name','club_code','city','state','verification_status','visibility'],assessments:['player_name','coach_name','accreditation_level','assessed_at','notes']};
- const heads={full_name:'NAMA',name:'KELAB',position:'POSISI',date_of_birth:'TARIKH LAHIR',nationality:'NEGARA',verification_status:'PENGESAHAN',is_active:'AKTIF',coaching_role:'PERANAN',license_status:'LESEN',accreditation_level:'LEVEL',club_code:'KOD',city:'BANDAR',state:'NEGERI',visibility:'VISIBILITI',player_name:'PEMAIN',coach_name:'COACH',assessed_at:'TARIKH',notes:'CATATAN'};
+ const keys={players:['full_name','position','date_of_birth','nationality','verification_status','is_active'],coaches:['full_name','coaching_role','license_status','verification_status','assessor_status','is_active'],clubs:['name','club_code','city','state','verification_status','visibility'],assessments:['player_name','coach_name','accreditation_level','assessed_at','notes']};
+ const heads={full_name:'NAMA',name:'KELAB',position:'POSISI',date_of_birth:'TARIKH LAHIR',nationality:'NEGARA',verification_status:'PENGESAHAN',is_active:'AKTIF',coaching_role:'PERANAN',license_status:'LESEN',assessor_status:'STATUS PENILAI',accreditation_level:'LEVEL',club_code:'KOD',city:'BANDAR',state:'NEGERI',visibility:'VISIBILITI',player_name:'PEMAIN',coach_name:'COACH',assessed_at:'TARIKH',notes:'CATATAN'};
  const fields=keys[entity];$('tableHost').innerHTML='<table><thead><tr>'+fields.map(k=>'<th>'+heads[k]+'</th>').join('')+(entity!=='assessments'?'<th>TINDAKAN</th>':'')+'</tr></thead><tbody>'+records.map((r,i)=>'<tr>'+fields.map(k=>'<td>'+(k==='is_active'?'<span class="tag">'+(r[k]?'AKTIF':'TIDAK AKTIF')+'</span>':esc(r[k]??'—'))+'</td>').join('')+(entity!=='assessments'?'<td><button class="btn" data-edit="'+i+'">Buka / Edit</button></td>':'')+'</tr>').join('')+'</tbody></table>';
  document.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEditor(records[Number(b.dataset.edit)],false)));
 }
@@ -91,13 +130,17 @@ async function loadAuditRows(){
 function fieldHtml(f,val){const [key,label,type,extra]=f;let input='';
  if(type==='checkbox')input='<input type="checkbox" name="'+key+'" '+(val?'checked':'')+' style="width:18px;height:18px">';
  else if(type==='select')input='<select name="'+key+'">'+extra.map(o=>'<option value="'+o[0]+'" '+(val===o[0]?'selected':'')+'>'+o[1]+'</option>').join('')+'</select>';
- else if(type==='textarea')input='<textarea name="'+key+'">'+esc(val??'')+'</textarea>';
- else input='<input type="'+type+'" name="'+key+'" value="'+esc(val??'')+'" '+(extra===true?'required':'')+'>';
+ else if(type==='textarea')input='<textarea name="'+key+'">'+esc(key==='coaching_specialties'&&Array.isArray(val)?JSON.stringify(val):val??'')+'</textarea>';
+ else input='<input type="'+type+'" name="'+key+'" value="'+esc(val??'')+'">';
  return '<div class="field '+(type==='textarea'?'wide':'')+'"><label>'+label.toUpperCase()+'</label>'+input+'</div>';}
-function openEditor(row,isNew){editing=row;creating=isNew;$('modalTitle').textContent=isNew?'Tambah '+(entity==='players'?'Pemain':'Kelab'):'Edit '+(row.full_name||row.name||'Rekod');$('modalSub').textContent=isNew?'Rekod baharu akan diwujudkan dalam status belum aktif / belum disahkan.':'ID: '+row.id+' · Perubahan akan direkod dalam audit trail.';
- let fields=cols[entity].filter(f=>isNew?['players','clubs'].includes(entity):true);
- if(isNew&&entity==='players')fields=[cols.players[0],cols.players[2],cols.players[3],cols.players[4]];
- if(isNew&&entity==='clubs')fields=[cols.clubs[0],cols.clubs[2],cols.clubs[3],cols.clubs[4],cols.clubs[5],cols.clubs[1]];
+function openEditor(row,isNew){
+ editing=row;creating=isNew;$('modalTitle').textContent=isNew?'Daftar Pemain':'Edit '+(row.full_name||row.name||'Rekod');
+ $('modalSub').textContent=isNew?'Rekod baharu akan diwujudkan sebagai belum aktif dan belum disahkan.':'ID: '+row.id+' · Perubahan direkod dalam audit trail.';
+ let fields=cols[entity].filter(f=>{
+  if(isNew)return entity==='players'&&['full_name','date_of_birth','position','nationality'].includes(f[0]);
+  if(currentProfile?.role==='admin')return entity==='players'?['preferred_name','position','nationality','height_cm','weight_kg','preferred_foot','jersey_number','bio','is_free_agent'].includes(f[0]):['preferred_name','bio','coaching_role','preferred_formation','preferred_style','coaching_specialties'].includes(f[0]);
+  return entity==='players'?['full_name','preferred_name','date_of_birth','position','nationality','height_cm','weight_kg','preferred_foot','jersey_number','bio','is_active','is_free_agent'].includes(f[0]):entity==='coaches'?['full_name','preferred_name','bio','coaching_role','preferred_formation','preferred_style','coaching_specialties','license_type','license_number','license_issuing_body','license_issue_date','license_expiry_date','license_status','is_active'].includes(f[0]):cols.clubs;
+ });
  $('formFields').innerHTML=fields.map(f=>fieldHtml(f,row?.[f[0]]??(f[0]==='country'?'Malaysia':''))).join('');
  $('saveBtn').textContent=isNew?'Cipta Rekod':'Simpan Perubahan';$('modal').classList.add('show');
 }
@@ -106,12 +149,32 @@ $('addBtn').addEventListener('click',()=>openEditor({},true));$('closeModal').ad
 $('searchBtn').addEventListener('click',loadRows);$('refreshBtn').addEventListener('click',loadRows);$('searchBox').addEventListener('keydown',e=>{if(e.key==='Enter')loadRows();});
 $('recordForm').addEventListener('submit',async e=>{
  e.preventDefault();const form=new FormData(e.currentTarget),changes={};
- for(const f of cols[entity]){const el=e.currentTarget.elements[f[0]];if(!el)continue;changes[f[0]]=f[2]==='checkbox'?el.checked:(form.get(f[0])||null);}
+ for(const f of cols[entity]){const el=e.currentTarget.elements[f[0]];if(!el)continue;let v=f[2]==='checkbox'?el.checked:(form.get(f[0])||null);
+  if(f[0]==='coaching_specialties'&&v){try{v=JSON.parse(v);if(!Array.isArray(v))throw new Error();}catch(err){notify('Kepakaran perlu format JSON array, contoh: ["U12","Teknikal"]');return;}}
+  changes[f[0]]=v;
+ }
  $('saveBtn').disabled=true;
- const result=creating?await SB.rpc('developer_editor_create',{p_entity:entity,p_payload:changes}):await SB.rpc('developer_editor_update',{p_entity:entity,p_id:editing.id,p_changes:changes});
+ let result;
+ if(creating)result=await SB.rpc('mcp_create_player',{p_payload:changes});
+ else if(entity==='clubs')result=await SB.rpc('developer_editor_update',{p_entity:entity,p_id:editing.id,p_changes:changes});
+ else result=await SB.rpc('mcp_update_record',{p_entity:entity,p_id:editing.id,p_changes:changes});
  $('saveBtn').disabled=false;
  if(result.error){notify('Tidak berjaya: '+result.error.message);return;}
- closeModal();notify(creating?'Rekod baharu berjaya dicipta. Status awal belum aktif / belum disahkan.':'Perubahan berjaya disimpan dan direkod dalam audit trail.',true);await loadRows();await loadOverview();
+ closeModal();notify(creating?'Rekod pemain diwujudkan dalam status belum aktif dan belum disahkan.':'Perubahan berjaya disimpan dan direkod dalam audit trail.',true);await loadRows();await loadOverview();
 });
+async function loadUsers(){
+ const {data,error}=await SB.rpc('mcp_list_users',{p_search:$('searchBox').value||'',p_limit:100});
+ if(error){$('tableHost').innerHTML='<div class="empty">'+esc(error.message)+'</div>';return;}
+ const rows=Array.isArray(data)?data:[];
+ $('tableHost').innerHTML='<table><thead><tr><th>NAMA</th><th>EMAIL</th><th>PERANAN</th><th>STATUS</th><th>AKSI</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.full_name)+'</td><td>'+esc(r.email)+'</td><td>'+esc(r.role)+'</td><td>'+esc(r.is_active?'Aktif':'Tidak aktif')+'</td><td>'+(r.role==='developer'?'Protected':r.role==='admin'?'<button class="btn" data-revoke="'+r.id+'">Tarik Admin</button>':'<button class="btn primary" data-grant="'+r.id+'">Jadikan Admin</button>')+'</td></tr>').join('')+'</tbody></table>';
+ document.querySelectorAll('[data-grant]').forEach(b=>b.addEventListener('click',()=>changeAdmin(b.dataset.grant,true)));
+ document.querySelectorAll('[data-revoke]').forEach(b=>b.addEventListener('click',()=>changeAdmin(b.dataset.revoke,false)));
+}
+async function changeAdmin(id,enabled){
+ if(!confirm('Sahkan '+(enabled?'pemberian':'penarikan')+' akses Admin?'))return;
+ const {data,error}=await SB.rpc('mcp_set_admin_access',{p_profile_id:id,p_enabled:enabled});
+ if(error){notify('Gagal: '+error.message);return;}
+ notify('Akses pengguna dikemas kini: '+(data?.role||'selesai'),true);await loadUsers();
+}
 boot().catch(e=>{$('loading').textContent='Ralat sistem: '+e.message;});
 </script></body></html>
