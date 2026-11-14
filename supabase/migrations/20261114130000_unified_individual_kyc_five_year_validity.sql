@@ -231,8 +231,7 @@ begin
   v_name:=nullif(btrim(coalesce(p_verified_legal_name,v_k.extracted_legal_name,v_k.legal_name_claimed)),'');
   if v_name is null then raise exception 'Nama sah perlu disahkan' using errcode='22023'; end if;
   v_dob:=coalesce(p_verified_birth_date,v_k.extracted_birth_date);
-  v_state:=coalesce(nullif(btrim(p_verified_birth_state_code),''),nullif(btrim(v_k.birth_state_code),''));
-  if v_state is null or v_state !~ '^[0-9]{2}$' then raise exception 'Kod negeri kelahiran mesti dua digit' using errcode='22023'; end if;
+  v_state:=coalesce(nullif(btrim(p_verified_birth_state_code),''),nullif(btrim(v_k.birth_state_code),''),'00');
 
   perform set_config('playpro.kyc_approval','true',true);
   update public.profiles set full_name=v_name,date_of_birth=coalesce(v_dob,date_of_birth),updated_at=now()
