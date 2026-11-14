@@ -98,3 +98,15 @@ Blueprint v1.3 BEKU  →  MASTER CONTEXT  →  [GATE: WO-08 eksport produksi + 0
 ## 7. UI shell yang sudah dikunci (jangan cadang lain)
 
 Header: `LIVE · CARI · MYTEAM · KEDAI` · Footer semasa dalam `public/index.html`: `HUB · CARI · MYHUB · MYTEAM · INBOX · PASSPORT` (6 item; kekalkan susunan produksi) · Tiada header kedua · Match Observer **bukan** navigasi global. Perubahan shell = work order, bukan "sambil-sambil".
+
+
+## 8. Prinsip produk terkini — KYC dan onboarding (Owner, 2026-11-14)
+
+Rujuk `docs/PLAYPRO_PRINCIPLES.md` sebagai rujukan induk.
+
+- **One Person, One KYC:** satu rekod pengesahan identiti individu untuk satu akaun; dikongsi semua peranan.
+- Tempoh sah KYC ialah 5 tahun dari tarikh disahkan. Penambahan peranan tidak mencetuskan KYC baharu.
+- KYC individu tidak sama dengan lesen/akreditasi profesional, pengiktirafan entiti kelab, membership atau eligibility pertandingan.
+- OCR alat bantuan sahaja; bukan kelulusan automatik dan bukan alasan untuk mengulang proses.
+- Semua modul onboarding mesti menggunakan status KYC pusat dan corak UI/UX yang seragam.
+- Keputusan ini datang terus daripada arahan Owner bertarikh 2026-11-14 dan mengatasi sebarang kod/dokumen lama yang memisahkan KYC mengikut role.
