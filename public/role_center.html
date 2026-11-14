@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PlayPro — Pengurusan Peranan</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{--g:#00d4aa;--gold:#f0c040;--bg:#07100c;--card:#101a15;--line:#26372f;--txt:#edf6f1;--muted:#8da197}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#123022,#050a07 70%);min-height:100vh;color:var(--txt);font:15px system-ui,sans-serif;padding:18px}
+.wrap{max-width:850px;margin:auto}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.logo{font-size:26px;font-weight:950;color:var(--g)}.muted{color:var(--muted);font-size:13px;line-height:1.5}
+.card{background:rgba(16,26,21,.97);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:14px}.title{font-size:23px;font-weight:950}.roles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.role{border:1px solid var(--line);border-radius:14px;padding:16px;background:#ffffff04}.role h3{margin:0 0 6px;font-size:17px}.role p{margin:0 0 14px;color:var(--muted);font-size:12px;min-height:36px;line-height:1.45}
+.status{font-size:11px;font-weight:900;letter-spacing:.04em;color:var(--gold);margin-bottom:12px}.btn{width:100%;padding:11px;border:0;border-radius:10px;background:var(--g);color:#00110b;font-weight:950;cursor:pointer}.btn:disabled{opacity:.5}.note{border:1px solid #6b5418;background:#211b0b;padding:13px;border-radius:12px;color:#eadcae;font-size:12px;line-height:1.55;margin-top:16px}
+@media(max-width:580px){.roles{grid-template-columns:1fr}.card{padding:16px}}
+</style></head><body><main class="wrap">
+<header class="top"><div><div class="logo">PlayPro</div><div class="muted">Satu akaun. Banyak fungsi.</div></div><a href="/" style="color:var(--g);font-weight:800;text-decoration:none">← Laman Utama</a></header>
+<section class="card"><div class="title">Pengurusan Peranan</div><p class="muted" id="welcome">Memuatkan akaun…</p><p class="muted">Pilih fungsi yang anda mahu tambah. Anda boleh memiliki lebih daripada satu peranan dan menambah peranan lain pada bila-bila masa.</p>
+<div class="roles" id="roles"></div>
+<div class="note"><b>Perbezaan penting:</b> Profil boleh diwujudkan dan pengalaman boleh direkodkan tanpa pengiktirafan profesional. KYC, lesen, sijil, kursus dan kelulusan PlayPro menentukan sama ada fungsi profesional boleh digunakan. Status satu peranan tidak secara automatik mengesahkan peranan lain.</div></section>
+<div class="muted" id="message"></div></main>
+<script>
+'use strict';
+const SB=supabase.createClient('https://muirhenvjruvfxenoaxm.supabase.co','sb_publishable_exWFL10h8zcpyFyEdq7jAw_XoBl2RwZ');
+const $=id=>document.getElementById(id);
+const roles=[
+ {code:'player',name:'Pemain',icon:'⚽',desc:'Rekod pemain, perkembangan, sejarah kelab dan pertandingan.',url:'/player_onboarding_v2.html'},
+ {code:'coach',name:'Jurulatih',icon:'🧑‍🏫',desc:'Profil jurulatih, pengalaman, sijil dan pentauliahan.',url:'/coach_profile_v2.html'},
+ {code:'club_owner',name:'Pemilik Kelab / Manager',icon:'🛡️',desc:'Bina kelab, urus pasukan, skuad dan ahli.',url:'/club.html'},
+ {code:'organizer',name:'Penganjur',icon:'🏆',desc:'Bina profil penganjur dan rekod kejohanan.',url:'/organizer_profile.html'},
+ {code:'referee',name:'Pengadil',icon:'🟨',desc:'Bina profil pengadil dan rekod pengalaman mengadili.',url:'/referee_onboarding.html'}
+];
+let session=null,rows=[];
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function boot(){
+ const s=await SB.auth.getSession();session=s.data.session;
+ if(!session){$('welcome').textContent='Sila log masuk melalui PlayPro dahulu.';$('roles').innerHTML='';return}
+ const p=await SB.from('profiles').select('full_name,email').eq('id',session.user.id).maybeSingle();
+ $('welcome').textContent='Akaun: '+(p.data?.full_name||session.user.email||'Pengguna PlayPro')+' · Pendaftaran akaun percuma';
+ const r=await SB.rpc('get_my_role_profiles');if(r.error)throw r.error;rows=r.data||[];
+ render();
+}
+function render(){
+ $('roles').innerHTML=roles.map(x=>{
+   const row=rows.find(r=>r.role_code===x.code&&r.is_active);
+   const active=!!row;
+   const status=!active?'BELUM DITAMBAH':(!row.subject_id?'PERANAN DITAMBAH · PROFIL PERLU DILENGKAPKAN':'PROFIL WUJUD · PENGIKTIRAFAN BERASINGAN');
+   return '<article class="role"><h3>'+x.icon+' '+x.name+'</h3><p>'+x.desc+'</p><div class="status">'+status+'</div><button class="btn" onclick="openRole(\''+x.code+'\',\''+x.url+'\')">'+(active?'Buka / Lengkapkan':'Tambah Peranan')+'</button></article>';
+ }).join('');
+}
+async function openRole(code,url){
+ const b=event?.currentTarget;if(b){b.disabled=true;b.textContent='Menyimpan…'}
+ const r=await SB.rpc('playpro_add_role',{p_role_code:code});
+ if(r.error){$('message').textContent='Peranan tidak dapat ditambah: '+r.error.message;if(b){b.disabled=false;b.textContent='Cuba Lagi'}return}
+ location.href=url;
+}
+boot().catch(e=>{$('welcome').textContent='Gagal memuatkan akaun.';$('message').textContent=e.message||String(e)});
+</script></body></html>
