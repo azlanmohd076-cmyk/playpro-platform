@@ -116,3 +116,14 @@ Production migration remains unauthorized.
 ⚠️ Nota CTO: dokumen yang mengandungi 7 langkah ini **belum masuk `main`** — ia tersangkut di branch tanpa PR (`BACKLOG.md` WO-15). AI yang hanya membaca `main` tidak akan menemuinya.
 
 P1 wajib yang direkod dalam dokumen yang sama (P1-4…P1-9), sebagai peringatan supaya tidak diulang: `unique(profile_id, capability)` **salah** untuk sejarah revoke→regrant (perlu active-row uniqueness / status) · `match_events.sequence` **dibekalkan klien** (race-prone; agihan mesti berlaku di pelayan) · lebih dari satu selang playing-time aktif boleh wujud untuk pemain yang sama · `MATCH_START`/`MATCH_END` tiada unik · `competition_player_registrations` perlu laluan autoriti backend + semakan kelayakan · `verification_cases` (KYC) **mesti kekal di luar** public view pemain/kelab.
+
+
+## 8. KYC individu pusat (DEC-043 — arahan Owner 2026-11-14)
+
+- Sumber kebenaran KYC ialah satu rekod identiti individu per akaun, bukan rekod berasingan per role.
+- Semua role menggunakan pengesahan identiti pusat yang sama; status sah selama lima tahun dari tarikh pengesahan.
+- Role-specific verification hanya untuk lesen, akreditasi, kelayakan atau kuasa profesional — bukan untuk mengesahkan semula identiti.
+- Pengiktirafan kelab ialah semakan entiti organisasi dan kekal berasingan daripada KYC Club Owner.
+- KYC tidak menjadi syarat untuk aktiviti yang tidak memerlukannya. Apabila diperlukan, sistem menyemak status pusat; ia tidak meminta dokumen kedua.
+- Dokumen identiti dan metadata KYC kekal private. Tempoh sah lima tahun ialah tempoh sah pengesahan, bukan kebenaran akses tanpa had atau pengecualian daripada undang-undang perlindungan data.
+- Semua modul mesti menggunakan satu aliran KYC pusat dan komponen onboarding yang seragam.
