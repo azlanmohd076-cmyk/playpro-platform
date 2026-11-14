@@ -274,7 +274,7 @@ html.dark .hb-item.on { background:rgba(0,119,182,.1) }
 #bnav {
   position:fixed; bottom:0; left:0; right:0; height:var(--nh); z-index:300;
   background:var(--bg2); border-top:1px solid var(--bdr);
-  display:grid; grid-template-columns:repeat(6,1fr);
+  display:grid; grid-template-columns:repeat(7,1fr);
 }
 .bn {
   display:flex; flex-direction:column; align-items:center;
@@ -2519,6 +2519,7 @@ html.dark .portal-card:hover, html.dark .portal-card.on { background:rgba(0,119,
     <div class="bn-lb">Inbox</div>
     <div id="inbox-badge" style="display:none;position:absolute;top:4px;right:12px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:1.5px solid var(--bg2)"></div>
   </div>
+  <div class="bn" id="bn-roles" onclick="window.location.assign('/role_center.html')"><div class="bn-ic">🧩</div><div class="bn-lb">Peranan</div></div>
   <div class="bn" id="bn-profile" onclick="go('profile')"><div class="bn-ic">🪪</div><div class="bn-lb">Passport</div></div>
 </div>
 
