@@ -123,12 +123,16 @@ function loadService(mock, opts) {
     check("'player' preserved (was fatal 22P02 pre-fix)", svc.normalizeRole('player') === 'player');
     check("'referee' preserved (was fatal 22P02 pre-fix)", svc.normalizeRole('referee') === 'referee');
     check("'coach' preserved", svc.normalizeRole('coach') === 'coach');
-    check("'club_admin' preserved", svc.normalizeRole('club_admin') === 'club_admin');
-    check("'league_admin' preserved", svc.normalizeRole('league_admin') === 'league_admin');
+    check("'club_owner' preserved", svc.normalizeRole('club_owner') === 'club_owner');
+    check("'organizer' preserved", svc.normalizeRole('organizer') === 'organizer');
+    check("'club_admin' legacy alias -> club_owner", svc.normalizeRole('club_admin') === 'club_owner');
+    check("'league_admin' legacy alias -> organizer", svc.normalizeRole('league_admin') === 'organizer');
 
     check("Malay 'pemain' -> player", svc.normalizeRole('pemain') === 'player');
     check("Malay 'jurulatih' -> coach", svc.normalizeRole('jurulatih') === 'coach');
-    check("'club_manager' -> club_admin", svc.normalizeRole('club_manager') === 'club_admin');
+    check("'club_manager' -> club_owner", svc.normalizeRole('club_manager') === 'club_owner');
+    check("'pengurus_kelab' -> club_owner", svc.normalizeRole('pengurus_kelab') === 'club_owner');
+    check("'penganjur_liga' -> organizer", svc.normalizeRole('penganjur_liga') === 'organizer');
     check("' Coach ' (untrimmed/case) -> coach", svc.normalizeRole('  Coach ') === 'coach');
 
     // Privilege escalation must be impossible from the client.
@@ -272,13 +276,13 @@ function loadService(mock, opts) {
   /* ============================================================ */
   section('9. signIn self-heals legacy orphaned profiles');
   {
-    const mock = makeMock({ roleFromDb: 'club_admin' });
+    const mock = makeMock({ roleFromDb: 'club_owner' });
     const svc = loadService(mock);
     const res = await svc.signIn({ email: 'old@user.com', password: 'password123' });
     check('signIn ok', res.ok === true);
     check('ensureProfile called on every login (self-heal)',
       mock.calls.rpc.some(c => c.fn === 'ensure_profile_after_signup'));
-    check('role returned from DB', res.role === 'club_admin');
+    check('role returned from DB', res.role === 'club_owner');
   }
 
   /* ============================================================ */
