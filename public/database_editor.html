@@ -32,11 +32,12 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.shell{max-width
 <button class="active" data-entity="overview">◈ Gambaran Keseluruhan</button>
 <button data-entity="players">⚽ Database Pemain</button>
 <button data-entity="coaches">♟ Database Coach</button>
-<button data-entity="clubs">▦ Database Kelab</button>
+<button data-entity="clubs" data-dev-only>▦ Database Kelab</button>
 <button data-entity="assessments">◎ Rekod Penilaian</button>
 <button data-entity="audits" data-dev-only class="hidden">◷ Audit Centre</button>
 <button data-entity="users" data-dev-only class="hidden">♙ User & Access Control</button>
 <div class="group" data-dev-only>DEVELOPER TOOLS</div>
+<a class="auditlink hidden" data-dev-only href="player_kyc_admin.html">Player KYC Review ↗</a>
 <a class="auditlink hidden" data-dev-only href="coach_accreditation_admin.html">KYC & Coach Accreditation ↗</a>
 <a class="auditlink hidden" data-dev-only href="technical_assessor.html">Assessment Workspace ↗</a>
 <div class="hint" id="roleHint">Akses terhad mengikut peranan akaun.</div>
@@ -100,7 +101,7 @@ async function selectEntity(e){if((e==='audits'||e==='users')&&currentProfile?.r
  $('overviewView').classList.toggle('hidden',e!=='overview');$('dataView').classList.toggle('hidden',e==='overview');
  if(e==='overview'){await loadOverview();return;}
  $('entityTitle').textContent=labels[e];$('entitySub').textContent=e==='assessments'?'Sejarah penilaian rasmi — paparan sahaja, rekod asal tidak boleh diubah dari sini.':e==='audits'?'Sejarah tindakan Developer. Paparan ini hanya boleh diakses oleh akaun Developer aktif.':'Data live. Pilih rekod untuk mengemaskini medan yang dibenarkan.';
- $('addBtn').classList.toggle('hidden',!(e==='players'||(e==='clubs'&&currentProfile?.role==='developer')));$('addBtn').textContent=e==='players'?'＋ Daftar Pemain':'＋ Daftar Kelab';
+ $('addBtn').classList.toggle('hidden',e!=='players');$('addBtn').textContent='＋ Daftar Pemain';
  await loadRows();
 }
 async function loadRows(){
