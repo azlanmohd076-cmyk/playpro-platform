@@ -332,3 +332,171 @@ grant execute on function public.attach_identity_kyc_documents(uuid,jsonb) to au
 grant execute on function public.get_identity_kyc_admin_list() to authenticated,service_role;
 grant execute on function public.approve_identity_kyc(uuid,text,text,date,text) to authenticated,service_role;
 grant execute on function public.reject_identity_kyc(uuid,text) to authenticated,service_role;
+
+
+-- Compatibility adapters: legacy role endpoints now read/write the same person-level KYC.
+create or replace function public.request_role_kyc(
+ p_subject_type text,p_id_type text,p_legal_name text,p_birth_state_code text default null,
+ p_masked_identifier text default null,p_document_storage_paths jsonb default '[]'::jsonb,
+ p_provider_reference text default null
+) returns uuid
+language plpgsql security definer set search_path=''
+as $$
+declare v jsonb; v_id uuid;
+begin
+ v:=public.request_identity_kyc(p_id_type,p_legal_name,p_birth_state_code);
+ v_id:=(v->>'kyc_id')::uuid;
+ if jsonb_typeof(coalesce(p_document_storage_paths,'[]'::jsonb))='array'
+    and jsonb_array_length(coalesce(p_document_storage_paths,'[]'::jsonb)) between 1 and 2 then
+   update public.identity_verifications set document_storage_paths=p_document_storage_paths,
+     updated_at=now() where id=v_id and profile_id=auth.uid() and status='pending';
+ end if;
+ return v_id;
+end;
+$$;
+
+create or replace function public.request_coach_kyc(
+ p_id_type text,p_legal_name text,p_birth_state_code text default null,
+ p_masked_identifier text default null,p_provider_reference text default null
+) returns jsonb
+language plpgsql security definer set search_path=''
+as $$
+declare v jsonb;
+begin
+ v:=public.request_identity_kyc(p_id_type,p_legal_name,p_birth_state_code);
+ return v||jsonb_build_object('success',true);
+end;
+$$;
+
+create or replace function public.request_player_kyc_document(
+ p_id_type text,p_legal_name text,p_birth_state_code text,p_document_storage_paths jsonb
+) returns jsonb
+language plpgsql security definer set search_path=''
+as $$
+declare v jsonb; v_id uuid;
+begin
+ v:=public.request_identity_kyc(p_id_type,p_legal_name,p_birth_state_code);
+ v_id:=(v->>'kyc_id')::uuid;
+ if v->>'status'='verified' then return v; end if;
+ if p_document_storage_paths is not null and jsonb_typeof(p_document_storage_paths)='array'
+    and jsonb_array_length(p_document_storage_paths) between 1 and 2 then
+   update public.identity_verifications set document_storage_paths=p_document_storage_paths,
+     updated_at=now() where id=v_id and profile_id=auth.uid() and status='pending';
+ end if;
+ return v;
+end;
+$$;
+
+create or replace function public.approve_player_kyc(
+ p_kyc_id uuid,p_reviewer_note text default null,p_verified_legal_name text default null,
+ p_verified_birth_date date default null,p_verified_birth_state_code text default null
+) returns jsonb
+language plpgsql security definer set search_path=''
+as $$
+declare v jsonb; v_player public.players%rowtype; v_name text; v_state text; v_no bigint; v_passport text;
+begin
+ v:=public.approve_identity_kyc(p_kyc_id,p_reviewer_note,p_verified_legal_name,p_verified_birth_date,p_verified_birth_state_code);
+ select * into v_player from public.players where profile_id=(v->>'profile_id')::uuid and is_active=true limit 1;
+ if found then
+   if v_player.football_passport_no is null then
+     v_name:=coalesce(p_verified_legal_name,v_player.full_name);
+     v_state:=coalesce(nullif(btrim(p_verified_birth_state_code),''),'00');
+     v_no:=nextval('public.playpro_passport_user_no_seq');
+     v_passport:=upper(rpad(left(regexp_replace(split_part(trim(v_name),' ',1),'[^A-Za-z]','','g'),4),4,'X'))||'-'||v_state||'-'||lpad(v_no::text,4,'0');
+     update public.players set football_passport_no=v_passport where id=v_player.id returning * into v_player;
+   end if;
+   return v||jsonb_build_object('player_id',v_player.id,'football_passport_no',v_player.football_passport_no);
+ end if;
+ return v;
+end;
+$$;
+
+create or replace function public.approve_coach_kyc(
+ p_kyc_id uuid,p_reviewer_note text default null,p_verified_legal_name text default null,
+ p_verified_birth_date date default null,p_verified_birth_state_code text default null
+) returns jsonb
+language plpgsql security definer set search_path=''
+as $$
+declare v jsonb; v_coach public.coaches%rowtype;
+begin
+ v:=public.approve_identity_kyc(p_kyc_id,p_reviewer_note,p_verified_legal_name,p_verified_birth_date,p_verified_birth_state_code);
+ select * into v_coach from public.coaches where profile_id=(v->>'profile_id')::uuid and is_active=true limit 1;
+ if found then return v||jsonb_build_object('coach_id',v_coach.id,'coach_code',v_coach.coach_code); end if;
+ return v;
+end;
+$$;
+
+create or replace function public.approve_role_kyc(
+ p_kyc_id uuid,p_reviewer_note text default null,p_verified_legal_name text default null,
+ p_verified_birth_date date default null,p_verified_birth_state_code text default null
+) returns jsonb
+language plpgsql security definer set search_path=''
+as $$
+begin
+ return public.approve_identity_kyc(p_kyc_id,p_reviewer_note,p_verified_legal_name,p_verified_birth_date,p_verified_birth_state_code);
+end;
+$$;
+
+create or replace function public.reject_player_kyc(p_kyc_id uuid,p_reviewer_note text)
+returns jsonb language sql security definer set search_path=''
+as $$ select public.reject_identity_kyc(p_kyc_id,p_reviewer_note); $$;
+
+create or replace function public.reject_coach_kyc(p_kyc_id uuid,p_reviewer_note text default null)
+returns jsonb language sql security definer set search_path=''
+as $$ select public.reject_identity_kyc(p_kyc_id,p_reviewer_note); $$;
+
+create or replace function public.reject_role_kyc(p_kyc_id uuid,p_reviewer_note text)
+returns jsonb language sql security definer set search_path=''
+as $$ select public.reject_identity_kyc(p_kyc_id,p_reviewer_note); $$;
+
+create or replace function public.get_my_player_kyc_status()
+returns jsonb language plpgsql stable security definer set search_path=''
+as $$
+declare v_uid uuid:=(select auth.uid()); v_k jsonb; v_p public.players%rowtype;
+begin
+ v_k:=public.get_my_identity_kyc_status();
+ select * into v_p from public.players where profile_id=v_uid and is_active=true limit 1;
+ if not found then return jsonb_build_object('ok',false,'reason','PLAYER_NOT_FOUND'); end if;
+ return v_k||jsonb_build_object('verification_status',v_p.verification_status,
+   'football_passport_no',v_p.football_passport_no);
+end;
+$$;
+
+create or replace function public.get_player_kyc_admin_list()
+returns jsonb language sql security definer set search_path=''
+as $$ select public.get_identity_kyc_admin_list(); $$;
+
+create or replace function public.get_role_kyc_admin_list()
+returns jsonb language sql security definer set search_path=''
+as $$ select public.get_identity_kyc_admin_list(); $$;
+
+create or replace function public.get_coach_kyc_admin_list()
+returns jsonb language sql security definer set search_path=''
+as $$ select public.get_identity_kyc_admin_list(); $$;
+
+revoke all on function public.request_role_kyc(text,text,text,text,text,jsonb,text) from public,anon;
+revoke all on function public.request_coach_kyc(text,text,text,text,text) from public,anon;
+revoke all on function public.request_player_kyc_document(text,text,text,jsonb) from public,anon;
+revoke all on function public.approve_player_kyc(uuid,text,text,date,text) from public,anon;
+revoke all on function public.approve_coach_kyc(uuid,text,text,date,text) from public,anon;
+revoke all on function public.approve_role_kyc(uuid,text,text,date,text) from public,anon;
+revoke all on function public.reject_player_kyc(uuid,text) from public,anon;
+revoke all on function public.reject_coach_kyc(uuid,text) from public,anon;
+revoke all on function public.reject_role_kyc(uuid,text) from public,anon;
+revoke all on function public.get_my_player_kyc_status() from public,anon;
+revoke all on function public.get_player_kyc_admin_list() from public,anon;
+revoke all on function public.get_role_kyc_admin_list() from public,anon;
+revoke all on function public.get_coach_kyc_admin_list() from public,anon;
+grant execute on function public.request_role_kyc(text,text,text,text,text,jsonb,text) to authenticated,service_role;
+grant execute on function public.request_coach_kyc(text,text,text,text,text) to authenticated,service_role;
+grant execute on function public.request_player_kyc_document(text,text,text,jsonb) to authenticated,service_role;
+grant execute on function public.approve_player_kyc(uuid,text,text,date,text) to authenticated,service_role;
+grant execute on function public.approve_coach_kyc(uuid,text,text,date,text) to authenticated,service_role;
+grant execute on function public.approve_role_kyc(uuid,text,text,date,text) to authenticated,service_role;
+grant execute on function public.reject_player_kyc(uuid,text) to authenticated,service_role;
+grant execute on function public.reject_coach_kyc(uuid,text) to authenticated,service_role;
+grant execute on function public.reject_role_kyc(uuid,text) to authenticated,service_role;
+grant execute on function public.get_my_player_kyc_status() to authenticated,service_role;
+grant execute on function public.get_player_kyc_admin_list() to authenticated,service_role;
+grant execute on function public.get_role_kyc_admin_list() to authenticated,service_role;
+grant execute on function public.get_coach_kyc_admin_list() to authenticated,service_role;
