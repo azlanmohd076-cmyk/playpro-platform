@@ -1,0 +1,72 @@
+/* PlayPro shared onboarding UI — one visual language across role modules */
+body.pp-onboarding{
+  --pp-green:#00d4aa;--pp-gold:#f0c040;--pp-bg:#07100c;--pp-panel:#101a15;
+  --pp-line:#26372f;--pp-text:#edf6f1;--pp-muted:#91a398;
+  background:radial-gradient(circle at 50% -12%,#123b29,#050a07 68%) !important;
+  color:var(--pp-text) !important;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
+}
+body.pp-onboarding a{color:var(--pp-green)}
+body.pp-onboarding .top,body.pp-onboarding .head,body.pp-onboarding header.top{
+  background:linear-gradient(110deg,#0c2117,#102b1e) !important;color:var(--pp-text) !important;
+  border-color:var(--pp-line) !important;
+}
+body.pp-onboarding .logo,body.pp-onboarding .brand{color:var(--pp-green) !important}
+body.pp-onboarding .card,body.pp-onboarding .panel,body.pp-onboarding .role,
+body.pp-onboarding .hero,body.pp-onboarding .summary,body.pp-onboarding .form,
+body.pp-onboarding .notice,body.pp-onboarding .crumb{
+  background:rgba(16,26,21,.97) !important;color:var(--pp-text) !important;
+  border:1px solid var(--pp-line) !important;border-radius:16px !important;
+  box-shadow:0 14px 38px rgba(0,0,0,.18) !important;
+}
+body.pp-onboarding .muted,body.pp-onboarding .desc,body.pp-onboarding .meta,
+body.pp-onboarding .small,body.pp-onboarding .label{color:var(--pp-muted) !important}
+body.pp-onboarding label,body.pp-onboarding .field label{
+  color:var(--pp-green) !important;font-weight:800 !important;
+}
+body.pp-onboarding input,body.pp-onboarding select,body.pp-onboarding textarea{
+  background:#08130d !important;color:var(--pp-text) !important;
+  border:1px solid #31463a !important;border-radius:10px !important;
+  min-height:42px !important;box-shadow:none !important;
+}
+body.pp-onboarding input:focus,body.pp-onboarding select:focus,body.pp-onboarding textarea:focus{
+  outline:2px solid #00d4aa55 !important;border-color:var(--pp-green) !important;
+}
+body.pp-onboarding button,body.pp-onboarding .btn,body.pp-onboarding .primary,
+body.pp-onboarding .green,body.pp-onboarding .next{
+  background:var(--pp-green) !important;color:#00140d !important;
+  border:1px solid var(--pp-green) !important;border-radius:10px !important;
+  font-weight:900 !important;box-shadow:none !important;
+}
+body.pp-onboarding button:disabled{opacity:.55 !important;cursor:not-allowed !important}
+body.pp-onboarding .back,body.pp-onboarding .secondary,body.pp-onboarding .ghost{
+  background:#17271e !important;color:var(--pp-text) !important;border:1px solid #31463a !important;
+}
+body.pp-onboarding .steps .step,body.pp-onboarding .step{
+  border-radius:999px !important;
+}
+body.pp-onboarding .steps .step.on,body.pp-onboarding .step.on{
+  background:var(--pp-green) !important;color:#00140d !important;
+}
+body.pp-onboarding .badge,body.pp-onboarding .pill,body.pp-onboarding .status{
+  border-radius:999px !important;
+}
+body.pp-onboarding .notice.ok,body.pp-onboarding .success{
+  background:#0d2b20 !important;color:#a7f3d0 !important;border-color:#1d7554 !important;
+}
+body.pp-onboarding .notice.error,body.pp-onboarding .error{
+  background:#321818 !important;color:#fecaca !important;border-color:#8b3535 !important;
+}
+body.pp-onboarding .choice,body.pp-onboarding .role{
+  background:#0c1811 !important;border:1px solid var(--pp-line) !important;
+}
+body.pp-onboarding .choice.sel,body.pp-onboarding .role.active{
+  border-color:var(--pp-green) !important;background:#00d4aa12 !important;
+}
+body.pp-onboarding .actions{gap:10px}
+body.pp-onboarding .actions>*{min-width:0}
+@media(max-width:600px){
+ body.pp-onboarding .wrap{padding-left:12px !important;padding-right:12px !important}
+ body.pp-onboarding .card,body.pp-onboarding .panel{padding:16px !important}
+ body.pp-onboarding .actions{flex-wrap:wrap}
+ body.pp-onboarding .actions>*{flex:1 1 100%}
+}
