@@ -30,11 +30,11 @@ begin
       coalesce(nullif(p.full_name,''), p.email, 'Developer') as actor_name,
       case
         when a.action = 'insert' then coalesce(
-          (select jsonb_agg(k) from jsonb_object_keys(coalesce(a.after_data,'{}'::jsonb)) as k),
+          (select jsonb_agg(k order by k) from jsonb_object_keys(coalesce(a.after_data,'{}'::jsonb)) as k),
           '[]'::jsonb
         )
         else coalesce(
-          (select jsonb_agg(k)
+          (select jsonb_agg(k order by k)
            from jsonb_object_keys(coalesce(a.after_data,'{}'::jsonb)) as k
            where a.before_data -> k is distinct from a.after_data -> k),
           '[]'::jsonb
