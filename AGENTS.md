@@ -97,4 +97,4 @@ Blueprint v1.3 BEKU  →  MASTER CONTEXT  →  [GATE: WO-08 eksport produksi + 0
 
 ## 7. UI shell yang sudah dikunci (jangan cadang lain)
 
-Header: `LIVE · CARI · MYTEAM · KEDAI` · Footer: `CARI · MYTEAM · INBOX · PASSPORT` · Tiada header kedua · Match Observer **bukan** navigasi global. Perubahan shell = work order, bukan "sambil-sambil".
+Header: `LIVE · CARI · MYTEAM · KEDAI` · Footer semasa dalam `public/index.html`: `HUB · CARI · MYHUB · MYTEAM · INBOX · PASSPORT` (6 item; kekalkan susunan produksi) · Tiada header kedua · Match Observer **bukan** navigasi global. Perubahan shell = work order, bukan "sambil-sambil".
