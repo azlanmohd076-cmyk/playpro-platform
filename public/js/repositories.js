@@ -1145,10 +1145,11 @@ const SquadRepo = {
     return { data: _norm(data), error };
   },
   async addCoach(clubId, input) {
-    const { data, error } = await SB.from('coaches').insert({
-      club_id: clubId, full_name: input.fullName.trim(), license: input.license.trim() || null,
-      is_active: true,
-    }).select('id, full_name, license, is_active').single();
+    const { data, error } = await SB.rpc('add_club_roster_coach', {
+      p_club_id: clubId,
+      p_full_name: input.fullName.trim(),
+      p_license: input.license.trim() || null,
+    });
     return { data: _norm(data), error };
   },
   async deactivate(table, id) {

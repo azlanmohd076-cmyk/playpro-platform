@@ -71,3 +71,11 @@ These are fictional UI fixtures only. They are labelled DEMO / NOT VERIFIED and 
 - Final accreditation scheduling/exam administration UI and full practical/video exam workflow.
 
 These remain future work; the current profile, KYC, certification request and Player DNA assessment foundations are separate and must not be conflated.
+
+
+## Privacy and legacy-table hardening
+
+- The `coaches` base table is no longer publicly readable. Sensitive identity fields (phone, date of birth, licence number, verification metadata) are fetched only through the owner-checked `get_my_coach_profile()` RPC.
+- Authenticated club administrators can read only the roster-safe columns for their own club. Adding a roster-only Coach record now goes through `add_club_roster_coach()`; it does not create a PlayPro user or grant KYC/assessor status.
+- Legacy five-field `coach_assessments` is empty and no longer publicly readable or writable by clients.
+- Coach disciplinary evidence and appeal records are no longer public; access is limited to the Coach concerned and Developer.
