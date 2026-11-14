@@ -32,11 +32,25 @@ Deno.serve(async(req)=>{
   const paths=Array.isArray(k.document_storage_paths)?k.document_storage_paths:[];if(!paths.length||paths.length>2||paths.some((p:unknown)=>typeof p!=='string'||!p.startsWith(`${au.user.id}/`)))throw new Error('Dokumen KYC tidak sah')
   const saText=Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON'),project=Deno.env.get('GOOGLE_DOCUMENT_AI_PROJECT_ID'),location=Deno.env.get('GOOGLE_DOCUMENT_AI_LOCATION')||'asia-southeast1',processor=Deno.env.get('GOOGLE_DOCUMENT_AI_PROCESSOR_ID');if(!saText||!project||!processor)throw new Error('Google Document AI belum dikonfigurasi sepenuhnya')
   const {data:coach,error:ce}=await admin.from('coaches').select('id,full_name,date_of_birth').eq('profile_id',au.user.id).eq('is_active',true).maybeSingle();if(ce)throw ce;if(!coach)throw new Error('Coach profile not found')
-  await admin.from('identity_verifications').update({provider:'google_document_ai',provider_status:'processing',match_status:'not_processed',updated_at:new Date().toISOString()}).eq('id',k.id)
+  // Claim the pending request atomically so duplicate clicks cannot run OCR concurrently.
+  const {data:claimed,error:claimError}=await admin.from('identity_verifications')
+    .update({status:'processing',provider:'google_document_ai',provider_status:'processing',match_status:'not_processed',updated_at:new Date().toISOString()})
+    .eq('id',k.id).eq('status','pending').select('id').maybeSingle();
+  if(claimError)throw claimError;
+  if(!claimed){
+    const {data:latest,error:latestError}=await admin.from('identity_verifications').select('status').eq('id',k.id).maybeSingle();
+    if(latestError)throw latestError;
+    return new Response(JSON.stringify({ok:true,status:latest?.status||'unknown',kyc_id:k.id}),{headers:{...corsHeaders,'Content-Type':'application/json'}});
+  }
   const token=await googleToken(JSON.parse(saText));let ocr='',detectedName:string|null=null,detectedDob:string|null=null,type=k.id_type,masked:string|null=null
   for(const path of paths){const {data:file,error:de}=await admin.storage.from('kyc-documents').download(path);if(de||!file)throw new Error('Dokumen KYC tidak boleh dibaca');const lower=path.toLowerCase();const mime=lower.endsWith('.pdf')?'application/pdf':lower.endsWith('.png')?'image/png':'image/jpeg';const r=await processDoc(token,project,location,processor,new Uint8Array(await file.arrayBuffer()),mime);const text=String(r?.document?.text||'');ocr+=`\n${text}`;detectedName=detectedName||extractName(text);detectedDob=detectedDob||extractDob(text);type=detectType(text,type);const id=extractMyKad(text);if(id)masked=`••••••-${id.slice(7,9)}-••••`}
   const score=nameScore(coach.full_name,detectedName||ocr);const dobMatch=detectedDob?detectedDob===coach.date_of_birth:true;const matchStatus=detectedName&&score>=90&&dobMatch?'match':score>=50?'inconclusive':'mismatch'
-  await admin.from('identity_verifications').update({provider:'google_document_ai',provider_status:'processed',extracted_legal_name:detectedName,extracted_birth_date:detectedDob,extracted_id_type:type,extracted_identifier_masked:masked,match_status:matchStatus,match_score:score,processed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',k.id)
+  // Re-check account status after external OCR; disabled accounts cannot complete processing.
+  const {data:stillActive,error:activeError}=await admin.from('profiles').select('is_active').eq('id',au.user.id).maybeSingle();
+  if(activeError)throw activeError;
+  if(!stillActive||stillActive.is_active!==true)throw new Error('ACCOUNT_DISABLED_OR_INACTIVE');
+  const {error:saveError}=await admin.from('identity_verifications').update({status:'pending',provider:'google_document_ai',provider_status:'processed',extracted_legal_name:detectedName,extracted_birth_date:detectedDob,extracted_id_type:type,extracted_identifier_masked:masked,match_status:matchStatus,match_score:score,processed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',k.id).eq('status','processing');
+  if(saveError)throw saveError;
   return new Response(JSON.stringify({ok:true,status:'pending',kyc_id:k.id,provider:'google_document_ai',provider_status:'processed',match_status:matchStatus,match_score:score,extracted_legal_name:detectedName,extracted_birth_date:detectedDob,extracted_id_type:type,extracted_identifier_masked:masked}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
- }catch(e){console.error(e);if(kycId){try{const secret=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||(()=>{const x=Deno.env.get('SUPABASE_SECRET_KEYS');return x?JSON.parse(x).default:null})();if(secret)await createClient(url,secret).from('identity_verifications').update({provider_status:'error',updated_at:new Date().toISOString()}).eq('id',kycId)}catch{}}return new Response(JSON.stringify({ok:false,error:e instanceof Error?e.message:'KYC processing failed'}),{status:400,headers:{...corsHeaders,'Content-Type':'application/json'}})}
+ }catch(e){console.error(e);if(kycId){try{const secret=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||(()=>{const x=Deno.env.get('SUPABASE_SECRET_KEYS');return x?JSON.parse(x).default:null})();if(secret)await createClient(url,secret).from('identity_verifications').update({status:'pending',provider_status:'error',updated_at:new Date().toISOString()}).eq('id',kycId).eq('status','processing')}catch{}}return new Response(JSON.stringify({ok:false,error:e instanceof Error?e.message:'KYC processing failed'}),{status:400,headers:{...corsHeaders,'Content-Type':'application/json'}})}
 })
