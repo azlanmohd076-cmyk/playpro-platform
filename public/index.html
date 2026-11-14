@@ -2965,6 +2965,14 @@ async function routeAuthenticatedUser(user){
       if(!window.location.pathname.endsWith('/organizer_profile.html')) window.location.assign('/organizer_profile.html');
       return;
     }
+    if(role==='referee'){
+      if(!window.location.pathname.endsWith('/referee_onboarding.html')) window.location.assign('/referee_onboarding.html');
+      return;
+    }
+    if(role==='user'){
+      if(!window.location.pathname.endsWith('/role_center.html')) window.location.assign('/role_center.html');
+      return;
+    }
     if(role==='player'){
       const{data:player,error:playerError}=await window.SB.from('players').select('id').eq('profile_id',user.id).maybeSingle();
       if(playerError) throw playerError;
