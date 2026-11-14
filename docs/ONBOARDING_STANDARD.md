@@ -6,8 +6,8 @@ Dokumen ini menetapkan satu perjalanan pengguna (user journey) dan satu bahasa U
 
 ## 1. Perjalanan pengguna kanonik
 
-1. **Daftar / log masuk** — satu akaun PlayPro sahaja.
-2. **Profil asas** — nama dan maklumat asas disimpan sekali; modul tidak meminta maklumat yang sudah tersedia tanpa sebab.
+1. **Daftar / log masuk** — satu akaun PlayPro sahaja. Selepas berjaya, pengguna terus masuk ke Home; jangan paksa profil peranan atau KYC.
+2. **Home dahulu, profil kemudian** — pengguna boleh meneroka dan menggunakan fungsi umum dahulu. Profil asas atau profil peranan dilengkapkan apabila pengguna mahu atau apabila tindakan tertentu memerlukannya.
 3. **Pusat Peranan** — pengguna menambah atau membuka Player, Coach, Club Owner, Organizer atau Referee menggunakan akaun yang sama.
 4. **KYC pusat apabila tindakan memerlukannya**:
    - Jika sah: teruskan serta-merta.
@@ -15,7 +15,7 @@ Dokumen ini menetapkan satu perjalanan pengguna (user journey) dan satu bahasa U
    - Jika belum dihantar / luput / ditolak: satu halaman KYC pusat menerangkan tindakan seterusnya.
 5. **Profil khusus peranan** — minta hanya data yang benar-benar diperlukan oleh peranan tersebut.
 6. **Kelayakan profesional / entiti** — lesen, akreditasi, pengiktirafan kelab dan syarat pertandingan diproses berasingan daripada KYC.
-7. **Dashboard peranan** — pengguna masuk terus ke ruang kerja yang dipilih.
+7. **Dashboard peranan** — pengguna masuk terus ke ruang kerja yang dipilih. Borang panjang dipecahkan kepada maklumat minimum dan butiran pilihan yang boleh dilengkapkan kemudian.
 
 ## 2. Peraturan KYC
 
@@ -41,9 +41,11 @@ Dokumen ini menetapkan satu perjalanan pengguna (user journey) dan satu bahasa U
 ## 4. Standard UI
 
 Semua halaman onboarding menggunakan /css/playpro-onboarding.css dan body.pp-onboarding untuk:
-- warna PlayPro hijau gelap / hitam / emas;
-- tipografi, label, input, butang dan panel yang konsisten;
-- responsif mudah alih;
+- satu visual bahasa PlayPro: latar neutral cerah, permukaan putih, hijau PlayPro sebagai aksen dan header hijau gelap;
+- tipografi, label, input, butang, panel, status, jarak dan susun atur borang yang konsisten;
+- responsif mudah alih dan susunan satu kolum pada skrin kecil;
+- tindakan utama jelas, butang sekunder tidak bersaing;
+- medan pilihan tidak menghalang pengguna daripada meneruskan atau meneroka;
 - status kejayaan, menunggu dan ralat yang jelas;
 - pautan kembali ke Pusat Peranan.
 
@@ -76,6 +78,8 @@ Ayat standard:
 
 - Migration kanonik KYC dan pembetulan adapter/passport telah diterapkan ke Supabase playpro2.
 - Edge Function OCR kanonik kyc-verify-identity menggunakan kod identiti individu; alias kyc-verify-coach dan kyc-verify-player mengekalkan keserasian lama. Semua mewajibkan JWT.
-- Komponen UI bersama telah disambungkan ke Player onboarding, KYC, Developer KYC review, Coach, Club, Organizer, Referee, Role Center dan Player signup.
-- PR #60 kekal terbuka. Vercel tidak dideploy.
+- Sistem gaya UI bersama digunakan oleh Player onboarding, KYC, Developer KYC review, Coach, Club, Organizer, Referee, Role Center dan Player signup.
+- Pendaftaran akaun diarahkan ke Home; Player profile onboarding mempunyai pautan langkau.
+- Pengesahan identiti dipanggil “Pengesahan Identiti PlayPro” dan tidak dilabel mengikut peranan.
+- PR #60 kekal terbuka. Tiada merge atau production deployment dibuat.
 - Ujian browser hujung ke hujung (upload dokumen sebenar, OCR Google, semakan Developer, dan role onboarding semua modul) masih memerlukan sesi pengguna sebenar; jangan lapor lulus sebelum diuji.
