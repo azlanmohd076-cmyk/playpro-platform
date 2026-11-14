@@ -155,14 +155,24 @@ Actions         : "PlayPro Shell v1" lulus 2026-09-09 pada 23569ac (bot auto-com
 - AGENTS.md ditambah arahan wajib One Person, One KYC.
 - BOUNDARIES.md ditambah sumber kebenaran KYC pusat.
 - DECISIONS.md ditambah DEC-043 (Owner-approved), mengatasi reka bentuk lama KYC berasingan ikut role.
-- Ditambah migration cadangan 20261114130000_unified_individual_kyc_five_year_validity.sql: kanonik subject_type=individual, expires_at 5 tahun, RPC pusat status/permintaan/lampiran dokumen/semakan Developer, storage policies pusat, serta adapter endpoint lama.
+- Ditambah migration kanonik 20261114130439_unified_individual_kyc_five_year_validity.sql dan susulan 2026111413xxxx_unified_kyc_compatibility_and_passport_fix.sql: subject_type=individual, satu rekod per akaun, sah lima tahun, RPC pusat, polisi storan private, adapter lama selamat, dan Passport Player dijana pada kelulusan pusat.
 - public/player_kyc.html ditukar kepada satu aliran identiti pusat, tidak lagi memilih KYC berdasarkan role.
 - public/coach_profile_v2.html diarahkan ke halaman KYC pusat dan membaca status identiti yang sama.
 - supabase/functions/kyc-verify-coach/index.ts di branch diubah supaya OCR membaca profil identiti akaun, bukan rekod Coach.
 - public/player_kyc_admin.html diubah kepada satu queue semakan identiti Developer.
 
-**Had status — jangan salah lapor:** migration baharu BELUM diterapkan ke Supabase playpro2; Edge Function baharu BELUM dideploy; Vercel TIDAK dideploy; PR #60 TIDAK digabung. Maka UI/DB end-to-end belum boleh dianggap lulus. Perubahan ini ialah persediaan kod/dokumen dalam branch sahaja sehingga migration dan Edge Function diluluskan serta diuji.
+**Status selepas arahan Owner:** migration KYC kanonik dan migration pembetulan adapter/Passport TELAH diterapkan ke Supabase playpro2. Edge Function kyc-verify-coach versi 5 dan alias kyc-verify-player versi 8 aktif dengan kod identiti yang sama serta verify_jwt=true. Vercel TIDAK dideploy; PR #60 TIDAK digabung. Ujian SQL status/expiry, guna semula pending/verified dan perkongsian KYC merentas lima role lulus; ujian browser sebenar upload/OCR/semakan Developer masih belum lengkap.
 
-**Ujian yang masih wajib:** semak semua call sites KYC role lama; semak adapter approval dan role onboarding; uji akaun yang sudah verified menambah Player/Coach/Club Owner/Organizer/Referee tanpa upload semula; uji expiry lima tahun; uji upload/read isolation dan Developer review; uji OCR hanya sekali; semak data legacy sebelum migration live. Tiada data pengguna diubah dalam sesi ini.
+**Ujian yang masih wajib:** uji browser sebenar upload/OCR/semakan Developer dan tambah peranan dari akaun verified; uji upload/read isolation; uji expired renewal; semak setiap aliran onboarding di semua peranti. Migration merekonsiliasi dua rekod sedia ada kepada subject_type individual; tiada rekod digandakan.
 
 - Susulan dalam branch yang sama: pautan KYC Club Owner, Organizer dan Referee kini menuju ke halaman pusat; Organizer membaca status KYC pusat; borang KYC Referee diganti pautan pusat. Semakan lesen/akreditasi Referee kekal berasingan.
+
+
+## 9. Penyelarasan onboarding selepas arahan Owner (2026-11-14)
+
+- Ditambah docs/ONBOARDING_STANDARD.md sebagai standard user journey, peraturan KYC, keperluan setiap modul dan syarat penerimaan.
+- Ditambah public/css/playpro-onboarding.css dan disambungkan ke Player signup/onboarding, KYC, Developer KYC review, Coach, Club, Organizer, Referee dan Role Center.
+- Role Center kini memaparkan status KYC pusat dan tarikh luput; Player Profile CM menghala pengurusan peranan ke Role Center tunggal dan membaca status KYC pusat.
+- KYC central page membolehkan pengguna terus ke modul asal selepas verified atau pending; semua pautan Organizer/Club/Coach/Referee menggunakan parameter next, bukan subject_type role.
+- Organizer legacy KYC link dibetulkan; Player KYC status UI dibetulkan supaya membaca status pusat.
+- Migration susulan mengarahkan legacy document adapters melalui attach_identity_kyc_documents (validasi pemilik) dan menjana Football Passport di dalam kelulusan KYC pusat.
