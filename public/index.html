@@ -2935,6 +2935,12 @@ async function routeAuthenticatedUser(user){
     if(profileError) throw profileError;
     const role=profile?.role;
     if(!profile||!role){ showOnboarding(); return; }
+    if(role==='coach'){
+      if(!window.location.pathname.endsWith('/coach_profile_v2.html')){
+        window.location.assign('/coach_profile_v2.html');
+      }
+      return;
+    }
     if(role==='player'){
       const{data:player,error:playerError}=await window.SB.from('players').select('id').eq('profile_id',user.id).maybeSingle();
       if(playerError) throw playerError;
@@ -3218,7 +3224,9 @@ async function doRegister(){
     updateUI(); closeLogin();
 
     var confirmedRole=res.role||role||'player';
-    if(confirmedRole==='player'||confirmedRole==='coach'||confirmedRole==='referee'){
+    if(confirmedRole==='coach'){
+      window.location.assign('/coach_profile_v2.html');
+    } else if(confirmedRole==='player'||confirmedRole==='referee'){
       showOnboarding();
     } else {
       toast('✅ Akaun dibuat! Selamat datang ke PlayPro!');
@@ -3247,7 +3255,8 @@ async function doRegister(){
     _u=data.user; _pd=null;
     updateUI(); closeLogin();
     var r2=(prof&&prof.role)||role||'player';
-    if(r2==='player'||r2==='coach'||r2==='referee'){ showOnboarding(); }
+    if(r2==='coach'){ window.location.assign('/coach_profile_v2.html'); }
+    else if(r2==='player'||r2==='referee'){ showOnboarding(); }
     else { toast('✅ Akaun dibuat! Selamat datang ke PlayPro!'); }
   } else {
     setMsg('d-msg','✅ Akaun dibuat! Semak emel '+em+' untuk pengesahan.','ok');
