@@ -44,8 +44,8 @@ function render(){
    return '<article class="role"><h3>'+x.icon+' '+x.name+'</h3><p>'+x.desc+'</p><div class="status">'+status+'</div><button class="btn" onclick="openRole(\''+x.code+'\',\''+x.url+'\')">'+(active?'Buka / Lengkapkan':'Tambah Peranan')+'</button></article>';
  }).join('');
 }
-async function openRole(code,url){
- const b=event?.currentTarget;if(b){b.disabled=true;b.textContent='Menyimpan…'}
+async function openRole(code,url,b){
+ if(b){b.disabled=true;b.textContent='Menyimpan…'}
  const r=await SB.rpc('playpro_add_role',{p_role_code:code});
  if(r.error){$('message').textContent='Peranan tidak dapat ditambah: '+r.error.message;if(b){b.disabled=false;b.textContent='Cuba Lagi'}return}
  location.href=url;
