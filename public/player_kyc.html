@@ -37,7 +37,7 @@ function makePath(file,label){
   const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
   return uid+'/'+crypto.randomUUID()+'.'+ext;
 }
-async function retryKycProcessing(){const btn=$('retryKyc');if(!kycId)return;btn.disabled=true;btn.textContent='Memproses dokumen…';try{const f=await SB.functions.invoke('kyc-verify-coach',{body:{kyc_id:kycId}});if(f.error)throw f.error;if(!f.data?.ok)throw new Error(f.data?.error||'Pemprosesan dokumen gagal.');$('state').innerHTML='<div class="status">Dokumen telah diproses. Identiti menunggu semakan PlayPro. Anda tidak perlu memuat naik semula.</div><button class="btn primary" id="continuePending">Teruskan ke modul saya →</button>';$('continuePending').onclick=()=>location.href=next;}catch(e){btn.disabled=false;btn.textContent='Cuba proses semula';let n=$('retryMsg');if(!n){n=document.createElement('p');n.id='retryMsg';n.className='err';$('state').appendChild(n);}n.textContent='❌ '+(e.message||e);}}
+async function retryKycProcessing(){const btn=$('retryKyc');if(!kycId)return;btn.disabled=true;btn.textContent='Memproses dokumen…';try{const f=await SB.functions.invoke('kyc-verify-identity',{body:{kyc_id:kycId}});if(f.error)throw f.error;if(!f.data?.ok)throw new Error(f.data?.error||'Pemprosesan dokumen gagal.');$('state').innerHTML='<div class="status">Dokumen telah diproses. Identiti menunggu semakan PlayPro. Anda tidak perlu memuat naik semula.</div><button class="btn primary" id="continuePending">Teruskan ke modul saya →</button>';$('continuePending').onclick=()=>location.href=next;}catch(e){btn.disabled=false;btn.textContent='Cuba proses semula';let n=$('retryMsg');if(!n){n=document.createElement('p');n.id='retryMsg';n.className='err';$('state').appendChild(n);}n.textContent='❌ '+(e.message||e);}}
 async function submitKyc(){
   const btn=$('submit'),type=$('type').value,name=$('name').value.trim(),state=$('statecode').value.trim();
   if(!name)return $('msg').textContent='Isi nama sah seperti dokumen.';
@@ -56,7 +56,7 @@ async function submitKyc(){
     }
     const attached=await SB.rpc('attach_identity_kyc_documents',{p_kyc_id:kycId,p_document_paths:paths});
     if(attached.error)throw attached.error;
-    const f=await SB.functions.invoke('kyc-verify-coach',{body:{kyc_id:kycId}});
+    const f=await SB.functions.invoke('kyc-verify-identity',{body:{kyc_id:kycId}});
     if(f.error)throw f.error;
     if(!f.data?.ok)throw new Error(f.data?.error||'Pemprosesan dokumen gagal.');
     $('msg').className='msg ok';
