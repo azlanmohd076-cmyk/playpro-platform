@@ -1,72 +1,83 @@
-/* PlayPro shared onboarding UI — one visual language across role modules */
+/* PlayPro Unified UI — one shared design language for every role.
+   Product rule: let people enter and act first; request details progressively. */
+:root{
+  --pp-accent:#087f5b;--pp-accent-strong:#066447;--pp-gold:#d6a62a;
+  --pp-bg:#f2f5f3;--pp-surface:#fff;--pp-surface-soft:#f7faf8;
+  --pp-border:#dce5df;--pp-text:#17231d;--pp-muted:#68776e;
+  --pp-danger:#b42318;--pp-success:#067647;--pp-radius:14px;
+}
 body.pp-onboarding{
-  --pp-green:#00d4aa;--pp-gold:#f0c040;--pp-bg:#07100c;--pp-panel:#101a15;
-  --pp-line:#26372f;--pp-text:#edf6f1;--pp-muted:#91a398;
-  background:radial-gradient(circle at 50% -12%,#123b29,#050a07 68%) !important;
-  color:var(--pp-text) !important;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
+  margin:0!important;background:var(--pp-bg)!important;color:var(--pp-text)!important;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  font-size:14px;line-height:1.5;
 }
-body.pp-onboarding a{color:var(--pp-green)}
+body.pp-onboarding *{box-sizing:border-box}
+body.pp-onboarding a{color:var(--pp-accent);text-underline-offset:3px}
 body.pp-onboarding .top,body.pp-onboarding .head,body.pp-onboarding header.top{
-  background:linear-gradient(110deg,#0c2117,#102b1e) !important;color:var(--pp-text) !important;
-  border-color:var(--pp-line) !important;
+  background:#10271d!important;color:#fff!important;border-color:#203d2e!important;
 }
-body.pp-onboarding .logo,body.pp-onboarding .brand{color:var(--pp-green) !important}
+body.pp-onboarding .logo,body.pp-onboarding .brand{color:#fff!important}
+body.pp-onboarding .wrap{width:min(1080px,100%);margin-inline:auto;padding:20px 16px 56px}
 body.pp-onboarding .card,body.pp-onboarding .panel,body.pp-onboarding .role,
 body.pp-onboarding .hero,body.pp-onboarding .summary,body.pp-onboarding .form,
-body.pp-onboarding .notice,body.pp-onboarding .crumb{
-  background:rgba(16,26,21,.97) !important;color:var(--pp-text) !important;
-  border:1px solid var(--pp-line) !important;border-radius:16px !important;
-  box-shadow:0 14px 38px rgba(0,0,0,.18) !important;
+body.pp-onboarding .notice,body.pp-onboarding .crumb,body.pp-onboarding .modal,
+body.pp-onboarding .license{
+  background:var(--pp-surface)!important;color:var(--pp-text)!important;
+  border:1px solid var(--pp-border)!important;border-radius:var(--pp-radius)!important;
+  box-shadow:0 2px 10px rgba(16,39,29,.045)!important;
 }
+body.pp-onboarding .hero{background:linear-gradient(120deg,#123d2a,#087f5b)!important;color:#fff!important}
+body.pp-onboarding .hero .sub,body.pp-onboarding .hero .meta{color:#e3f5eb!important}
+body.pp-onboarding .body,body.pp-onboarding .pad{background:transparent!important;color:var(--pp-text)!important}
 body.pp-onboarding .muted,body.pp-onboarding .desc,body.pp-onboarding .meta,
-body.pp-onboarding .small,body.pp-onboarding .label{color:var(--pp-muted) !important}
+body.pp-onboarding .small,body.pp-onboarding .label,body.pp-onboarding .sub{color:var(--pp-muted)!important}
 body.pp-onboarding label,body.pp-onboarding .field label{
-  color:var(--pp-green) !important;font-weight:800 !important;
+  display:block;color:#34483c!important;font-size:12px!important;font-weight:750!important;
+  letter-spacing:.01em!important;margin:12px 0 6px!important;
 }
 body.pp-onboarding input,body.pp-onboarding select,body.pp-onboarding textarea{
-  background:#08130d !important;color:var(--pp-text) !important;
-  border:1px solid #31463a !important;border-radius:10px !important;
-  min-height:42px !important;box-shadow:none !important;
+  width:100%;min-height:42px;background:#fff!important;color:var(--pp-text)!important;
+  border:1px solid #cbd8cf!important;border-radius:9px!important;padding:10px 12px!important;
+  font:inherit!important;box-shadow:none!important;
 }
 body.pp-onboarding input:focus,body.pp-onboarding select:focus,body.pp-onboarding textarea:focus{
-  outline:2px solid #00d4aa55 !important;border-color:var(--pp-green) !important;
+  outline:3px solid rgba(8,127,91,.13)!important;border-color:var(--pp-accent)!important;
 }
+body.pp-onboarding input[type=file]{padding:8px;background:var(--pp-surface-soft)!important}
 body.pp-onboarding button,body.pp-onboarding .btn,body.pp-onboarding .primary,
 body.pp-onboarding .green,body.pp-onboarding .next{
-  background:var(--pp-green) !important;color:#00140d !important;
-  border:1px solid var(--pp-green) !important;border-radius:10px !important;
-  font-weight:900 !important;box-shadow:none !important;
+  min-height:42px;background:var(--pp-accent)!important;color:#fff!important;
+  border:1px solid var(--pp-accent)!important;border-radius:9px!important;
+  padding:10px 16px!important;font:700 14px Inter,system-ui,sans-serif!important;
+  box-shadow:none!important;cursor:pointer;
 }
-body.pp-onboarding button:disabled{opacity:.55 !important;cursor:not-allowed !important}
+body.pp-onboarding button:hover,body.pp-onboarding .btn:hover{background:var(--pp-accent-strong)!important}
+body.pp-onboarding button:disabled{opacity:.55!important;cursor:not-allowed}
 body.pp-onboarding .back,body.pp-onboarding .secondary,body.pp-onboarding .ghost{
-  background:#17271e !important;color:var(--pp-text) !important;border:1px solid #31463a !important;
+  background:#fff!important;color:#34483c!important;border:1px solid var(--pp-border)!important;
 }
-body.pp-onboarding .steps .step,body.pp-onboarding .step{
-  border-radius:999px !important;
-}
-body.pp-onboarding .steps .step.on,body.pp-onboarding .step.on{
-  background:var(--pp-green) !important;color:#00140d !important;
-}
-body.pp-onboarding .badge,body.pp-onboarding .pill,body.pp-onboarding .status{
-  border-radius:999px !important;
-}
-body.pp-onboarding .notice.ok,body.pp-onboarding .success{
-  background:#0d2b20 !important;color:#a7f3d0 !important;border-color:#1d7554 !important;
+body.pp-onboarding .notice.ok,body.pp-onboarding .success,body.pp-onboarding .ok{
+  background:#ecfdf3!important;color:#05603a!important;border-color:#abefc6!important;
 }
 body.pp-onboarding .notice.error,body.pp-onboarding .error{
-  background:#321818 !important;color:#fecaca !important;border-color:#8b3535 !important;
+  background:#fef3f2!important;color:var(--pp-danger)!important;border-color:#fecdca!important;
 }
-body.pp-onboarding .choice,body.pp-onboarding .role{
-  background:#0c1811 !important;border:1px solid var(--pp-line) !important;
+body.pp-onboarding .badge,body.pp-onboarding .pill,body.pp-onboarding .status,
+body.pp-onboarding .step{border-radius:999px!important}
+body.pp-onboarding .choice,body.pp-onboarding .role,body.pp-onboarding .stat,
+body.pp-onboarding .team{background:var(--pp-surface-soft)!important;border:1px solid var(--pp-border)!important;border-radius:12px!important}
+body.pp-onboarding .choice.sel,body.pp-onboarding .role.active,body.pp-onboarding .step.on{
+  border-color:var(--pp-accent)!important;background:#e9f7f0!important;color:var(--pp-accent-strong)!important;
 }
-body.pp-onboarding .choice.sel,body.pp-onboarding .role.active{
-  border-color:var(--pp-green) !important;background:#00d4aa12 !important;
-}
-body.pp-onboarding .actions{gap:10px}
+body.pp-onboarding .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 body.pp-onboarding .actions>*{min-width:0}
-@media(max-width:600px){
- body.pp-onboarding .wrap{padding-left:12px !important;padding-right:12px !important}
- body.pp-onboarding .card,body.pp-onboarding .panel{padding:16px !important}
- body.pp-onboarding .actions{flex-wrap:wrap}
+body.pp-onboarding .grid,body.pp-onboarding .formgrid,body.pp-onboarding .two{
+  gap:12px!important;
+}
+@media(max-width:650px){
+ body.pp-onboarding .wrap{padding:12px 12px 36px!important}
+ body.pp-onboarding .card,body.pp-onboarding .panel,body.pp-onboarding .modal{padding:15px!important}
+ body.pp-onboarding .grid,body.pp-onboarding .formgrid,body.pp-onboarding .two{grid-template-columns:1fr!important}
  body.pp-onboarding .actions>*{flex:1 1 100%}
+ body.pp-onboarding .hero{grid-template-columns:1fr!important}
 }
