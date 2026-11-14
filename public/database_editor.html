@@ -24,6 +24,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.shell{max-width
 <button data-entity="coaches">♟ Database Coach</button>
 <button data-entity="clubs">▦ Database Kelab</button>
 <button data-entity="assessments">◎ Rekod Penilaian</button>
+<button data-entity="audits">◷ Audit Centre</button>
 <div class="hint">Akses Developer sahaja. Data KYC dan identiti sensitif tidak dipaparkan dalam senarai umum editor.</div>
 </nav>
 <section class="panel">
@@ -38,7 +39,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.shell{max-width
 <script>
 const $=id=>document.getElementById(id);
 let entity='overview',records=[],editing=null,creating=false;
-const labels={players:'Database Pemain',coaches:'Database Coach',clubs:'Database Kelab',assessments:'Rekod Penilaian'};
+const labels={players:'Database Pemain',coaches:'Database Coach',clubs:'Database Kelab',assessments:'Rekod Penilaian',audits:'Audit Centre'};
 const cols={
  players:[['full_name','Nama penuh','text'],['preferred_name','Nama paparan','text'],['date_of_birth','Tarikh lahir','date',true],['position','Posisi','select',[['goalkeeper','Penjaga gol'],['defender','Pertahanan'],['midfielder','Tengah'],['forward','Penyerang'],['gk','GK'],['cb','CB'],['rb','RB'],['lb','LB'],['rwb','RWB'],['lwb','LWB'],['cm','CM'],['dm','DM'],['am','AM'],['rm','RM'],['lm','LM'],['st','ST'],['rw','RW'],['lw','LW'],['cf','CF']]],['nationality','Warganegara','text'],['is_active','Status aktif','checkbox'],['is_free_agent','Free agent','checkbox']],
  clubs:[['name','Nama kelab','text',true],['description','Penerangan','textarea'],['city','Bandar','text'],['state','Negeri','text'],['country','Negara','text'],['home_venue','Padang utama','text'],['colours','Warna kelab','text']],
@@ -62,12 +63,13 @@ document.querySelectorAll('[data-entity]').forEach(b=>b.addEventListener('click'
 async function selectEntity(e){entity=e;document.querySelectorAll('[data-entity]').forEach(b=>b.classList.toggle('active',b.dataset.entity===e));
  $('overviewView').classList.toggle('hidden',e!=='overview');$('dataView').classList.toggle('hidden',e==='overview');
  if(e==='overview'){await loadOverview();return;}
- $('entityTitle').textContent=labels[e];$('entitySub').textContent=e==='assessments'?'Sejarah penilaian rasmi — paparan sahaja, rekod asal tidak boleh diubah dari sini.':'Data live. Pilih rekod untuk mengemaskini medan yang dibenarkan.';
+ $('entityTitle').textContent=labels[e];$('entitySub').textContent=e==='assessments'?'Sejarah penilaian rasmi — paparan sahaja, rekod asal tidak boleh diubah dari sini.':e==='audits'?'Sejarah tindakan Developer. Paparan ini hanya boleh diakses oleh akaun Developer aktif.':'Data live. Pilih rekod untuk mengemaskini medan yang dibenarkan.';
  $('addBtn').classList.toggle('hidden',!['players','clubs'].includes(e));$('addBtn').textContent=e==='players'?'＋ Daftar Pemain':'＋ Daftar Kelab';
  await loadRows();
 }
 async function loadRows(){
  $('tableHost').innerHTML='<div class="loading">Memuatkan rekod…</div>';
+ if(entity==='audits'){await loadAuditRows();return;}
  const {data,error}=await SB.rpc('developer_editor_search',{p_entity:entity,p_search:$('searchBox').value||'',p_limit:100});
  if(error){$('tableHost').innerHTML='<div class="empty">Gagal memuatkan data: '+esc(error.message)+'</div>';return;}
  records=Array.isArray(data)?data:[];
@@ -76,6 +78,15 @@ async function loadRows(){
  const heads={full_name:'NAMA',name:'KELAB',position:'POSISI',date_of_birth:'TARIKH LAHIR',nationality:'NEGARA',verification_status:'PENGESAHAN',is_active:'AKTIF',coaching_role:'PERANAN',license_status:'LESEN',accreditation_level:'LEVEL',club_code:'KOD',city:'BANDAR',state:'NEGERI',visibility:'VISIBILITI',player_name:'PEMAIN',coach_name:'COACH',assessed_at:'TARIKH',notes:'CATATAN'};
  const fields=keys[entity];$('tableHost').innerHTML='<table><thead><tr>'+fields.map(k=>'<th>'+heads[k]+'</th>').join('')+(entity!=='assessments'?'<th>TINDAKAN</th>':'')+'</tr></thead><tbody>'+records.map((r,i)=>'<tr>'+fields.map(k=>'<td>'+(k==='is_active'?'<span class="tag">'+(r[k]?'AKTIF':'TIDAK AKTIF')+'</span>':esc(r[k]??'—'))+'</td>').join('')+(entity!=='assessments'?'<td><button class="btn" data-edit="'+i+'">Buka / Edit</button></td>':'')+'</tr>').join('')+'</tbody></table>';
  document.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEditor(records[Number(b.dataset.edit)],false)));
+}
+async function loadAuditRows(){
+ $('tableHost').innerHTML='<div class="loading">Memuatkan audit trail…</div>';
+ const {data,error}=await SB.rpc('developer_editor_audit_list',{p_limit:100});
+ if(error){$('tableHost').innerHTML='<div class="empty">Gagal memuatkan audit: '+esc(error.message)+'</div>';return;}
+ const rows=Array.isArray(data)?data:[];
+ if(!rows.length){$('tableHost').innerHTML='<div class="empty">Belum ada rekod audit.</div>';return;}
+ const details=(v)=>'<details><summary>Lihat snapshot</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-width:520px;color:#b9d7c5;font-size:10px">'+esc(JSON.stringify(v??{},null,2))+'</pre></details>';
+ $('tableHost').innerHTML='<table><thead><tr><th>MASA</th><th>PELAKU</th><th>TINDAKAN</th><th>ENTITI</th><th>ID REKOD</th><th>MEDAN BERUBAH</th><th>SNAPSHOT</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(new Date(r.changed_at).toLocaleString('ms-MY'))+'</td><td>'+esc(r.actor_name)+'</td><td><span class="tag">'+esc(String(r.action||'').toUpperCase())+'</span></td><td>'+esc(r.entity)+'</td><td style="max-width:150px;overflow-wrap:anywhere">'+esc(r.record_id)+'</td><td>'+esc((r.changed_fields||[]).join(', ')||'—')+'</td><td>'+details(r.before_data)+' '+details(r.after_data)+'</td></tr>').join('')+'</tbody></table>';
 }
 function fieldHtml(f,val){const [key,label,type,extra]=f;let input='';
  if(type==='checkbox')input='<input type="checkbox" name="'+key+'" '+(val?'checked':'')+' style="width:18px;height:18px">';
