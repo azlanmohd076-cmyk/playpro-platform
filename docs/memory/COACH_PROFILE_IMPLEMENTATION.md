@@ -1,40 +1,37 @@
 # PLAYPRO COACH PROFILE — IMPLEMENTATION BASELINE
 
-**Status:** IMPLEMENTED FOUNDATION · Supabase live + frontend route
+**Status:** COACH PROFILE UI REBUILT · LIVE BACKEND FOUNDATION REPAIRED · DEMO PAGES ADDED
 
 ## Canonical coach flow
 
-`USER SIGN UP/LOGIN → CHOOSE COACH → SIMPLE IDENTITY (name + phone) → KYC → PLAYPRO VERIFICATION → COACH DETAILS → COACH PROFILE`
+`ONE PLAYPRO USER → ADD COACH ROLE → SIMPLE IDENTITY (name + phone) → KYC → PLAYPRO VERIFICATION → COACH DETAILS → COACH PROFILE`
 
-A user does not create a second account to become a coach. PlayPro supports a multi-role persona model: `player`, `coach`, `club_owner`, `organizer`, `referee`. `profile_role_profiles` is the role-profile registry; legacy `profiles.role` is not the multi-role source of truth.
+A user does not create a second account to become a coach. `profile_role_profiles` is the multi-role registry; `profiles.role` remains a legacy primary-role field and is not the complete role source of truth.
 
-## Identity rule
+## Identity and KYC
 
-Before KYC, coach identity can be entered as onboarding data. After PlayPro approves KYC:
+- Legal/full name is sourced from the approved identity document and locked after verification.
+- Preferred name and non-KYC coaching information remain editable.
+- Coach KYC uses the private `kyc-documents` bucket and `identity_verifications`.
+- Document processing by Google Document AI is not final PlayPro approval.
+- Only privileged PlayPro review can approve/reject Coach KYC.
 
-- legal/full name comes from the verified identity document;
-- legal name is locked;
-- date of birth is locked as verified identity data;
-- preferred name remains editable;
-- non-KYC coaching profile data remains editable;
-- verification badge is shown only after KYC is verified.
+## Coach profile UI
 
-## Coach profile data
-
-The profile separates identity from coaching information. Current implemented fields include coaching role, official FAM/FIFA/AFC licence information, licence number/body/dates/status, preferred formation, preferred style, specialties, biography, verification state, discipline state, coach card state and PlayPro licence level.
+`public/coach_profile_v2.html` is now aligned with the Player Profile visual language: dark football-first presentation, compact hero, tabs, football attributes, license details and clear status indicators. It supports login, adding the Coach persona to the current account, profile editing, KYC submission/processing, loading Coach attributes and submitting certification requests.
 
 ## Coach attributes
 
-Scale: `0–20`; `0` means not yet assessed.
+Scale: `0–20`. Unassessed attributes remain `NULL` in the canonical database; the UI renders them as not assessed, not as fabricated scores.
 
-Attributes:
+The 12 attributes are:
 
 1. Adaptability
 2. Coaching Goalkeepers
 3. Coaching Outfield Players
 4. Working with Youngsters
 5. Determination
-6. Level of Discipline
+6. Discipline
 7. Judging Player Ability
 8. Judging Player Potential
 9. Man Management
@@ -42,57 +39,35 @@ Attributes:
 11. Physiotherapy
 12. Tactical Knowledge
 
-The attribute value is not user-editable.
+Values are not user-editable. The eventual organic performance engine based on official competition/LTO data remains unimplemented and must be deterministic, explainable and auditable.
 
-### Two sources of coach attributes
+## Two separate certification tracks
 
-**Track B — Coach Attribute Certification:** the coach is assessed by a PlayPro panel through the PlayPro accreditation/exam process.
+- **Track A — Player Assessment Authority:** certification course Levels 1–5. This is distinct from the operational Player DNA assessor accreditation Level 1–7, which is separately granted by an authorised Developer through `coach_accreditations`.
+- **Track B — Coach Attribute Certification:** evaluates the Coach's own coaching attributes, also through course Levels 1–5.
 
-**Organic performance:** later, official competition performance from LTO/match data contributes to increases/decreases. This calculation engine is deliberately not hard-coded yet; it must be designed with a defensible mathematical model before enforcement.
+The request and review RPCs now use the current database columns, keep the two tracks separate, prevent duplicate open requests, require verified Coach KYC before requesting, and restrict review to Developer. The legacy request RPC is routed through the same guarded workflow. A request approval schedules the course; it does not fabricate a passed certificate.
 
-## Two PlayPro accreditation tracks
+## Player assessment authority
 
-**Track A — Player Assessment Authority**
+Official Player DNA submissions use the canonical 18 Player attributes, scale 1–20, through `get_assessment_workspace()` and `submit_player_assessment()`. They require an active Technical Assessor profile with active operational accreditation Level 1–7. Demo players are excluded. Assessment history records coach identity, level and timestamp.
 
-Allows an accredited coach to assess Player DNA. Five levels establish the assessment authority bands:
+## Coach demo pages
 
-- Level 1: 1–5
-- Level 2: 5–10
-- Level 3: 10–15
-- Level 4: 15–20
-- Level 5: final/practical authority
+Three separate static pages exist under `public/demo-coaches/`:
 
-**Track B — Coach Attribute Certification**
+- `coach-demo-level-1.html`
+- `coach-demo-level-3.html`
+- `coach-demo-level-5.html`
 
-The coach's own attributes are assessed/certified by the PlayPro panel. The same five-level course structure is retained, but it is a separate certification purpose from authority to assess players.
-
-The database now records `certification_track` separately so these two purposes cannot be silently conflated.
-
-## KYC
-
-Coach KYC uses the existing private `kyc-documents` storage and `identity_verifications` model. A dedicated `kyc-verify-coach` Edge Function calls Google Document AI using the already configured server-side Google credentials/environment and never exposes service-account credentials to the browser.
-
-Client flow:
-
-`CREATE COACH → REQUEST KYC → PRIVATE DOCUMENT UPLOAD → GOOGLE DOCUMENT AI → PLAYPRO REVIEW → APPROVE → VERIFIED`
-
-`approve_coach_kyc()` is privileged; normal coach users cannot self-verify.
-
-## Discipline / Coach Card
-
-Coach has its own coach card state and disciplinary state. The foundation supports `ACTIVE`, `DIMMED`, `SUSPENDED`, and `BANNED` states. Final sanction calculation remains governed by the canonical PlayPro disciplinary design.
-
-## Frontend
-
-`public/coach_profile_v2.html` is the CM-style Coach onboarding/profile screen. It uses the same compact database-screen visual language intended for PlayPro rather than a generic SaaS dossier.
+These are fictional UI fixtures only. They are labelled DEMO / NOT VERIFIED and do not create real Coach accounts, real KYC status, licences, or assessment authority.
 
 ## Deliberately not implemented yet
 
-- full PlayPro assessment/equipment workflow;
-- mathematical organic coach-attribute engine from LTO performance;
-- coach career-history derivation from official club/competition records;
-- final Coach Card artwork/evolution/collectible commerce;
-- Club appointment workflow;
-- final accreditation scheduling/exam administration UI.
+- Organic Coach attribute calculation from official team/competition/LTO performance.
+- Coach career-history derivation from official club/team/competition records.
+- Final Coach Card artwork/evolution/collectible commerce.
+- Club appointment workflow.
+- Final accreditation scheduling/exam administration UI and full practical/video exam workflow.
 
-These are next-stage work, not missing identity/profile foundations.
+These remain future work; the current profile, KYC, certification request and Player DNA assessment foundations are separate and must not be conflated.
