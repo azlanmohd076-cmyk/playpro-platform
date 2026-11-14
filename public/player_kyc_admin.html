@@ -29,7 +29,7 @@ $('queue').addEventListener('click',async e=>{
  const card=e.target.closest('[data-card]');if(!card)return;const id=card.dataset.card,note=card.querySelector('[data-note]').value.trim()||null;
  if(e.target.closest('[data-approve]')){
   const name=card.querySelector('[data-name]').value.trim(),dob=card.querySelector('[data-dob]').value||null,state=card.querySelector('[data-state]').value.trim();
-  if(!name||!/^[0-9]{2}$/.test(state)){msg('Nama sah dan kod negeri dua digit wajib disahkan.');return;}
+  if(!name||(state&&!/^[0-9]{2}$/.test(state))){msg('Nama sah wajib disahkan. Kod negeri, jika diisi, mesti dua digit.');return;}
   if(!confirm('Sahkan identiti ini untuk semua peranan PlayPro?'))return;
   const {data,error}=await SB.rpc('approve_identity_kyc',{p_kyc_id:id,p_reviewer_note:note,p_verified_legal_name:name,p_verified_birth_date:dob,p_verified_birth_state_code:state});
   if(error){msg('Kelulusan gagal: '+error.message);return;}
