@@ -176,3 +176,30 @@ Actions         : "PlayPro Shell v1" lulus 2026-09-09 pada 23569ac (bot auto-com
 - KYC central page membolehkan pengguna terus ke modul asal selepas verified atau pending; semua pautan Organizer/Club/Coach/Referee menggunakan parameter next, bukan subject_type role.
 - Organizer legacy KYC link dibetulkan; Player KYC status UI dibetulkan supaya membaca status pusat.
 - Migration susulan mengarahkan legacy document adapters melalui attach_identity_kyc_documents (validasi pemilik), menjana Football Passport di dalam kelulusan KYC pusat, dan memulangkan boolean has_documents supaya OCR boleh dicuba semula menggunakan dokumen sedia ada tanpa muat naik kedua. Adapter lama tidak melampirkan dokumen baru apabila identiti sudah verified; status legacy approved juga dianggap sah.
+
+
+
+## 10. Five onboarding modules — implementation published (2026-11-17)
+
+**Owner authorisation:** DEC-044 records the explicit, onboarding-only exception to DEC-022. No competition/match/event engine, KYC, verification or official authority gate was bypassed.
+
+**Supabase production migrations applied to `playpro2`:**
+- `20261117015558_connect_five_onboarding_modules`
+- `20261117015640_fix_organizer_type_mapping`
+- `20261117015726_atomic_club_onboarding`
+- `20261117020114_private_onboarding_details_and_owner_reads`
+
+**Published Wix assets:** all five live submit handlers now call authenticated Supabase RPCs:
+- Player → `register_my_player`
+- Coach → `save_coach_onboarding_profile`
+- Referee → `save_my_referee_onboarding`; licensed referee documents use private `referee-licenses` storage and the existing review RPC.
+- Club → `save_my_club_onboarding`; club + primary venue save atomically; logos use public `club-logos` storage.
+- Organizer → `save_my_organizer_onboarding`.
+
+**Data/security controls:** canonical person identity comes from Supabase Auth/profile; role profiles are activated through authenticated owner RPCs. Player KYC, Coach verification/KYC, Referee accreditation, Club recognition and Organizer verification remain separate gates. Organizer/Club addresses are stored in private schema tables with RLS enabled and no direct API grants; player guardian contact is returned only in the owner branch of `get_player_profile`, not the public projection. Public club/organizer address columns remain null.
+
+**Rollback tests passed:** Player (including minor/guardian fields and owner read), Coach, Referee (no-license path), Organizer (pending status + private address read), Club (pending status + primary venue + private address read). No test rows were committed. Storage bucket names and upload/read policies were verified. New RPCs are executable by authenticated and not anon.
+
+**Live Wix read-back:** all five scripts contain the Supabase RPC calls and no longer contain the disconnected-submit placeholder. Player email validation was corrected. Live URL remains `https://headless-nqnwrrxjvbk-lmusang76-1409.wix-site-host.com`. Exact source snapshots are archived under `docs/wix-onboarding/live-assets/`.
+
+**Still not claimed as complete:** browser-level end-to-end testing of new account signup/OAuth and actual club-logo/referee-license file uploads has not been run. Supabase Auth Site URL and Redirect URLs still require confirmation in the Supabase Auth URL configuration. The Wix sandbox blocks dynamic JS compilation, so no independent module syntax compiler was run here. Do not mark those checks passed until verified.

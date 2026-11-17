@@ -97,3 +97,19 @@ BARU DIBUKA:
 | **Q6** | Baki item terbuka: **R-01** (organizer fizikal), **R-04** (custody — ditangguh oleh `DEC-006`, OK kekal OPEN), **R-07** (skop KEDAI). R-03 ✅ dijawab (`DEC-029`), R-06 ✅ disahkan (`DEC-030`) — **jangan tanya lagi** | CEO | Tiada satu pun menyekat pembukaan fasa SKEMA; R-01 mungkin menyentuh bentuk jadual organizer → jawab sebelum fasa C |
 
 **Tiada satu pun soalan di atas boleh dijawab CTO dengan rekaan.** Q1/Q2 sudah dijawab (→ `DEC-027`/`DEC-028`); Q3/Q4/Q5 belum dijawab dan **default selamat sudah berkuat kuasa** (lihat `DECISIONS.md` §G) — Owner tidak akan ditanya ulang, hanya boleh veto.
+
+
+
+## Completed 2026-11-17 — Five onboarding backends
+
+- [x] DEC-044: owner-approved, onboarding-only exception to DEC-022.
+- [x] Additive Supabase migrations for Player, Coach, Referee, Club and Organizer fields/RPCs applied to `playpro2`.
+- [x] Private Club/Organizer address storage and owner-only read RPCs; Player guardian data excluded from public player projection.
+- [x] Atomic Club + primary venue submission.
+- [x] Publish all five Wix submit handlers and archive live source snapshots in `docs/wix-onboarding/live-assets/`.
+- [x] Rollback tests for all five save paths; no test data persisted.
+- [ ] Browser E2E with real account: signup/email verification, OAuth redirect, all five onboarding submissions.
+- [ ] Actual file upload checks: Club logo and licensed Referee document.
+- [ ] Confirm Supabase Auth Site URL and Redirect URLs include the live Wix host.
+
+The remaining items above are verification/configuration tasks, not permission requests for further schema changes.

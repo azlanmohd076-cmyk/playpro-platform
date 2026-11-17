@@ -311,3 +311,19 @@ Yang **TIDAK** berubah: `DEC-001`…`DEC-038` (beku) · skop terkunci (`leagues`
 **Mengatasi percanggahan:** keputusan ini mengatasi reka bentuk lama yang memisahkan permohonan KYC mengikut subject_type/role, termasuk logik role-specific KYC yang dibina sebelum 2026-11-14. Sejarah audit lama tidak dipadam; ia direkonsiliasi kepada identiti kanonik tanpa meminta pengguna mengulang KYC.
 
 Rujukan pelaksanaan: `docs/PLAYPRO_PRINCIPLES.md`. Perubahan DB/kod mesti melalui PR dan ujian; tiada deployment Vercel atau merge dibenarkan tanpa arahan Owner berasingan.
+
+
+
+## DEC-044 — OWNER AUTHORISATION: FIVE ONBOARDING MODULES (2026-11-17)
+
+**Arahan Owner dalam chat:** teruskan kerja sehingga lima modul onboarding berfungsi; semua perubahan yang diperlukan untuk skop ini dibenarkan tanpa meminta kelulusan berulang.
+
+1. Keputusan ini memberi pengecualian **terhad** kepada DEC-022 / tujuh gerbang Fasa 2C bagi perubahan skema tambahan dan RPC yang diperlukan untuk menyimpan borang Player, Coach, Referee, Club dan Organizer pada projek sasaran `playpro2` sahaja.
+2. Skopnya hanya onboarding. Ia tidak membuka atau mengubah model event/match, live-event writes, playing-time, competition registration, eligibility, payment, atau kuasa rasmi pertandingan.
+3. Semua lima borang mesti menggunakan identiti `auth.uid()` dan akaun aktif; tiada role/profile ID boleh dipercayai daripada payload pelayar.
+4. Role profile boleh diwujudkan mengikut RPC sedia ada, tetapi `verification_status`, KYC pusat, lesen/akreditasi, organizer verification dan kuasa pertandingan **tidak boleh dinaikkan secara automatik**. Status pending/unverified kekal sehingga aliran semakan sah meluluskannya.
+5. Data penjaga pemain bawah 18 tahun kekal dalam rekod peribadi; tiada PII penjaga dimasukkan ke Auth metadata/JWT atau paparan profil awam.
+6. Pelaksanaan wajib melalui migration bernombor, ujian transaction/rollback, semakan RLS/advisors dan bukti read-back. Tiada data ujian atau akaun palsu boleh dikekalkan dalam produksi.
+7. DEC-022 kekal berkuat kuasa untuk semua kerja di luar lima modul ini.
+
+**Status:** diluluskan oleh Owner melalui arahan eksplisit 2026-11-17; skop pengecualian tidak boleh diperluas melalui tafsiran.
