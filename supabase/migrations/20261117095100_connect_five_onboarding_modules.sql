@@ -34,7 +34,8 @@ ALTER TABLE public.referees
   ADD COLUMN IF NOT EXISTS license_issuers text[] NOT NULL DEFAULT '{}',
   ADD COLUMN IF NOT EXISTS qualification_types text[] NOT NULL DEFAULT '{}',
   ADD COLUMN IF NOT EXISTS experience_types text[] NOT NULL DEFAULT '{}',
-  ADD COLUMN IF NOT EXISTS match_types text[] NOT NULL DEFAULT '{}';
+  ADD COLUMN IF NOT EXISTS match_types text[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
 
 ALTER TABLE public.clubs
   ADD COLUMN IF NOT EXISTS club_categories text[] NOT NULL DEFAULT '{}',
@@ -292,7 +293,7 @@ BEGIN
     p_profile_id,v_coach_code,v_name,v_preferred,v_phone,v_dob,
     v_license,v_license,v_license_no,nullif(btrim(p_payload->>'license_issuing_body'),''),v_role,
     nullif(btrim(p_payload->>'preferred_formation'),''),nullif(btrim(p_payload->>'preferred_style'),''),
-    jsonb_build_object('roles',to_jsonb(v_roles),'age_groups',to_jsonb(v_ages),'club_categories',to_jsonb(v_levels),'qualifications',to_jsonb(v_quals)),
+    to_jsonb(v_roles),
     nullif(btrim(p_payload->>'photo_url'),''),
     CASE WHEN v_coach.verification_status='verified' THEN 'verified' ELSE 'unverified' END,
     CASE WHEN v_coach.verification_status='verified' THEN coalesce(v_coach.profile_completed_at,now()) ELSE NULL END,
