@@ -417,7 +417,13 @@ BEGIN
   v_mode := CASE WHEN p_payload->>'name_mode'='commercial' THEN 'commercial' ELSE 'account' END;
   v_name := CASE WHEN v_mode='commercial' THEN nullif(trim(p_payload->>'commercial_name_ms'),'') ELSE v_profile.full_name END;
   IF v_name IS NULL OR btrim(v_name)='' THEN RAISE EXCEPTION 'Nama paparan Organizer diperlukan' USING ERRCODE='22023'; END IF;
-  v_type := array_to_string(v_types,', ');
+  v_type := v_types[1];
+  IF EXISTS (
+    SELECT 1 FROM unnest(v_types) t(value)
+    WHERE value NOT IN ('individual','club','academy','school','university','company','ngo','association','government','community','other')
+  ) THEN
+    RAISE EXCEPTION 'Jenis Organizer tidak sah' USING ERRCODE='22023';
+  END IF;
 
   SELECT id INTO v_id FROM public.organizers WHERE profile_id=v_uid FOR UPDATE;
   IF v_id IS NULL THEN
