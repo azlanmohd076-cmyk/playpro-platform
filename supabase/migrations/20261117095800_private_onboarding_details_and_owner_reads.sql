@@ -81,8 +81,7 @@ BEGIN
 
   RETURN jsonb_build_object('success',true,'club_id',v_club_id,'club_code',v_code,'slug',v_slug,'verification_status','pending');
 END;
-$function$
-
+$function$;
 
 CREATE OR REPLACE FUNCTION public.save_my_organizer_onboarding(p_payload jsonb)
  RETURNS jsonb
@@ -154,8 +153,7 @@ BEGIN
     'verification_status',(SELECT o.verification_status FROM public.organizers o WHERE o.id=v_id),
     'capability_ready',false);
 END;
-$function$
-
+$function$;
 
 CREATE OR REPLACE FUNCTION public.save_my_club_onboarding(p_payload jsonb)
  RETURNS jsonb
@@ -204,8 +202,7 @@ BEGIN
     'venue',v_venue
   );
 END;
-$function$
-
+$function$;
 
 CREATE OR REPLACE FUNCTION public.get_player_profile(p_player_id uuid)
  RETURNS jsonb
@@ -290,8 +287,7 @@ begin
   return jsonb_build_object('ok',true,'restricted',false,'player',v_public_player,
     'attributes',coalesce(v_attrs,'{}'::jsonb),'follow_status',coalesce(v_follow_status,'none'));
 end;
-$function$
-
+$function$;
 
 CREATE OR REPLACE FUNCTION public.get_my_club_onboarding_private_details(p_club_id uuid)
 RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO ''
